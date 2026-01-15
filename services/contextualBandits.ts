@@ -1,4 +1,3 @@
-import useTimerStore from '@/store/timerStore';
 import { EnergyLevel } from '@/types';
 import { createContextKey } from '@/utils/contextKey';
 import { roundToNearest5 } from '@/utils/time';
@@ -31,10 +30,9 @@ const BREAK_ACTIONS: Action[] = [5, 10, 15, 20];
  * - Otherwise, returns BASE_ACTIONS
  * Also merges any dynamic arms added at runtime.
  */
-export function getAvailableActions(): Action[] {
-  const { includeShortSessions, dynamicFocusArms } = useTimerStore.getState();
+export function getAvailableActions(includeShortSessions: boolean, dynamicFocusArms: number[] = []): Action[] {
   const base = includeShortSessions ? SHORT_ACTIONS : BASE_ACTIONS;
-  return Array.from(new Set([...base, ...(dynamicFocusArms || [])])).sort((a, b) => a - b);
+  return Array.from(new Set([...base, ...dynamicFocusArms])).sort((a, b) => a - b);
 }
 
 //storage key for the model
@@ -103,25 +101,15 @@ const sampleBeta = (alpha: number, beta: number): number => {
 };
 
 //get the best action for a given context using Thompson sampling
-export const getBestAction = async (context: Context, actions?: Action[]): Promise<Action> => {
+export const getBestAction = async (
+  context: Context,
+  actions: Action[],
+  includeShortSessions: boolean,
+  dynamicFocusArms: number[]
+): Promise<Action> => {
   const model = await loadModel();
   const contextKey = createContextKey(context);
-  const availableActions = actions ?? getAvailableActions();
-
-  //log context and table of all actions for this context
-  console.log(`\n=== Focus Session Recommendation ===`);
-  console.log(`Context: ${context.taskType} | ${context.energyLevel} | ${context.timeOfDay}`);
-  console.log('Action | Alpha | Beta | Mean | Observations');
-  console.log('------------------------------------------');
-  availableActions.forEach(action => {
-    const params = model[contextKey]?.[action];
-    if (!params) return;
-    const { alpha, beta } = params;
-    const mean = alpha / (alpha + beta);
-    const observations = alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA;
-    console.log(`${action.toString().padStart(5)} | ${alpha.toFixed(3).padStart(5)} | ${beta.toFixed(3).padStart(5)} | ${mean.toFixed(3).padStart(5)} | ${observations}`);
-  });
-  console.log('');
+  const availableActions = actions.length > 0 ? actions : getAvailableActions(includeShortSessions, dynamicFocusArms);
 
   //initialize context if missing
   if (!model[contextKey]) model[contextKey] = {};
@@ -151,15 +139,6 @@ export const getBestAction = async (context: Context, actions?: Action[]): Promi
     .filter(({ mean, observations }) => mean > 0.6 && observations > 0)
     .sort((a, b) => b.mean - a.mean);
 
-  if (successfulDurations.length > 0) {
-    console.log('\nSuccessful Durations:');
-    console.table(successfulDurations.map(d => ({
-      Duration: `${d.action}min`,
-      'Success Rate': d.mean.toFixed(3),
-      Observations: d.observations
-    })));
-  }
-
   //1. Early-phase: Random exploration for first few trials
   if (totalTries < 5 && Math.random() < 0.7) {
     //instead of pure random, use weighted random based on proximity to successful durations
@@ -187,8 +166,6 @@ export const getBestAction = async (context: Context, actions?: Action[]): Promi
         //calculate bonus based on distance (max 10 minutes difference)
         const distance = Math.abs(closestSuccess.action - action);
         if (distance <= 10) {
-          //higher bonus for closer durations, scaled by the success rate
-          //increased from 0.15 to 0.5 to make it more influential
           weight += (1 - distance / 10) * 0.5 * closestSuccess.mean;
         }
       }
@@ -212,14 +189,6 @@ export const getBestAction = async (context: Context, actions?: Action[]): Promi
         break;
       }
     }
-
-    console.log('\nEarly Phase: Weighted Random Selection');
-    console.table(availableActions.map((action, i) => ({
-      Duration: `${action}min`,
-      Weight: normalizedWeights[i].toFixed(3),
-      'Base Weight': '1.000',
-      'Proximity Bonus': (normalizedWeights[i] - 1/availableActions.length).toFixed(3)
-    })));
 
     return selectedAction;
   }
@@ -245,8 +214,6 @@ export const getBestAction = async (context: Context, actions?: Action[]): Promi
       //calculate bonus based on distance (max 10 minutes difference)
       const distance = Math.abs(closestSuccess.action - action);
       if (distance <= 10) {
-        //higher bonus for closer durations, scaled by the success rate
-        //increased from 0.15 to 0.5 to make it more influential
         proximityBonus = (1 - distance / 10) * 0.5 * closestSuccess.mean;
       }
     }
@@ -272,7 +239,6 @@ export const getBestAction = async (context: Context, actions?: Action[]): Promi
 
   //3. Apply exploration decay with a lower rate
   const explorationRate = Math.pow(EXPLORATION_DECAY, totalTries);
-  console.log(`\nExploration Rate: ${explorationRate.toFixed(3)}`);
 
   if (Math.random() < explorationRate) {
     //Explore: Prefer high-variance actions or higher durations with some success
@@ -287,17 +253,6 @@ export const getBestAction = async (context: Context, actions?: Action[]): Promi
       //otherwise prefer high variance
       return b.variance - a.variance;
     });
-    console.log('\nExploration Phase:');
-    console.table(samples.slice(0, 3).map(s => ({
-      Duration: `${s.action}min`,
-      'Success Rate': s.mean.toFixed(3),
-      Variance: s.variance.toFixed(3),
-      Observations: s.observations,
-      'Proximity Bonus': s.proximityBonus.toFixed(3),
-      'Closest Success': s.closestSuccess,
-      'Duration Bonus': s.durationBonus.toFixed(3),
-      'No Data Penalty': s.noDataPenalty.toFixed(3)
-    })));
     return samples[0].action;
   }
 
@@ -317,18 +272,6 @@ export const getBestAction = async (context: Context, actions?: Action[]): Promi
     return b.mean - a.mean;
   });
 
-  console.log('\nExploitation Phase:');
-  console.table(samples.slice(0, 3).map(s => ({
-    Duration: `${s.action}min`,
-    'Success Rate': s.mean.toFixed(3),
-    Observations: s.observations,
-    'Proximity Bonus': s.proximityBonus.toFixed(3),
-    'Closest Success': s.closestSuccess,
-    'Duration Bonus': s.durationBonus.toFixed(3),
-    'No Data Penalty': s.noDataPenalty.toFixed(3)
-  })));
-
-  console.log('\n===============================\n');
   return samples[0].action;
 };
 
@@ -361,16 +304,14 @@ export const updateModel = async (
 //combine heuristic and learned preferences
 export const getSmartRecommendation = async (
   context: Context,
-  baseRecommendation: number
+  baseRecommendation: number,
+  includeShortSessions: boolean,
+  dynamicFocusArms: number[]
 ): Promise<{ value: number; source: 'heuristic' | 'learned' | 'blended' }> => {
   try {
-    console.log(`\n=== Focus Session Recommendation ===`);
-    console.log(`Context: ${context.taskType} | ${context.energyLevel} | ${context.timeOfDay}`);
-
-    const { includeShortSessions } = useTimerStore.getState();
     const availableActions = includeShortSessions ? SHORT_ACTIONS : BASE_ACTIONS;
     
-    const learned = await getBestAction(context, availableActions);
+    const learned = await getBestAction(context, availableActions, includeShortSessions, dynamicFocusArms);
     const model = await loadModel();
     const key = createContextKey(context);
     const params = model[key]?.[learned];
@@ -428,9 +369,6 @@ export const getSmartRecommendation = async (
         ? Math.min(value, Math.max(...SHORT_ACTIONS))
         : value;
 
-      console.log(`Base: ${baseRecommendation}min | Learned: ${learned}min | Final: ${finalValue}min (${source})`);
-      console.log(`Success Rate: ${mean.toFixed(3)} | Confidence: ${confidence.toFixed(2)} | Observations: ${totalObs}`);
-
       return { value: finalValue, source };
     }
 
@@ -438,7 +376,6 @@ export const getSmartRecommendation = async (
     return { value: finalValue, source: 'heuristic' };
   } catch (err) {
     console.error('Error in getSmartRecommendation:', err);
-    const { includeShortSessions } = useTimerStore.getState();
     const finalValue = includeShortSessions ? Math.min(baseRecommendation, Math.max(...SHORT_ACTIONS)) : baseRecommendation;
     return { value: finalValue, source: 'heuristic' };
   }
@@ -447,18 +384,15 @@ export const getSmartRecommendation = async (
 //break recommendation via separate context
 export const getSmartBreakRecommendation = async (
   context: Context,
-  baseBreak: number
+  baseBreak: number,
+  includeShortSessions: boolean
 ): Promise<{ value: number; source: 'heuristic' | 'learned' | 'blended' }> => {
-  const { includeShortSessions } = useTimerStore.getState();
-  const availableBreaks = includeShortSessions ? [5] : BREAK_ACTIONS; // Only 5 min breaks in ADHD mode
+  const availableBreaks = includeShortSessions ? [5] : BREAK_ACTIONS;
   const breakTask = context.taskType.replace(/-break(-break)+$/, '-break');
   const breakCtx: Context = {
     ...context,
     taskType: breakTask.endsWith('-break') ? breakTask : `${breakTask}-break`,
   };
-
-  console.log(`\n=== Break Session Recommendation ===`);
-  console.log(`Context: ${breakCtx.taskType} | ${breakCtx.energyLevel} | ${breakCtx.timeOfDay}`);
 
   const model = await loadModel();
   const key = createContextKey(breakCtx);
@@ -524,7 +458,6 @@ export const getSmartBreakRecommendation = async (
       }
     }
 
-    console.log(`Base: ${baseBreak}min | Selected: ${selectedAction}min (exploring)`);
     return { value: selectedAction, source: 'learned' };
   }
 
@@ -567,7 +500,6 @@ export const getSmartBreakRecommendation = async (
       }
       return b.variance - a.variance;
     });
-    console.log(`Base: ${baseBreak}min | Selected: ${samples[0].action}min (exploring)`);
     return { value: samples[0].action, source: 'learned' };
   }
 
@@ -612,13 +544,9 @@ export const getSmartBreakRecommendation = async (
         ? 'learned'
         : 'blended';
 
-    console.log(`Base: ${baseBreak}min | Learned: ${best}min | Final: ${value}min (${source})`);
-    console.log(`Success Rate: ${mean.toFixed(3)} | Confidence: ${confidence.toFixed(2)} | Observations: ${totalObs}`);
-
     return { value, source };
   }
 
-  console.log(`Base: ${baseBreak}min | Using base recommendation`);
   return { value: baseBreak, source: 'heuristic' };
 };
 
@@ -632,7 +560,6 @@ export const cleanBreakContextKeys = async () => {
     for (const contextKey in model) {
       //skip if not a "dirty" break key
       if (contextKey.includes('-break-break')) {
-        console.log(`[Cleanup] Removing dirty context key: ${contextKey}`);
         continue;
       }
 
@@ -642,7 +569,6 @@ export const cleanBreakContextKeys = async () => {
 
     //save the cleaned model back
     await saveModel(cleanedModel);
-    console.log('[Cleanup] Break context cleanup complete.');
   } catch (err) {
     console.error('[Cleanup] Failed to clean model:', err);
   }

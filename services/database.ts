@@ -1,6 +1,5 @@
 import * as SQLite from 'expo-sqlite';
 
-//define the Session type based on our database schema
 export interface DBSession {
   id?: number;
   taskType: string;
@@ -17,46 +16,56 @@ export interface DBSession {
   date: string;
   createdAt: string;
   skipReason?: 'skippedFocus' | 'skippedBreak' | 'none';
-
 }
 
-//open the database
 const db = SQLite.openDatabaseSync('smart_focus_timer.db');
 
-//initialise the database
+let dbInitialized = false;
+let initPromise: Promise<void> | null = null;
+
 export const initDatabase = async (): Promise<void> => {
-  try {
+  if (dbInitialized) return;
+  if (initPromise) return initPromise;
 
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS sessions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        taskType TEXT NOT NULL,
-        energyLevel TEXT NOT NULL,
-        timeOfDay TEXT NOT NULL,
-        recommendedDuration INTEGER NOT NULL,
-        recommendedBreak INTEGER NOT NULL,
-        userSelectedDuration INTEGER NOT NULL,
-        userSelectedBreak INTEGER NOT NULL,
-        acceptedRecommendation INTEGER NOT NULL,
-        sessionCompleted INTEGER NOT NULL,
-        focusedUntilSkipped INTEGER NOT NULL,
-        reward REAL NOT NULL,
-        date TEXT NOT NULL,
-        createdAt TEXT NOT NULL,
-        skipReason TEXT DEFAULT 'none'
-      )
-    `);
+  initPromise = (async () => {
+    try {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS sessions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          taskType TEXT NOT NULL,
+          energyLevel TEXT NOT NULL,
+          timeOfDay TEXT NOT NULL,
+          recommendedDuration INTEGER NOT NULL,
+          recommendedBreak INTEGER NOT NULL,
+          userSelectedDuration INTEGER NOT NULL,
+          userSelectedBreak INTEGER NOT NULL,
+          acceptedRecommendation INTEGER NOT NULL,
+          sessionCompleted INTEGER NOT NULL,
+          focusedUntilSkipped INTEGER NOT NULL,
+          reward REAL NOT NULL,
+          date TEXT NOT NULL,
+          createdAt TEXT NOT NULL,
+          skipReason TEXT DEFAULT 'none'
+        )
+      `);
+      dbInitialized = true;
+    } catch (error) {
+      console.error("Error initializing database:", error);
+      throw error;
+    }
+  })();
 
-    console.log("Database initialized with updated schema");
-  } catch (error) {
-    console.error("Error initializing database:", error);
-    throw error;
+  return initPromise;
+};
+
+export const ensureDbInitialized = async (): Promise<void> => {
+  if (!dbInitialized) {
+    await initDatabase();
   }
 };
 
-
-//insert a new session
 export const insertSession = async (session: Omit<DBSession, 'id'>): Promise<number> => {
+  await ensureDbInitialized();
   try {
     const result = await db.runAsync(
       `INSERT INTO sessions (
@@ -88,8 +97,8 @@ export const insertSession = async (session: Omit<DBSession, 'id'>): Promise<num
   }
 };
 
-//get all sessions
 export const getAllSessions = async (): Promise<DBSession[]> => {
+  await ensureDbInitialized();
   try {
     const result = await db.getAllAsync<any>(`SELECT * FROM sessions ORDER BY createdAt DESC`);
     return result.map(row => ({
@@ -103,8 +112,8 @@ export const getAllSessions = async (): Promise<DBSession[]> => {
   }
 };
 
-//get sessions by date range
 export const getSessionsByDateRange = async (startDate: string, endDate: string): Promise<DBSession[]> => {
+  await ensureDbInitialized();
   try {
     const result = await db.getAllAsync<any>(
       `SELECT * FROM sessions WHERE date >= ? AND date <= ? ORDER BY createdAt DESC`,
@@ -121,8 +130,8 @@ export const getSessionsByDateRange = async (startDate: string, endDate: string)
   }
 };
 
-//get sessions by date
 export const getSessionsByDate = async (date: string): Promise<DBSession[]> => {
+  await ensureDbInitialized();
   try {
     const result = await db.getAllAsync<any>(
       `SELECT * FROM sessions WHERE date = ? ORDER BY createdAt DESC`,
@@ -139,8 +148,8 @@ export const getSessionsByDate = async (date: string): Promise<DBSession[]> => {
   }
 };
 
-//delete all sessions
 export const deleteAllSessions = async (): Promise<void> => {
+  await ensureDbInitialized();
   try {
     await db.execAsync(`DELETE FROM sessions`);
   } catch (error) {
@@ -149,8 +158,8 @@ export const deleteAllSessions = async (): Promise<void> => {
   }
 };
 
-//get session count
 export const getSessionCount = async (): Promise<number> => {
+  await ensureDbInitialized();
   try {
     const result = await db.getFirstAsync<{count: number}>(`SELECT COUNT(*) as count FROM sessions`);
     return result?.count || 0;

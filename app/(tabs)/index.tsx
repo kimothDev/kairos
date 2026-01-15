@@ -5,8 +5,6 @@ import RecommendationCard from '@/components/RecommendationCard';
 import SkipConfirmModal from '@/components/SkipConfirmModal';
 import TaskSelector from '@/components/TaskSelector';
 import Colors from '@/constants/colors';
-import { debugModel } from '@/services/contextualBandits';
-import { getAllSessions } from '@/services/database';
 import useTimerStore, { loadDynamicFocusArms } from '@/store/timerStore';
 import * as Notifications from 'expo-notifications';
 import React, { useEffect, useRef } from 'react';
@@ -25,30 +23,9 @@ export default function TimerScreen() {
   const { energyLevel, taskType, hasInteractedWithTimer, 
     userAcceptedRecommendation, hasDismissedRecommendationCard } = useTimerStore();
 
-
-    if (__DEV__) {
-      useEffect(() => {
-        const fetchData = async () => {
-          const sessions = await getAllSessions();
-          console.log("Sessions:", JSON.stringify(sessions, null, 2));
-        };
-        fetchData();
-      }, []);
-    }
-    useEffect(() => {
-      if (__DEV__) {
-        console.log(debugModel());
-      }
-    }, []);
-    
-    // useEffect(() => {          //only for one time for,
-    //   cleanBreakContextKeys(); //removes old stacked keys like -break-break
-    // }, []);
-
-    const store = useTimerStore();
-    useEffect(() => {
+  useEffect(() => {
     loadDynamicFocusArms();
-    }, []);
+  }, []);
 
     useEffect(() => {
       (async () => {
@@ -88,19 +65,15 @@ export default function TimerScreen() {
 
     const handleSkipConfirm = async (confirmed: boolean) => {
       if (confirmed) {
-        await useTimerStore.getState().skipFocusSession();
+        const { isBreakTime } = useTimerStore.getState();
+        await useTimerStore.getState().skipFocusSession(isBreakTime);
       } else {
         useTimerStore.getState().toggleSkipConfirm(false);
       }
     };
 
-
-    //helper functions to confirm or cancel skip
-    const confirmSkip = () => handleSkipConfirm(true);  //user confirms skip
-    const cancelSkip = () => handleSkipConfirm(false);  //user cancels skip
-
-
-      
+    const confirmSkip = () => handleSkipConfirm(true);
+    const cancelSkip = () => handleSkipConfirm(false);
     return (
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>

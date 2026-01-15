@@ -47,7 +47,7 @@ const taskAdjustments: Record<string, number> = {
 };
 
 //reward calculation constants
-const REWARD_CONSTANTS = {
+export const REWARD_CONSTANTS = {
   RECOMMENDATION_BONUS: 0.15,
   SKIPPED_FOCUS_BASE: 0.4,
   SKIPPED_BREAK_BASE: 0.3,
