@@ -145,23 +145,32 @@ export default function CircularTimer() {
                   <ChevronUp size={60} color={Colors.secondary} />
                 </TouchableOpacity>
               )}
-              <TouchableOpacity
-                onPress={() => {
-                  if (!isActive) {
+              {!isActive ? (
+                <TouchableOpacity
+                  onPress={() => {
                     const store = useTimerStore.getState();
               
                     // if time adjustment is already showing → hide it
                     if (store.showTimeAdjust) {
                       useTimerStore.setState({ showTimeAdjust: false });
                     } else {
-                      store.setHasInteractedWithTimer(true);
+                      // Show the time adjustment options
+                      useTimerStore.setState({ 
+                        showTimeAdjust: true,
+                        userAcceptedRecommendation: false,
+                        hasInteractedWithTimer: true 
+                      });
                     }
-                  }
-                }}
-                style={styles.timeTextContainer}
-              >
-                <Text style={styles.timeText}>{display}</Text>
-              </TouchableOpacity>
+                  }}
+                  style={styles.timeTextContainer}
+                >
+                  <Text style={styles.timeText}>{display}</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.timeTextContainer}>
+                  <Text style={styles.timeText}>{display}</Text>
+                </View>
+              )}
 
               {!isActive && showTimeAdjust && (
                 <TouchableOpacity

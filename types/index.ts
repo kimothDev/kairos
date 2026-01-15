@@ -48,7 +48,7 @@ export interface TimerState {
   focusSessionDuration: number;
   originalFocusDuration: number;
   hasSavedSession: boolean;
-  
+  sessionJustCompleted: boolean;  // Flag to skip validation after session ends
 
   //recommendation fields
   recommendedFocusDuration: number;
@@ -85,7 +85,7 @@ export interface TimerState {
   toggleIncludeShortSessions: () => void;
   addDynamicFocusArm: (duration: number) => void;
   toggleNotificationsEnabled: () => void; 
-  skipFocusSession: () => Promise<void>;
+  skipFocusSession: (isSkippingBreak?: boolean) => Promise<void>;
   setHasSavedSession: (val: boolean) => void;
   getLiveTime: () => number;
 }

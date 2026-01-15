@@ -7,12 +7,16 @@ import { FocusRecommendation, getRecommendations, TimeOfDay } from './recommenda
  * rule-based logic with personalized learning using contextual bandits.
  *
  * @param context - Includes taskType, energyLevel, timeOfDay
+ * @param includeShortSessions - Whether ADHD mode is enabled
+ * @param dynamicFocusArms - Custom focus durations added by user
  * @returns { focusDuration, breakDuration } both in minutes
  */
 export const getSessionRecommendation = async (
   energyLevel: EnergyLevel,
   timeOfDay: TimeOfDay,
-  taskType?: string
+  taskType: string,
+  includeShortSessions: boolean,
+  dynamicFocusArms: number[]
 ): Promise<FocusRecommendation> => {
   //get base recommendation from rule-based system
   const baseRecommendation = await getRecommendations(energyLevel, timeOfDay, taskType);
@@ -20,11 +24,14 @@ export const getSessionRecommendation = async (
   //get smart recommendation from contextual bandits
   const smartFocus = await getSmartRecommendation(
     { energyLevel, timeOfDay, taskType: taskType || 'default' },
-    baseRecommendation.focusDuration
+    baseRecommendation.focusDuration,
+    includeShortSessions,
+    dynamicFocusArms
   );
   const smartBreak = await getSmartBreakRecommendation(
     { energyLevel, timeOfDay, taskType: taskType || 'default' },
-    baseRecommendation.breakDuration
+    baseRecommendation.breakDuration,
+    includeShortSessions
   );
 
   return {

@@ -87,8 +87,11 @@ export const resetTimerState = (set: any) => {
     hasInteractedWithTimer: false,
     showSkipConfirm: false,
     showSkip: false,
+    showBreakModal: false,
     time: DEFAULT_FOCUS_TIME,
-    originalFocusDuration: 0,
+    sessionStartTimestamp: undefined,
+    // NOTE: We do NOT clear originalFocusDuration here
+    // because it may be needed when the break ends to create the session record
   });
 };
 
@@ -96,13 +99,17 @@ export const updateRecommendations = async (
   energyLevel: EnergyLevel,
   timeOfDay: TimeOfDay,
   taskType: string,
-  set: any
+  set: any,
+  includeShortSessions: boolean,
+  dynamicFocusArms: number[]
 ) => {
   try {
     const { focusDuration, breakDuration } = await getSessionRecommendation(
       energyLevel,
       timeOfDay,
-      taskType
+      taskType,
+      includeShortSessions,
+      dynamicFocusArms
     );
     set({
       recommendedFocusDuration: focusDuration,
