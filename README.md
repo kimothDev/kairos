@@ -37,7 +37,7 @@ SmartFocusTimer is a Pomodoro-style productivity app built with React Native tha
   ```
 - Run on Android
   ```bash
-  npx react-native run-android
+  npx expo run:android
   ```
   Make sure you have Android Studio and an emulator or device connected.
   
