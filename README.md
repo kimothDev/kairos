@@ -68,6 +68,15 @@ These tradeoffs shaped both the ML logic and the app UX.
 
 ---
 
+## ⚠️ Known Limitations
+
+- **Background notifications are not fully implemented yet.**
+Session completion notifications only trigger while the app is active in the foreground. If the app is backgrounded or closed, the notification will not fire.
+
+- This is a **platform / lifecycle constraint** in the current React Native setup and is planned to be addressed with proper background task handling in a future iteration.
+
+---
+
 ## 🧩 Tech Stack & Architecture
 
 - **Frontend:** React Native Bare Workflow (Expo Ejected)
