@@ -3,10 +3,11 @@
 # ============================================
 
 # -------------------------------
-# Documentation (Local Only)
+# Documentation and Scripts (Local Only)
 # -------------------------------
 mdFiles/
 AGENTS.md
+scripts/
 
 
 # -------------------------------
