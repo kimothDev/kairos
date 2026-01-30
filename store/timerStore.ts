@@ -16,7 +16,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 
 const DYNAMIC_ARMS_KEY = 'dynamic_focus_arms';
-const SPEED_FACTOR = 50;
+const SPEED_FACTOR = 1;
 
 
 interface TimerStoreState extends TimerState { }
