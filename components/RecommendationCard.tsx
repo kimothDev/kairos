@@ -9,8 +9,8 @@ const safeNum = (x: any): number => {
 };
 
 export default function RecommendationModal() {
-  const { 
-    recommendedFocusDuration, 
+  const {
+    recommendedFocusDuration,
     recommendedBreakDuration,
     userAcceptedRecommendation,
     timeOfDay,
@@ -20,14 +20,20 @@ export default function RecommendationModal() {
     rejectRecommendation,
     toggleTimeAdjust,
     setHasDismissedRecommendationCard,
-    hasDismissedRecommendationCard
+    hasDismissedRecommendationCard,
+    hasInteractedWithTimer
   } = useTimerStore();
-  
+
   const focus = safeNum(recommendedFocusDuration);
   const breakDur = safeNum(recommendedBreakDuration);
 
   //don't show if user hasn't selected energy level or task type yet
   if (!energyLevel || !taskType) {
+    return null;
+  }
+
+  //don't show if user hasn't interacted with the timer (clicked to customize)
+  if (!hasInteractedWithTimer) {
     return null;
   }
 
@@ -47,13 +53,13 @@ export default function RecommendationModal() {
           <Zap size={20} color={Colors.primary} />
           <Text style={styles.title}>Smart Recommendation</Text>
         </View>
-        
+
         <Text style={styles.description}>
-          Based on your <Text style={styles.highlight}>{taskType}</Text> task, 
-          <Text style={styles.highlight}> {energyLevel} energy</Text> and 
+          Based on your <Text style={styles.highlight}>{taskType}</Text> task,
+          <Text style={styles.highlight}> {energyLevel} energy</Text> and
           the <Text style={styles.highlight}> {formatTimeOfDay(timeOfDay)}</Text> time:
         </Text>
-        
+
         <View style={styles.recommendationRow}>
           <View style={styles.recommendationItem}>
             <Text style={styles.recommendationLabel}>Focus</Text>
@@ -64,9 +70,9 @@ export default function RecommendationModal() {
             <Text style={styles.recommendationValue}>{breakDur} min</Text>
           </View>
         </View>
-        
+
         <View style={styles.actionButtons}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.actionButton, styles.rejectButton]}
             onPress={() => {
               rejectRecommendation();
@@ -77,8 +83,8 @@ export default function RecommendationModal() {
             <ThumbsDown size={16} color={Colors.text.secondary} />
             <Text style={styles.rejectButtonText}>Customise</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={[styles.actionButton, styles.acceptButton]}
             onPress={() => {
               acceptRecommendation();
@@ -169,9 +175,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 6,
     flex: 1,
   },
   acceptButton: {
@@ -185,13 +191,13 @@ const styles = StyleSheet.create({
   acceptButtonText: {
     color: Colors.card,
     fontWeight: '600',
-    marginLeft: 6,
-    fontSize: 15,
+    marginLeft: 5,
+    fontSize: 13,
   },
   rejectButtonText: {
     color: Colors.text.secondary,
     fontWeight: '600',
-    marginLeft: 6,
-    fontSize: 15,
+    marginLeft: 5,
+    fontSize: 13,
   },
 });

@@ -44,7 +44,7 @@ export default function CircularTimer() {
       timerStore.restoreTimerState();
       forceRender();
     }, 1000);
-  
+
     return () => clearInterval(interval);
   }, []);
 
@@ -77,7 +77,7 @@ export default function CircularTimer() {
       .padStart(2, '0');
     return `${m}:${s}`;
   };
-  
+
 
   const handleStartPause = () => {
     startTimer();
@@ -146,7 +146,7 @@ export default function CircularTimer() {
                   <ChevronUp size={60} color={Colors.secondary} />
                 </TouchableOpacity>
               )}
-              {( (!isActive && !userAcceptedRecommendation) || showTimeAdjust ) ? (
+              {((!isActive && !userAcceptedRecommendation) || showTimeAdjust) ? (
                 <TouchableOpacity
                   onPress={() => {
                     const store = useTimerStore.getState();
@@ -182,10 +182,7 @@ export default function CircularTimer() {
 
             {(!isActive && !showTimeAdjust) ? (
               <TouchableOpacity
-                onPress={() => {
-                  useTimerStore.getState().setHasInteractedWithTimer(true);
-                  handleStartPause();
-                }}
+                onPress={handleStartPause}
                 style={styles.startPauseButton}
               >
                 <Play size={32} color={Colors.secondary} />
@@ -268,7 +265,7 @@ const styles = StyleSheet.create({
   },
   timeAdjustButton: {
     padding: 4,
-    marginVertical: -10, 
+    marginVertical: -10,
   },
   cancelButton: {
     backgroundColor: Colors.card,

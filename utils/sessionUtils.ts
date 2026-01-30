@@ -1,4 +1,3 @@
-import { DEFAULT_FOCUS_TIME } from '@/constants/timer';
 import { Context, debugModel, loadModel, updateModel } from '@/services/contextualBandits';
 import { insertSession } from '@/services/database';
 import { calculateReward, TimeOfDay } from '@/services/recommendations';
@@ -85,13 +84,14 @@ export const resetTimerState = (set: any) => {
     energyLevel: undefined,
     userAcceptedRecommendation: false,
     hasInteractedWithTimer: false,
+    hasDismissedRecommendationCard: false,
     showSkipConfirm: false,
     showSkip: false,
     showBreakModal: false,
-    time: DEFAULT_FOCUS_TIME,
+    showTimeAdjust: false,
+    time: 0,
+    initialTime: 0,
     sessionStartTimestamp: undefined,
-    // NOTE: We do NOT clear originalFocusDuration here
-    // because it may be needed when the break ends to create the session record
   });
 };
 

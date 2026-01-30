@@ -157,11 +157,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.card,
     padding: 20,
     borderRadius: 16,
-    width: '90%',
+    width: '85%',
+    maxWidth: 400,
     maxHeight: screenHeight * 0.7,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 20,
@@ -182,7 +188,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginVertical: 4,
     borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Colors.background,
   },
   taskItemText: {
     fontSize: 16,
@@ -197,10 +203,12 @@ const styles = StyleSheet.create({
   taskInput: {
     flex: 1,
     padding: 12,
-    borderColor: '#ccc',
+    borderColor: Colors.border,
     borderWidth: 1,
     borderRadius: 8,
     marginRight: 8,
+    color: Colors.text.primary,
+    backgroundColor: Colors.background,
   },
   addButton: {
     backgroundColor: Colors.primary,
@@ -232,7 +240,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginVertical: 4,
     borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Colors.background,
     paddingHorizontal: 12,
   },
   deleteIcon: {

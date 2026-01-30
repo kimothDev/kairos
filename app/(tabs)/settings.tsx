@@ -1,9 +1,9 @@
 import Colors from '@/constants/colors';
 import { exportSessionsToCSV, importSessionsFromCSV } from '@/services/dataExport';
 import useTimerStore from '@/store/timerStore';
-import { Bell, Brain, Download, Github, Info, Trash2, Upload } from 'lucide-react-native';
+import { Battery, Bell, Brain, Download, Github, Info, Trash2, Upload } from 'lucide-react-native';
 import React from 'react';
-import { ActivityIndicator, Alert, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
   const { sessions, isLoading, clearAllSessions } = useTimerStore();
@@ -11,7 +11,24 @@ export default function SettingsScreen() {
   const toggleShort = useTimerStore(s => s.toggleIncludeShortSessions);
   const notificationsEnabled = useTimerStore(s => s.notificationsEnabled);
   const toggleNotifications = useTimerStore(s => s.toggleNotificationsEnabled);
-  
+
+  const openBatterySettings = async () => {
+    if (Platform.OS === 'android') {
+      // Show alert with instructions, then open app settings
+      Alert.alert(
+        'Disable Battery Optimization',
+        'To ensure notifications work when the app is in background:\n\n1. Tap "Open Settings" below\n2. Select "Battery"\n3. Choose "Unrestricted"',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Open Settings',
+            onPress: () => Linking.openSettings()
+          }
+        ]
+      );
+    }
+  };
+
   const clearAllData = () => {
     Alert.alert(
       "Clear All Data",
@@ -21,8 +38,8 @@ export default function SettingsScreen() {
           text: "Cancel",
           style: "cancel"
         },
-        { 
-          text: "Clear", 
+        {
+          text: "Clear",
           onPress: () => clearAllSessions(),
           style: "destructive"
         }
@@ -54,16 +71,16 @@ export default function SettingsScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Settings</Text>
         </View>
-        
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>App</Text>
-          
+
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Bell size={20} color={Colors.text.primary} />
               <Text style={styles.settingText}>Notifications</Text>
             </View>
-            <Switch 
+            <Switch
               trackColor={{ false: Colors.inactive, true: Colors.primary }}
               thumbColor={Colors.card}
               ios_backgroundColor={Colors.inactive}
@@ -71,6 +88,18 @@ export default function SettingsScreen() {
               onValueChange={toggleNotifications}
             />
           </View>
+
+          {Platform.OS === 'android' && notificationsEnabled && (
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={openBatterySettings}
+            >
+              <View style={styles.settingInfo}>
+                <Battery size={20} color={Colors.text.primary} />
+                <Text style={[styles.settingText, { color: Colors.text.primary }]}>Disable Battery Optimization</Text>
+              </View>
+            </TouchableOpacity>
+          )}
 
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
@@ -85,11 +114,11 @@ export default function SettingsScreen() {
             />
           </View>
         </View>
-        
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Data</Text>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.settingItem}
             onPress={clearAllData}
             disabled={isLoading}
@@ -100,7 +129,7 @@ export default function SettingsScreen() {
             </View>
             {isLoading && <ActivityIndicator size="small" color={Colors.primary} />}
           </TouchableOpacity>
-          
+
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Info size={20} color={Colors.text.primary} />
@@ -112,9 +141,9 @@ export default function SettingsScreen() {
               <Text style={styles.settingValue}>{sessions.length}</Text>
             )}
           </View>
-          
+
           <View style={styles.settingItem}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.settingInfo}
               onPress={handleExport}
             >
@@ -122,9 +151,9 @@ export default function SettingsScreen() {
               <Text style={styles.settingText}>Export session data</Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.settingItem}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.settingInfo}
               onPress={handleImport}
             >
@@ -133,10 +162,10 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
         </View>
-        
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
-          
+
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Github size={20} color={Colors.text.primary} />
@@ -199,5 +228,10 @@ const styles = StyleSheet.create({
   settingValue: {
     fontSize: 16,
     color: Colors.text.secondary,
+  },
+  settingHint: {
+    fontSize: 12,
+    color: Colors.text.light,
+    marginTop: 2,
   },
 });

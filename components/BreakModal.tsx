@@ -5,9 +5,9 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function BreakModal() {
-  const { 
-    showBreakModal, 
-    startBreak, 
+  const {
+    showBreakModal,
+    startBreak,
     recommendedBreakDuration,
     includeShortSessions
   } = useTimerStore();
@@ -61,7 +61,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.card,
     borderRadius: 16,
     width: '85%',
+    maxWidth: 400,
     padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 24,

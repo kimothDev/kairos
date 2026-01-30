@@ -43,12 +43,13 @@ export interface TimerState {
   hasDismissedRecommendationCard: boolean;
   sessionStartTimestamp?: number;
   includeShortSessions: boolean;
-  dynamicFocusArms: number[]; 
+  dynamicFocusArms: number[];
   notificationsEnabled: boolean;
   focusSessionDuration: number;
   originalFocusDuration: number;
   hasSavedSession: boolean;
   sessionJustCompleted: boolean;  // Flag to skip validation after session ends
+  scheduledNotificationId: string | null;  // ID of scheduled notification for background delivery
 
   //recommendation fields
   recommendedFocusDuration: number;
@@ -56,11 +57,11 @@ export interface TimerState {
   userAcceptedRecommendation: boolean;
   selectedBreakDuration: number;
   timeOfDay: TimeOfDay;
-  
+
   //actions
-  startTimer: () => void;
+  startTimer: () => Promise<void> | void;
   pauseTimer: () => void;
-  cancelTimer: () => void;
+  cancelTimer: () => Promise<void> | void;
   skipTimer: () => void;
   completeTimer: () => void;
   adjustTime: (direction: 'up' | 'down') => void;
@@ -84,7 +85,7 @@ export interface TimerState {
   restoreTimerState: () => void;
   toggleIncludeShortSessions: () => void;
   addDynamicFocusArm: (duration: number) => void;
-  toggleNotificationsEnabled: () => void; 
+  toggleNotificationsEnabled: () => void;
   skipFocusSession: (isSkippingBreak?: boolean) => Promise<void>;
   setHasSavedSession: (val: boolean) => void;
   getLiveTime: () => number;

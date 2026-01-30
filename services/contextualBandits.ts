@@ -14,7 +14,7 @@ export interface Context {
 //define the action type (focus duration in minutes)
 export type Action = number;
 
-//core focus-session actions (15–60 min in 5-min steps)
+//core focus-session actions (20–60 min in 5-min steps)
 const BASE_ACTIONS: Action[] = [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70];
 
 //ADHD/short-session mode actions (10–30 min in 5-min steps)
@@ -115,9 +115,9 @@ export const getBestAction = async (
   if (!model[contextKey]) model[contextKey] = {};
 
   //track total tries in this context for exploration decay
-  const totalTries = Object.values(model[contextKey]).reduce((sum, {alpha, beta}) => 
+  const totalTries = Object.values(model[contextKey]).reduce((sum, { alpha, beta }) =>
     sum + alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA, 0);
-  
+
   //ensure all actions exist with default params
   let needsSave = false;
   availableActions.forEach(action => {
@@ -144,7 +144,7 @@ export const getBestAction = async (
     //instead of pure random, use weighted random based on proximity to successful durations
     const weights = availableActions.map(action => {
       let weight = 1.0; // Base weight
-      
+
       //find successful durations (mean > 0.6) with observations
       const successfulDurations = availableActions
         .map(a => {
@@ -169,7 +169,7 @@ export const getBestAction = async (
           weight += (1 - distance / 10) * 0.5 * closestSuccess.mean;
         }
       }
-      
+
       return weight;
     });
 
@@ -199,7 +199,7 @@ export const getBestAction = async (
     const mean = alpha / (alpha + beta);
     const variance = (alpha * beta) / (Math.pow(alpha + beta, 2) * (alpha + beta + 1));
     const observations = alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA;
-    
+
     //calculate proximity bonus based on successful durations
     let proximityBonus = 0;
     let closestSuccess = null;
@@ -217,14 +217,14 @@ export const getBestAction = async (
         proximityBonus = (1 - distance / 10) * 0.5 * closestSuccess.mean;
       }
     }
-    
+
     //add a small bonus for higher durations if they have any success
     const durationBonus = action > 25 && mean > 0.5 ? 0.1 : 0;
-    
+
     //add a penalty for durations with no observations
     const noDataPenalty = observations === 0 ? -0.2 : 0;
-    
-    return { 
+
+    return {
       action,
       value: sampleBeta(alpha, beta) + durationBonus + noDataPenalty + proximityBonus,
       mean,
@@ -263,12 +263,12 @@ export const getBestAction = async (
     if (a.observations === 0 && b.observations === 0) return 0;
     if (a.observations === 0) return 1;
     if (b.observations === 0) return -1;
-    
+
     //then prioritize high success rates
     if (a.mean > 0.6 && b.mean > 0.6) {
       return b.action - a.action;
     }
-    
+
     return b.mean - a.mean;
   });
 
@@ -281,7 +281,14 @@ export const updateModel = async (
   action: Action,
   reward: number
 ): Promise<void> => {
-  if (reward === 0 || isNaN(reward)) return;
+  console.log(`\n=== Model Update ===`);
+  console.log(`Context: ${context.taskType} | ${context.energyLevel} | ${context.timeOfDay}`);
+  console.log(`Action: ${action}min, Reward: ${reward}`);
+
+  if (reward === 0 || isNaN(reward)) {
+    console.log(`Skipping update: reward is 0 or NaN`);
+    return;
+  }
 
   const model = await loadModel();
   const contextKey = createContextKey(context);
@@ -292,11 +299,18 @@ export const updateModel = async (
     beta: DEFAULT_BETA,
   };
 
+  const oldAlpha = model[contextKey][action].alpha;
+  const oldBeta = model[contextKey][action].beta;
+
   const successWeight = reward;
   const failureWeight = 1 - reward;
 
   model[contextKey][action].alpha += successWeight;
   model[contextKey][action].beta += failureWeight;
+
+  console.log(`Updated ${action}min: alpha ${oldAlpha.toFixed(2)} -> ${model[contextKey][action].alpha.toFixed(2)}, beta ${oldBeta.toFixed(2)} -> ${model[contextKey][action].beta.toFixed(2)}`);
+  console.log(`New mean: ${(model[contextKey][action].alpha / (model[contextKey][action].alpha + model[contextKey][action].beta)).toFixed(3)}`);
+  console.log(`===================\n`);
 
   await saveModel(model);
 };
@@ -310,24 +324,44 @@ export const getSmartRecommendation = async (
 ): Promise<{ value: number; source: 'heuristic' | 'learned' | 'blended' }> => {
   try {
     const availableActions = includeShortSessions ? SHORT_ACTIONS : BASE_ACTIONS;
-    
+    console.log(`\n=== Smart Recommendation Debug ===`);
+    console.log(`Context: ${context.taskType} | ${context.energyLevel} | ${context.timeOfDay}`);
+    console.log(`Base recommendation: ${baseRecommendation}, Short sessions: ${includeShortSessions}`);
+    console.log(`Available actions: ${availableActions.join(', ')}`);
+
     const learned = await getBestAction(context, availableActions, includeShortSessions, dynamicFocusArms);
+    console.log(`Learned best action: ${learned}`);
+
     const model = await loadModel();
     const key = createContextKey(context);
     const params = model[key]?.[learned];
 
+    // Log all actions for this context
+    if (model[key]) {
+      console.log(`Model state for context "${key}":`);
+      Object.entries(model[key]).forEach(([action, p]) => {
+        const mean = p.alpha / (p.alpha + p.beta);
+        const obs = p.alpha + p.beta - DEFAULT_ALPHA - DEFAULT_BETA;
+        console.log(`  ${action}min: mean=${mean.toFixed(3)}, obs=${obs.toFixed(1)}, alpha=${p.alpha.toFixed(2)}, beta=${p.beta.toFixed(2)}`);
+      });
+    } else {
+      console.log(`No model data for context "${key}"`);
+    }
+
     if (!params) {
       const finalValue = includeShortSessions ? Math.min(baseRecommendation, Math.max(...SHORT_ACTIONS)) : baseRecommendation;
+      console.log(`No params for learned action, returning heuristic: ${finalValue}`);
       return { value: finalValue, source: 'heuristic' };
     }
 
     const totalObs = params.alpha + params.beta - DEFAULT_ALPHA - DEFAULT_BETA;
     const mean = params.alpha / (params.alpha + params.beta);
     const confidence = Math.min(0.95, totalObs / 5);
+    console.log(`Learned action stats: obs=${totalObs.toFixed(1)}, mean=${mean.toFixed(3)}, confidence=${confidence.toFixed(3)}`);
 
     if (totalObs > 0 && mean > 0.5) {
       const learnedWeight = Math.min(0.9, confidence * 1.2);
-      
+
       //find successful durations to calculate proximity bonus
       const successfulDurations = Object.entries(model[key])
         .map(([action, p]) => {
@@ -362,17 +396,21 @@ export const getSmartRecommendation = async (
         confidence < 0.3
           ? 'heuristic'
           : confidence > 0.7
-          ? 'learned'
-          : 'blended';
+            ? 'learned'
+            : 'blended';
 
       const finalValue = includeShortSessions
         ? Math.min(value, Math.max(...SHORT_ACTIONS))
         : value;
 
+      console.log(`Blending: base=${baseRecommendation}, learned=${learned}, weight=${learnedWeight.toFixed(2)}, raw=${rawValue.toFixed(1)}, final=${finalValue}`);
+      console.log(`=== Returning ${finalValue} (${source}) ===\n`);
       return { value: finalValue, source };
     }
 
     const finalValue = includeShortSessions ? Math.min(baseRecommendation, Math.max(...SHORT_ACTIONS)) : baseRecommendation;
+    console.log(`Low confidence/mean, returning heuristic: ${finalValue}`);
+    console.log(`=== Returning ${finalValue} (heuristic) ===\n`);
     return { value: finalValue, source: 'heuristic' };
   } catch (err) {
     console.error('Error in getSmartRecommendation:', err);
@@ -401,7 +439,7 @@ export const getSmartBreakRecommendation = async (
     model[key] = {};
   }
 
-  const totalTries = Object.values(model[key]).reduce((sum, {alpha, beta}) => 
+  const totalTries = Object.values(model[key]).reduce((sum, { alpha, beta }) =>
     sum + alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA, 0);
 
   let needsSave = false;
@@ -467,7 +505,7 @@ export const getSmartBreakRecommendation = async (
     const mean = alpha / (alpha + beta);
     const variance = (alpha * beta) / (Math.pow(alpha + beta, 2) * (alpha + beta + 1));
     const observations = alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA;
-    
+
     let proximityBonus = 0;
     if (successfulDurations.length > 0) {
       const closestSuccess = successfulDurations.reduce((closest, current) => {
@@ -481,8 +519,8 @@ export const getSmartBreakRecommendation = async (
         proximityBonus = (1 - distance / 5) * 0.5 * closestSuccess.mean;
       }
     }
-    
-    return { 
+
+    return {
       action,
       value: sampleBeta(alpha, beta) + proximityBonus,
       mean,
@@ -518,7 +556,7 @@ export const getSmartBreakRecommendation = async (
 
   if (totalObs > 0 && mean > 0.5) {
     const learnedWeight = Math.min(0.9, confidence * 1.2);
-    
+
     let proximityBonus = 0;
     if (successfulDurations.length > 0) {
       const closestSuccess = successfulDurations.reduce((closest, current) => {
@@ -541,8 +579,8 @@ export const getSmartBreakRecommendation = async (
       confidence < 0.3
         ? 'heuristic'
         : confidence > 0.7
-        ? 'learned'
-        : 'blended';
+          ? 'learned'
+          : 'blended';
 
     return { value, source };
   }
@@ -582,13 +620,13 @@ export const debugModel = async (): Promise<void> => {
   console.log('Contexts:', Object.keys(model).length);
   console.log('\nContext Details:');
   console.log('----------------');
-  
+
   for (const key in model) {
     const [taskType, energy, timeOfDay] = key.split('|');
     console.log(`\nContext: ${taskType} | ${energy} | ${timeOfDay}`);
     console.log('Action | Mean | Confidence | Observations');
     console.log('----------------------------------------');
-    
+
     const actions = Object.entries(model[key]);
     if (actions.length === 0) continue;
 
@@ -597,7 +635,7 @@ export const debugModel = async (): Promise<void> => {
       const mean = alpha / (alpha + beta);
       const totalObs = alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA;
       const confidence = Math.min(0.95, totalObs / 10);
-      
+
       console.log(`${action.toString().padStart(5)} | ${mean.toFixed(3)} | ${confidence.toFixed(3)} | ${totalObs}`);
     });
   }

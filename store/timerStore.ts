@@ -1,4 +1,4 @@
-import { DEFAULT_FOCUS_TIME, TIME_ADJUSTMENT_STEP, TIMER_CONSTANTS } from '@/constants/timer';
+import { TIME_ADJUSTMENT_STEP, TIMER_CONSTANTS } from '@/constants/timer';
 import { Context, updateModel } from '@/services/contextualBandits';
 import { DBSession } from '@/services/database';
 import { calculateReward, detectTimeOfDay, TimeOfDay } from '@/services/recommendations';
@@ -19,16 +19,16 @@ const DYNAMIC_ARMS_KEY = 'dynamic_focus_arms';
 const SPEED_FACTOR = 50;
 
 
-interface TimerStoreState extends TimerState {}
+interface TimerStoreState extends TimerState { }
 
 const useTimerStore = create<TimerStoreState>()(
   persist(
     (set, get) => ({
       isActive: false,
       isBreakTime: false,
-      time: DEFAULT_FOCUS_TIME,
-      initialTime: DEFAULT_FOCUS_TIME,
-      focusSessionDuration: DEFAULT_FOCUS_TIME,
+      time: 0,
+      initialTime: 0,
+      focusSessionDuration: 0,
       taskType: '',
       energyLevel: '',
       showTimeAdjust: false,
@@ -58,6 +58,7 @@ const useTimerStore = create<TimerStoreState>()(
       selectedBreakDuration: 5,
       timeOfDay: detectTimeOfDay(),
       sessionJustCompleted: false,
+      scheduledNotificationId: null,
 
       loadSessions: async () => {
         set({ isLoading: true });
@@ -98,8 +99,8 @@ const useTimerStore = create<TimerStoreState>()(
           .catch(err => console.error('Failed to save dynamic arms:', err));
       },
 
-      startTimer: () => {
-        const { taskType, energyLevel, time, recommendedFocusDuration, userAcceptedRecommendation, isBreakTime, sessionJustCompleted } = get();
+      startTimer: async () => {
+        const { taskType, energyLevel, time, recommendedFocusDuration, userAcceptedRecommendation, isBreakTime, sessionJustCompleted, notificationsEnabled, scheduledNotificationId } = get();
 
         if (!taskType && !sessionJustCompleted) {
           alert("Please select a task type before starting the timer.");
@@ -109,6 +110,34 @@ const useTimerStore = create<TimerStoreState>()(
         if (!energyLevel && !sessionJustCompleted) {
           alert("Please select your energy level before starting the timer.");
           return;
+        }
+
+        // Cancel any existing scheduled notification
+        if (scheduledNotificationId) {
+          await Notifications.cancelScheduledNotificationAsync(scheduledNotificationId).catch(() => { });
+        }
+
+        // Schedule notification upfront for background delivery
+        let newNotificationId: string | null = null;
+        if (notificationsEnabled) {
+          const durationSeconds = Math.ceil(time / SPEED_FACTOR);
+          const triggerDate = new Date(Date.now() + durationSeconds * 1000);
+          try {
+            newNotificationId = await Notifications.scheduleNotificationAsync({
+              content: {
+                title: isBreakTime ? "Break Over!" : "Focus Complete!",
+                body: isBreakTime ? "Ready for another focus session?" : "Time to take a break.",
+                sound: true,
+              },
+              trigger: {
+                type: 'date',
+                date: triggerDate,
+                channelId: Platform.OS === 'android' ? 'default' : undefined,
+              } as any,
+            });
+          } catch (error) {
+            console.error('Failed to schedule notification:', error);
+          }
         }
 
         const now = Date.now();
@@ -128,6 +157,7 @@ const useTimerStore = create<TimerStoreState>()(
           hasSavedSession: false,
           userAcceptedRecommendation: userAcceptedRecommendation || (time === recommendedFocusDuration * 60),
           sessionJustCompleted: false,
+          scheduledNotificationId: newNotificationId,
         });
 
         if (!isBreakTime) {
@@ -141,13 +171,28 @@ const useTimerStore = create<TimerStoreState>()(
 
       pauseTimer: () => set({ isActive: false }),
 
-      cancelTimer: () => set({
-        isActive: false,
-        showCancel: false,
-        showSkip: false,
-        time: get().initialTime,
-        sessionStartTimestamp: undefined,
-      }),
+      cancelTimer: async () => {
+        const { scheduledNotificationId } = get();
+        // Cancel the scheduled notification since timer was cancelled
+        if (scheduledNotificationId) {
+          await Notifications.cancelScheduledNotificationAsync(scheduledNotificationId).catch(() => { });
+        }
+        set({
+          isActive: false,
+          showCancel: false,
+          showSkip: false,
+          showTimeAdjust: false,
+          time: 0,
+          initialTime: 0,
+          taskType: undefined,
+          energyLevel: undefined,
+          userAcceptedRecommendation: false,
+          hasInteractedWithTimer: false,
+          hasDismissedRecommendationCard: false,
+          sessionStartTimestamp: undefined,
+          scheduledNotificationId: null,
+        });
+      },
 
       skipTimer: () => set({ showSkipConfirm: true }),
 
@@ -222,8 +267,15 @@ const useTimerStore = create<TimerStoreState>()(
           recommendedBreakDuration,
           userAcceptedRecommendation,
           focusSessionDuration,
-          originalFocusDuration
+          originalFocusDuration,
+          scheduledNotificationId
         } = get();
+
+        // Cancel the scheduled notification since session was skipped
+        if (scheduledNotificationId) {
+          await Notifications.cancelScheduledNotificationAsync(scheduledNotificationId).catch(() => { });
+          set({ scheduledNotificationId: null });
+        }
 
         const elapsedSeconds = focusSessionDuration - time;
         let focusTimeInMinutes = Math.round(elapsedSeconds / 60);
@@ -566,17 +618,10 @@ const useTimerStore = create<TimerStoreState>()(
         if (remaining <= 0) {
           const isBreakEnding = isBreakTime;
 
+          // Trigger haptic feedback when timer completes (notification was already scheduled upfront)
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          if (notificationsEnabled) {
-            Notifications.scheduleNotificationAsync({
-              content: {
-                title: isBreakEnding ? "Break Over!" : "Focus Complete!",
-                body: isBreakEnding ? "Ready for another focus session?" : "Time to take a break.",
-                sound: true,
-              },
-              trigger: Platform.OS === 'android' ? { channelId: 'default', seconds: 1 } : null,
-            });
-          }
+          // Clear the notification ID since timer completed
+          set({ scheduledNotificationId: null });
 
           if (!isBreakEnding) {
             set({
