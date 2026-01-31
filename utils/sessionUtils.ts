@@ -60,6 +60,40 @@ export async function cancelScheduledNotification(
   }
 }
 
+/**
+ * Schedule a timer completion notification.
+ * @param durationSeconds - Time until notification fires
+ * @param isBreakTime - Whether this is a break timer
+ * @returns Notification ID or null if scheduling failed
+ */
+export async function scheduleTimerNotification(
+  durationSeconds: number,
+  isBreakTime: boolean,
+): Promise<string | null> {
+  const { Platform } = require("react-native");
+  const triggerDate = new Date(Date.now() + durationSeconds * 1000);
+
+  try {
+    return await Notifications.scheduleNotificationAsync({
+      content: {
+        title: isBreakTime ? "Break Over!" : "Focus Complete!",
+        body: isBreakTime
+          ? "Ready for another focus session?"
+          : "Time to take a break.",
+        sound: true,
+      },
+      trigger: {
+        type: "date",
+        date: triggerDate,
+        channelId: Platform.OS === "android" ? "default" : undefined,
+      } as any,
+    });
+  } catch (error) {
+    console.error("Failed to schedule notification:", error);
+    return null;
+  }
+}
+
 // ============================================================================
 // Time Helpers
 // ============================================================================
