@@ -1,7 +1,8 @@
 # 📱 SmartFocusTimer
-**SmartFocusTimer is a Pomodoro-style focus app that learns when users are most likely to stay engaged and adapts session and break durations to reduce abandoned focus sessions.**
 
-Instead of fixed 25/5 timers, the app uses a **Contextual Bandit (Thompson Sampling)** to continuously experiment with session lengths and learn what works best for each user based on real behavior.
+**SmartFocusTimer is a Pomodoro-style focus app that learns your optimal session lengths and adapts to reduce abandoned focus sessions.**
+
+Instead of fixed 25/5 timers, the app uses **Thompson Sampling** to continuously learn what works best for you based on your actual behavior.
 
 > The goal: fewer abandoned sessions, longer sustained focus, and better adherence over time.
 
@@ -14,26 +15,23 @@ Instead of fixed 25/5 timers, the app uses a **Contextual Bandit (Thompson Sampl
 
 ---
 
-## 🧠 How it works (plain English)
+## 🧠 How It Works
 
-Each focus session is treated as a decision:
+Each focus session is a learning opportunity:
 
-- **Action:** choose a focus / break duration pair  
-- **Context:** time of day, previous session outcomes, streak state, fatigue signals  
-- **Reward:** session completed vs abandoned (with partial credit for duration)
+1. **You tell the app** your current energy level (low/mid/high) and task type
+2. **The app recommends** a focus duration based on what's worked for you before
+3. **You complete (or skip) the session**
+4. **The model learns** and improves future recommendations
 
-A Contextual Bandit balances:
-- **exploration** (trying new durations)
-- **exploitation** (reusing what previously worked)
-
-This allows the app to adapt per user without manual tuning or fixed rules.
+The system balances **exploration** (trying new durations) with **exploitation** (reusing what worked). After 5-7 sessions per context, recommendations converge on your actual preference.
 
 ---
 
-## 📈 Why this is different from a normal Pomodoro app
+## 📈 Why This Is Different From a Normal Pomodoro App
 
-- Fixed timers assume all users focus the same way (they don’t).
-- Rule-based systems don’t adapt well to changing behavior.
+- Fixed timers assume all users focus the same way (they don't).
+- Rule-based systems don't adapt well to changing behavior.
 - This system **learns from mistakes**, including failed sessions.
 
 The model updates locally and improves incrementally as more sessions are logged.
@@ -41,69 +39,65 @@ The model updates locally and improves incrementally as more sessions are logged
 ---
 
 ## 🔑 Key Features
-- **Adaptive Focus Recommendations**  
-  Session and break durations adjust over time based on actual user behavior.
 
-- **Baseline Comparison**  
-  Supports fixed Pomodoro intervals to compare against adaptive recommendations.
+### Adaptive Recommendations
 
-- **Progress & Adherence Tracking**  
-  Tracks completed sessions, abandonment rates, and streak stability.
+- **Zone-based learning:** Short zone (10-30 min) for low energy, long zone (25-60 min) for high energy
+- **Energy-aware:** Low energy users aren't pushed to do longer sessions
+- **Break scaling:** Break duration scales with focus (max break = focus ÷ 3)
 
-- **Offline-First by Design**  
-  All learning and data storage happens locally using SQLite, no backend dependency.
+### Smart Learning
 
-- **Failure-Aware Learning**  
-  Abandoned or interrupted sessions directly influence future recommendations.
+- **4x faster learning** than before (simplified context)
+- **Pessimistic priors** prevent random exploration from overriding proven winners
+- **Capacity tracking** adjusts recommendations based on your actual focus ability
+
+### Offline-First
+
+- All learning happens locally using SQLite
+- No backend dependency
+- Your data stays on your device
 
 ---
 
-## 🧪 What didn’t work (and what I learned)
+## 🧪 What Didn't Work (and What I Learned)
 
-- Cold-start recommendations were noisy → mitigated with conservative priors  
-- Aggressive exploration hurt UX early on → added exploration caps  
-- User behavior was inconsistent → rewards had to be simplified to stay stable  
+- The model was tracking time of day, but users already report their energy level → removed it, got 4x faster learning
+- Unexplored durations would randomly beat proven favorites because of optimistic priors → switched to pessimistic priors, problem gone
+- Users who consistently quit early were still getting ambitious recommendations → added capacity tracking to stay realistic
+- Low-energy users kept getting pushed to do longer sessions → made capacity adjustment respect energy level
 
 These tradeoffs shaped both the ML logic and the app UX.
 
 ---
 
-## ⚠️ Known Limitations
+## 🧩 Tech Stack
 
-- **Background notifications are not fully implemented yet.**
-Session completion notifications only trigger while the app is active in the foreground. If the app is backgrounded or closed, the notification will not fire.
-
-- This is a **platform / lifecycle constraint** in the current React Native setup and is planned to be addressed with proper background task handling in a future iteration.
-
----
-
-## 🧩 Tech Stack & Architecture
-
-- **Frontend:** React Native Bare Workflow (Expo Ejected)
+- **Frontend:** React Native (Expo Bare Workflow)
 - **Persistence:** SQLite (offline-first)
-- **Learning Algorithm:** Contextual Bandits (w/ Thompson Sampling)
-- **Architecture:** Modular state management with clear separation between UI, data, and learning logic
-
-The system is designed to be inspectable, debuggable, and extendable.
+- **Learning:** Thompson Sampling with zone-based action spaces
+- **Testing:** Jest with 31 unit tests for RL logic
 
 ---
 
-## Installation
-**Run the following command to clone the repository:**
-- Clone the Repository
-   ```bash
-   git clone https://github.com/kimothDev/smart-focus-timer.git
-   cd smart-focus-timer
-  ```
-- Install Dependencies
-  ```bash
-   npm install
-  ```
-- Run on Android
-  ```bash
-  npx expo run:android
-  ```
-  Make sure you have Android Studio and an emulator or device connected.
-  
-## License
+## 🚀 Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/kimothDev/smart-focus-timer.git
+cd smart-focus-timer
+
+# Install dependencies
+npm install
+
+# Run on Android
+npx expo run:android
+```
+
+Make sure you have Android Studio and an emulator or device connected.
+
+---
+
+## 📄 License
+
 This project is licensed under the Apache-2.0 license - see the LICENSE file for details.

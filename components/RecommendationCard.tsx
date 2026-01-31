@@ -13,7 +13,6 @@ export default function RecommendationModal() {
     recommendedFocusDuration,
     recommendedBreakDuration,
     userAcceptedRecommendation,
-    timeOfDay,
     energyLevel,
     taskType,
     acceptRecommendation,
@@ -55,9 +54,8 @@ export default function RecommendationModal() {
         </View>
 
         <Text style={styles.description}>
-          Based on your <Text style={styles.highlight}>{taskType}</Text> task,
-          <Text style={styles.highlight}> {energyLevel} energy</Text> and
-          the <Text style={styles.highlight}> {formatTimeOfDay(timeOfDay)}</Text> time:
+          Based on your <Text style={styles.highlight}>{taskType}</Text> task and
+          <Text style={styles.highlight}> {energyLevel} energy</Text>:
         </Text>
 
         <View style={styles.recommendationRow}>
