@@ -1,292 +1,517 @@
+/**
+ * Contextual Bandits RL System
+ * 
+ * This module implements Thompson Sampling with:
+ * - Zone-based action spaces (short: 5-30min, long: 25-60min)
+ * - Dual-track learning (preference + capacity)
+ * - Dynamic arms for custom durations
+ * - Simplified context (taskType + energyLevel only)
+ */
+
 import { EnergyLevel } from '@/types';
 import { createContextKey } from '@/utils/contextKey';
 import { roundToNearest5 } from '@/utils/time';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { TimeOfDay } from './recommendations';
 
-//define the context type
+// ============================================================================
+// TYPES
+// ============================================================================
+
+/**
+ * Context for recommendations.
+ * Simplified to just task type and energy level (timeOfDay removed).
+ */
 export interface Context {
   taskType: string;
   energyLevel: EnergyLevel;
-  timeOfDay: TimeOfDay;
 }
 
-//define the action type (focus duration in minutes)
 export type Action = number;
-
-//core focus-session actions (20–60 min in 5-min steps)
-const BASE_ACTIONS: Action[] = [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70];
-
-//ADHD/short-session mode actions (10–30 min in 5-min steps)
-const SHORT_ACTIONS: Action[] = [10, 15, 20, 25, 30];
-
-//break durations (0 = skip, 5–25 min)
-const BREAK_ACTIONS: Action[] = [5, 10, 15, 20];
-
+export type FocusZone = 'short' | 'long';
 
 /**
- * Returns the available focus-session actions:
- * - If includeShortSessions is ON, returns SHORT_ACTIONS
- * - Otherwise, returns BASE_ACTIONS
- * Also merges any dynamic arms added at runtime.
+ * Zone data tracks which zone a user prefers for a given context
+ * and whether they're ready to transition.
  */
-export function getAvailableActions(includeShortSessions: boolean, dynamicFocusArms: number[] = []): Action[] {
-  const base = includeShortSessions ? SHORT_ACTIONS : BASE_ACTIONS;
-  return Array.from(new Set([...base, ...dynamicFocusArms])).sort((a, b) => a - b);
+export interface ZoneData {
+  zone: FocusZone;
+  confidence: number;
+  selections: number[];
+  transitionReady: boolean;
 }
 
-//storage key for the model
-const MODEL_STORAGE_KEY = 'contextual_bandits_model';
+/**
+ * Capacity stats track user's actual focus ability vs. their selections.
+ */
+export interface CapacityStats {
+  recentSessions: Array<{
+    selectedDuration: number;
+    actualFocusTime: number;
+    completed: boolean;
+    timestamp: number;
+  }>;
+  averageCapacity: number;
+  completionRate: number;
+  trend: 'growing' | 'stable' | 'declining';
+}
 
-//updated constants for more aggressive learning
-const DEFAULT_ALPHA = 1.5;  //increased from 1 to favor slightly optimistic initial exploration
-const DEFAULT_BETA = 1.0;
-const EXPLORATION_DECAY = 0.95; //changed from 0.95 to 0.85 for faster decay (15% decay per session)
-
-//define the model parameters
+/**
+ * Model parameters for Beta distribution.
+ */
 interface ModelParameters {
-  alpha: number; //success count
-  beta: number;  //failure count
+  alpha: number; // success evidence
+  beta: number;  // failure evidence
 }
 
-//define the model state
+/**
+ * Model state stores parameters for each action in each context.
+ */
 interface ModelState {
-  [key: string]: {
+  [contextKey: string]: {
     [action: number]: ModelParameters;
   };
 }
 
-//load the model from storage
-export const loadModel = async (): Promise<ModelState> => {
-  try {
-    const modelJson = await AsyncStorage.getItem(MODEL_STORAGE_KEY);
-    if (!modelJson) return {};
+/**
+ * Zone state stores zone data for each context.
+ */
+interface ZoneState {
+  [contextKey: string]: ZoneData;
+}
 
-    const model: ModelState = JSON.parse(modelJson);
+/**
+ * Capacity state stores capacity stats for each context.
+ */
+interface CapacityState {
+  [contextKey: string]: CapacityStats;
+}
 
-    // Apply decay to all alpha/beta values
-    // const decayRate = 0.99; // 1% decay (decayRate = 0.95 for faster adaptation)
-    // for (const contextKey in model) {
-    //   for (const action in model[contextKey]) {
-    //     const entry = model[contextKey][action];
-    //     entry.alpha *= decayRate;
-    //     entry.beta *= decayRate;
-    //   }
-    // }
+// ============================================================================
+// CONSTANTS
+// ============================================================================
 
-    return model;
-  } catch (error) {
-    console.error('Error loading contextual bandits model:', error);
-    return {};
-  }
+const MODEL_STORAGE_KEY = 'contextual_bandits_model_v2';
+const ZONE_STORAGE_KEY = 'contextual_bandits_zones';
+const CAPACITY_STORAGE_KEY = 'contextual_bandits_capacity';
+
+// Pessimistic priors: unexplored arms start with mean=0.4 (1.0/(1.0+1.5))
+// This prevents random high samples from beating proven winners
+const DEFAULT_ALPHA = 1.0;
+const DEFAULT_BETA = 1.5;
+const EARLY_EXPLORATION_THRESHOLD = 3;
+const CAPACITY_HISTORY_LIMIT = 10;
+
+/**
+ * Zone action sets - overlap at 25-30 for smooth transitions.
+ * Minimum focus is 10 minutes (5 min removed as too short for meaningful work).
+ */
+const ZONE_ACTIONS: Record<FocusZone, number[]> = {
+  short: [10, 15, 20, 25, 30],
+  long: [25, 30, 35, 40, 45, 50, 55, 60]
 };
 
+const BREAK_ACTIONS: number[] = [5, 10, 15, 20];
 
-//save the model to storage
-export const saveModel = async (model: ModelState): Promise<void> => {
+// ============================================================================
+// STORAGE FUNCTIONS
+// ============================================================================
+
+export async function loadModel(): Promise<ModelState> {
+  try {
+    const json = await AsyncStorage.getItem(MODEL_STORAGE_KEY);
+    return json ? JSON.parse(json) : {};
+  } catch (error) {
+    console.error('[RL] Error loading model:', error);
+    return {};
+  }
+}
+
+export async function saveModel(model: ModelState): Promise<void> {
   try {
     await AsyncStorage.setItem(MODEL_STORAGE_KEY, JSON.stringify(model));
   } catch (error) {
-    console.error('Error saving contextual bandits model:', error);
+    console.error('[RL] Error saving model:', error);
   }
-};
+}
 
-//sample from a beta distribution
-const sampleBeta = (alpha: number, beta: number): number => {
+export async function loadZones(): Promise<ZoneState> {
+  try {
+    const json = await AsyncStorage.getItem(ZONE_STORAGE_KEY);
+    return json ? JSON.parse(json) : {};
+  } catch (error) {
+    console.error('[RL] Error loading zones:', error);
+    return {};
+  }
+}
+
+export async function saveZones(zones: ZoneState): Promise<void> {
+  try {
+    await AsyncStorage.setItem(ZONE_STORAGE_KEY, JSON.stringify(zones));
+  } catch (error) {
+    console.error('[RL] Error saving zones:', error);
+  }
+}
+
+export async function loadCapacity(): Promise<CapacityState> {
+  try {
+    const json = await AsyncStorage.getItem(CAPACITY_STORAGE_KEY);
+    return json ? JSON.parse(json) : {};
+  } catch (error) {
+    console.error('[RL] Error loading capacity:', error);
+    return {};
+  }
+}
+
+export async function saveCapacity(capacity: CapacityState): Promise<void> {
+  try {
+    await AsyncStorage.setItem(CAPACITY_STORAGE_KEY, JSON.stringify(capacity));
+  } catch (error) {
+    console.error('[RL] Error saving capacity:', error);
+  }
+}
+
+// ============================================================================
+// ZONE FUNCTIONS
+// ============================================================================
+
+/**
+ * Detect which zone based on a selection and energy level.
+ * Used for initial zone detection when no history exists.
+ */
+export function detectZone(selection: number, energyLevel: EnergyLevel): FocusZone {
+  if (selection <= 25) return 'short';
+  if (selection >= 35) return 'long';
+  // 26-34 range: use energy level as tiebreaker
+  return energyLevel === 'low' ? 'short' : 'long';
+}
+
+/**
+ * Get available actions for a zone.
+ */
+export function getZoneActions(zone: FocusZone, dynamicArms: number[] = []): number[] {
+  const base = ZONE_ACTIONS[zone];
+  const combined = Array.from(new Set([...base, ...dynamicArms]));
+  return combined.sort((a, b) => a - b);
+}
+
+/**
+ * Check if zone should transition based on recent selections.
+ * Requires 5 selections and a clear trend to avoid flip-flopping.
+ */
+export function checkZoneTransition(zoneData: ZoneData): FocusZone {
+  const { zone, selections } = zoneData;
+
+  // Need at least 5 selections to consider transition (was 3 - too sensitive)
+  if (selections.length < 5) return zone;
+
+  const recentSelections = selections.slice(-5);
+  const avgRecent = recentSelections.reduce((a, b) => a + b, 0) / recentSelections.length;
+
+  // Short → Long: user consistently choosing 30+ (avg must be >= 30, was 25)
+  if (zone === 'short' && avgRecent >= 30) {
+    console.log('[RL] Zone transition: short → long (avg:', avgRecent.toFixed(1), ')');
+    return 'long';
+  }
+
+  // Long → Short: user consistently choosing 25 or less (was 30 - too close to short→long threshold)
+  if (zone === 'long' && avgRecent <= 25) {
+    console.log('[RL] Zone transition: long → short (avg:', avgRecent.toFixed(1), ')');
+    return 'short';
+  }
+
+  return zone;
+}
+
+/**
+ * Get or create zone data for a context.
+ */
+export async function getZoneData(contextKey: string, energyLevel: EnergyLevel, heuristicDuration: number): Promise<ZoneData> {
+  const zones = await loadZones();
+
+  if (!zones[contextKey]) {
+    // Initialize with heuristic-based zone
+    const zone = detectZone(heuristicDuration, energyLevel);
+    zones[contextKey] = {
+      zone,
+      confidence: 0,
+      selections: [],
+      transitionReady: false
+    };
+    await saveZones(zones);
+    console.log('[RL] Created zone for', contextKey, ':', zone);
+  }
+
+  return zones[contextKey];
+}
+
+/**
+ * Update zone data when user selects a duration.
+ */
+export async function updateZoneData(contextKey: string, selectedDuration: number): Promise<void> {
+  const zones = await loadZones();
+
+  if (!zones[contextKey]) {
+    zones[contextKey] = {
+      zone: selectedDuration <= 30 ? 'short' : 'long',
+      confidence: 0,
+      selections: [],
+      transitionReady: false
+    };
+  }
+
+  // Add selection and trim history
+  zones[contextKey].selections.push(selectedDuration);
+  if (zones[contextKey].selections.length > 10) {
+    zones[contextKey].selections = zones[contextKey].selections.slice(-10);
+  }
+
+  // Update confidence
+  zones[contextKey].confidence = Math.min(1, zones[contextKey].selections.length / 5);
+
+  // Check for zone transition
+  const newZone = checkZoneTransition(zones[contextKey]);
+  if (newZone !== zones[contextKey].zone) {
+    zones[contextKey].zone = newZone;
+    zones[contextKey].transitionReady = false;
+  }
+
+  await saveZones(zones);
+}
+
+// ============================================================================
+// CAPACITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Calculate trend from recent sessions.
+ */
+function calculateTrend(sessions: CapacityStats['recentSessions']): CapacityStats['trend'] {
+  if (sessions.length < 3) return 'stable';
+
+  const recent = sessions.slice(-5);
+  const ratios = recent.map(s => s.actualFocusTime / s.selectedDuration);
+
+  // Linear regression on ratios
+  const n = ratios.length;
+  const sumX = (n * (n - 1)) / 2;
+  const sumY = ratios.reduce((a, b) => a + b, 0);
+  const sumXY = ratios.reduce((sum, y, x) => sum + x * y, 0);
+  const sumXX = (n * (n - 1) * (2 * n - 1)) / 6;
+
+  const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+
+  if (slope > 0.05) return 'growing';
+  if (slope < -0.05) return 'declining';
+  return 'stable';
+}
+
+/**
+ * Get capacity stats for a context.
+ */
+export async function getCapacityStats(contextKey: string): Promise<CapacityStats> {
+  const capacityState = await loadCapacity();
+
+  if (!capacityState[contextKey]) {
+    return {
+      recentSessions: [],
+      averageCapacity: 0,
+      completionRate: 0,
+      trend: 'stable'
+    };
+  }
+
+  return capacityState[contextKey];
+}
+
+/**
+ * Update capacity stats after a session.
+ */
+export async function updateCapacityStats(
+  contextKey: string,
+  selectedDuration: number,
+  actualFocusTime: number,
+  completed: boolean
+): Promise<void> {
+  const capacityState = await loadCapacity();
+
+  if (!capacityState[contextKey]) {
+    capacityState[contextKey] = {
+      recentSessions: [],
+      averageCapacity: 0,
+      completionRate: 0,
+      trend: 'stable'
+    };
+  }
+
+  const stats = capacityState[contextKey];
+
+  // Add new session
+  stats.recentSessions.push({
+    selectedDuration,
+    actualFocusTime,
+    completed,
+    timestamp: Date.now()
+  });
+
+  // Trim to limit
+  if (stats.recentSessions.length > CAPACITY_HISTORY_LIMIT) {
+    stats.recentSessions = stats.recentSessions.slice(-CAPACITY_HISTORY_LIMIT);
+  }
+
+  // Recalculate stats
+  const totalFocusTime = stats.recentSessions.reduce((sum, s) => sum + s.actualFocusTime, 0);
+  stats.averageCapacity = totalFocusTime / stats.recentSessions.length;
+
+  const completedCount = stats.recentSessions.filter(s => s.completed).length;
+  stats.completionRate = completedCount / stats.recentSessions.length;
+
+  stats.trend = calculateTrend(stats.recentSessions);
+
+  await saveCapacity(capacityState);
+
+  console.log('[RL] Capacity updated for', contextKey, ':', {
+    avgCapacity: stats.averageCapacity.toFixed(1),
+    completionRate: (stats.completionRate * 100).toFixed(0) + '%',
+    trend: stats.trend
+  });
+}
+
+/**
+ * Adjust recommendation based on capacity.
+ * @param modelRec - The model's recommendation
+ * @param stats - User's capacity statistics
+ * @param energyLevel - Current energy level (affects stretch thresholds)
+ */
+export function adjustForCapacity(
+  modelRec: number,
+  stats: CapacityStats,
+  energyLevel: EnergyLevel = 'mid'
+): number {
+  // Not enough data
+  if (stats.recentSessions.length < 3) return modelRec;
+
+  // If user consistently quits early, recommend their actual capacity
+  if (stats.completionRate < 0.5) {
+    const adjusted = roundToNearest5(stats.averageCapacity);
+    console.log('[RL] Capacity adjustment: user struggling, recommending', adjusted, 'instead of', modelRec);
+    return Math.max(10, adjusted);
+  }
+
+  // Don't stretch if low energy - respect user's preference
+  if (energyLevel === 'low') {
+    return modelRec;
+  }
+
+  // Stretch thresholds by energy level:
+  // - High energy: stretch at 85% completion (more aggressive)
+  // - Mid energy: stretch at 95% completion (conservative)
+  const stretchThreshold = energyLevel === 'high' ? 0.85 : 0.95;
+
+  if (stats.completionRate >= stretchThreshold && (stats.trend === 'stable' || stats.trend === 'growing')) {
+    const nudged = modelRec + 5;
+    console.log(`[RL] Capacity stretch (${energyLevel} energy, ${(stats.completionRate * 100).toFixed(0)}% completion):`, modelRec, '→', nudged);
+    return nudged;
+  }
+
+  return modelRec;
+}
+
+// ============================================================================
+// THOMPSON SAMPLING
+// ============================================================================
+
+/**
+ * Sample from a Beta distribution.
+ */
+export function sampleBeta(alpha: number, beta: number): number {
   const u = Math.random();
   const v = Math.random();
   const x = Math.pow(u, 1 / alpha);
   const y = Math.pow(v, 1 / beta);
   return x / (x + y);
-};
+}
 
-//get the best action for a given context using Thompson sampling
-export const getBestAction = async (
+/**
+ * Get total observations for a context.
+ */
+function getTotalObservations(model: ModelState, contextKey: string): number {
+  if (!model[contextKey]) return 0;
+  return Object.values(model[contextKey]).reduce(
+    (sum, { alpha, beta }) => sum + alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA,
+    0
+  );
+}
+
+/**
+ * Get the best action using Thompson Sampling.
+ */
+export async function getBestAction(
   context: Context,
-  actions: Action[],
-  includeShortSessions: boolean,
-  dynamicFocusArms: number[]
-): Promise<Action> => {
+  actions: number[],
+  dynamicArms: number[] = []
+): Promise<number> {
   const model = await loadModel();
   const contextKey = createContextKey(context);
-  const availableActions = actions.length > 0 ? actions : getAvailableActions(includeShortSessions, dynamicFocusArms);
+  const availableActions = getZoneActions(
+    (await getZoneData(contextKey, context.energyLevel, 25)).zone,
+    dynamicArms
+  );
+  const actionsToUse = actions.length > 0 ? actions : availableActions;
 
-  //initialize context if missing
+  // Initialize context if missing
   if (!model[contextKey]) model[contextKey] = {};
 
-  //track total tries in this context for exploration decay
-  const totalTries = Object.values(model[contextKey]).reduce((sum, { alpha, beta }) =>
-    sum + alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA, 0);
-
-  //ensure all actions exist with default params
+  // Ensure all actions have default params
   let needsSave = false;
-  availableActions.forEach(action => {
+  for (const action of actionsToUse) {
     if (!model[contextKey][action]) {
       model[contextKey][action] = { alpha: DEFAULT_ALPHA, beta: DEFAULT_BETA };
       needsSave = true;
     }
-  });
+  }
   if (needsSave) await saveModel(model);
 
-  //find successful durations (mean > 0.6) with observations
-  const successfulDurations = availableActions
-    .map(action => {
-      const { alpha, beta } = model[contextKey][action]!;
-      const mean = alpha / (alpha + beta);
-      const observations = alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA;
-      return { action, mean, observations };
-    })
-    .filter(({ mean, observations }) => mean > 0.6 && observations > 0)
-    .sort((a, b) => b.mean - a.mean);
+  const totalTries = getTotalObservations(model, contextKey);
 
-  //1. Early-phase: Random exploration for first few trials
-  if (totalTries < 5 && Math.random() < 0.7) {
-    //instead of pure random, use weighted random based on proximity to successful durations
-    const weights = availableActions.map(action => {
-      let weight = 1.0; // Base weight
-
-      //find successful durations (mean > 0.6) with observations
-      const successfulDurations = availableActions
-        .map(a => {
-          const { alpha, beta } = model[contextKey][a]!;
-          const mean = alpha / (alpha + beta);
-          const observations = alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA;
-          return { action: a, mean, observations };
-        })
-        .filter(({ mean, observations }) => mean > 0.6 && observations > 0);
-
-      if (successfulDurations.length > 0) {
-        //find the closest successful duration
-        const closestSuccess = successfulDurations.reduce((closest, current) => {
-          const currentDiff = Math.abs(current.action - action);
-          const closestDiff = Math.abs(closest.action - action);
-          return currentDiff < closestDiff ? current : closest;
-        });
-
-        //calculate bonus based on distance (max 10 minutes difference)
-        const distance = Math.abs(closestSuccess.action - action);
-        if (distance <= 10) {
-          weight += (1 - distance / 10) * 0.5 * closestSuccess.mean;
-        }
-      }
-
-      return weight;
-    });
-
-    //normalize weights
-    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-    const normalizedWeights = weights.map(w => w / totalWeight);
-
-    //select action based on weights
-    const random = Math.random();
-    let cumulativeWeight = 0;
-    let selectedAction = availableActions[0];
-
-    for (let i = 0; i < availableActions.length; i++) {
-      cumulativeWeight += normalizedWeights[i];
-      if (random <= cumulativeWeight) {
-        selectedAction = availableActions[i];
-        break;
-      }
-    }
-
-    return selectedAction;
+  // Early exploration: random selection
+  if (totalTries < EARLY_EXPLORATION_THRESHOLD) {
+    const randomAction = actionsToUse[Math.floor(Math.random() * actionsToUse.length)];
+    console.log('[RL] Early exploration: randomly selected', randomAction, '(total tries:', totalTries, ')');
+    return randomAction;
   }
 
-  //2. Sample from Beta distributions
-  const samples = availableActions.map(action => {
-    const { alpha, beta } = model[contextKey][action]!;
-    const mean = alpha / (alpha + beta);
-    const variance = (alpha * beta) / (Math.pow(alpha + beta, 2) * (alpha + beta + 1));
-    const observations = alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA;
-
-    //calculate proximity bonus based on successful durations
-    let proximityBonus = 0;
-    let closestSuccess = null;
-    if (successfulDurations.length > 0) {
-      //find the closest successful duration
-      closestSuccess = successfulDurations.reduce((closest, current) => {
-        const currentDiff = Math.abs(current.action - action);
-        const closestDiff = Math.abs(closest.action - action);
-        return currentDiff < closestDiff ? current : closest;
-      });
-
-      //calculate bonus based on distance (max 10 minutes difference)
-      const distance = Math.abs(closestSuccess.action - action);
-      if (distance <= 10) {
-        proximityBonus = (1 - distance / 10) * 0.5 * closestSuccess.mean;
-      }
-    }
-
-    //add a small bonus for higher durations if they have any success
-    const durationBonus = action > 25 && mean > 0.5 ? 0.1 : 0;
-
-    //add a penalty for durations with no observations
-    const noDataPenalty = observations === 0 ? -0.2 : 0;
-
+  // Thompson Sampling: sample from each Beta distribution
+  const samples = actionsToUse.map(action => {
+    const { alpha, beta } = model[contextKey][action] || { alpha: DEFAULT_ALPHA, beta: DEFAULT_BETA };
     return {
       action,
-      value: sampleBeta(alpha, beta) + durationBonus + noDataPenalty + proximityBonus,
-      mean,
-      variance,
-      observations,
-      proximityBonus,
-      closestSuccess: closestSuccess ? `${closestSuccess.action}min` : 'none',
-      durationBonus,
-      noDataPenalty
+      value: sampleBeta(alpha, beta),
+      mean: alpha / (alpha + beta),
+      observations: alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA
     };
   });
 
-  //3. Apply exploration decay with a lower rate
-  const explorationRate = Math.pow(EXPLORATION_DECAY, totalTries);
+  // Sort by sampled value (descending)
+  samples.sort((a, b) => b.value - a.value);
 
-  if (Math.random() < explorationRate) {
-    //Explore: Prefer high-variance actions or higher durations with some success
-    samples.sort((a, b) => {
-      //if both have some success, prefer the one with higher success rate
-      if (a.mean > 0.5 && b.mean > 0.5) {
-        return b.mean - a.mean;
-      }
-      //if one has success and other doesn't, prefer the successful one
-      if (a.mean > 0.5 && b.mean <= 0.5) return -1;
-      if (b.mean > 0.5 && a.mean <= 0.5) return 1;
-      //otherwise prefer high variance
-      return b.variance - a.variance;
-    });
-    return samples[0].action;
-  }
-
-  //4. Default: Exploit best predicted action
-  //sort by mean value and observations, with a bias towards higher durations
-  samples.sort((a, b) => {
-    // First prioritize durations with observations
-    if (a.observations === 0 && b.observations === 0) return 0;
-    if (a.observations === 0) return 1;
-    if (b.observations === 0) return -1;
-
-    //then prioritize high success rates
-    if (a.mean > 0.6 && b.mean > 0.6) {
-      return b.action - a.action;
-    }
-
-    return b.mean - a.mean;
+  console.log('[RL] Thompson Sampling for', contextKey, ':');
+  samples.slice(0, 3).forEach(s => {
+    console.log(`  ${s.action}min: sample=${s.value.toFixed(3)}, mean=${s.mean.toFixed(3)}, obs=${s.observations.toFixed(1)}`);
   });
 
   return samples[0].action;
-};
+}
 
-//update the model based on the reward
-export const updateModel = async (
+/**
+ * Update the model with a reward.
+ */
+export async function updateModel(
   context: Context,
-  action: Action,
+  action: number,
   reward: number
-): Promise<void> => {
-  console.log(`\n=== Model Update ===`);
-  console.log(`Context: ${context.taskType} | ${context.energyLevel} | ${context.timeOfDay}`);
-  console.log(`Action: ${action}min, Reward: ${reward}`);
-
+): Promise<void> {
   if (reward === 0 || isNaN(reward)) {
-    console.log(`Skipping update: reward is 0 or NaN`);
+    console.log('[RL] Skipping update: invalid reward', reward);
     return;
   }
 
@@ -294,355 +519,227 @@ export const updateModel = async (
   const contextKey = createContextKey(context);
 
   if (!model[contextKey]) model[contextKey] = {};
-  if (!model[contextKey][action]) model[contextKey][action] = {
-    alpha: DEFAULT_ALPHA,
-    beta: DEFAULT_BETA,
-  };
+  if (!model[contextKey][action]) {
+    model[contextKey][action] = { alpha: DEFAULT_ALPHA, beta: DEFAULT_BETA };
+  }
 
   const oldAlpha = model[contextKey][action].alpha;
   const oldBeta = model[contextKey][action].beta;
 
-  const successWeight = reward;
-  const failureWeight = 1 - reward;
+  // Reward is [0, 1]: success weight = reward, failure weight = 1 - reward
+  const successWeight = Math.max(0, Math.min(1, reward));
+  const failureWeight = Math.max(0, 1 - successWeight);
 
   model[contextKey][action].alpha += successWeight;
   model[contextKey][action].beta += failureWeight;
 
-  console.log(`Updated ${action}min: alpha ${oldAlpha.toFixed(2)} -> ${model[contextKey][action].alpha.toFixed(2)}, beta ${oldBeta.toFixed(2)} -> ${model[contextKey][action].beta.toFixed(2)}`);
-  console.log(`New mean: ${(model[contextKey][action].alpha / (model[contextKey][action].alpha + model[contextKey][action].beta)).toFixed(3)}`);
-  console.log(`===================\n`);
+  const newMean = model[contextKey][action].alpha / (model[contextKey][action].alpha + model[contextKey][action].beta);
+
+  console.log('[RL] Model update:', {
+    context: contextKey,
+    action: action + 'min',
+    reward: reward.toFixed(3),
+    alpha: oldAlpha.toFixed(2) + ' → ' + model[contextKey][action].alpha.toFixed(2),
+    beta: oldBeta.toFixed(2) + ' → ' + model[contextKey][action].beta.toFixed(2),
+    newMean: newMean.toFixed(3)
+  });
 
   await saveModel(model);
-};
+}
 
-//combine heuristic and learned preferences
-export const getSmartRecommendation = async (
+/**
+ * Penalize a rejected recommendation.
+ */
+export async function penalizeRejection(context: Context, rejectedAction: number): Promise<void> {
+  await updateModel(context, rejectedAction, -0.3);
+  console.log('[RL] Penalized rejected recommendation:', rejectedAction, 'min');
+}
+
+// ============================================================================
+// MAIN RECOMMENDATION FUNCTION
+// ============================================================================
+
+/**
+ * Get a smart recommendation combining Thompson Sampling with capacity adjustment.
+ */
+export async function getSmartRecommendation(
   context: Context,
-  baseRecommendation: number,
-  includeShortSessions: boolean,
-  dynamicFocusArms: number[]
-): Promise<{ value: number; source: 'heuristic' | 'learned' | 'blended' }> => {
+  heuristicRecommendation: number,
+  dynamicArms: number[] = []
+): Promise<{ value: number; source: 'heuristic' | 'learned' | 'blended' | 'capacity' }> {
+  const contextKey = createContextKey(context);
+
+  console.log('\n=== Smart Recommendation ===');
+  console.log('Context:', contextKey);
+  console.log('Heuristic:', heuristicRecommendation);
+
   try {
-    const availableActions = includeShortSessions ? SHORT_ACTIONS : BASE_ACTIONS;
-    console.log(`\n=== Smart Recommendation Debug ===`);
-    console.log(`Context: ${context.taskType} | ${context.energyLevel} | ${context.timeOfDay}`);
-    console.log(`Base recommendation: ${baseRecommendation}, Short sessions: ${includeShortSessions}`);
-    console.log(`Available actions: ${availableActions.join(', ')}`);
+    // Get zone and capacity data
+    const zoneData = await getZoneData(contextKey, context.energyLevel, heuristicRecommendation);
+    const capacityStats = await getCapacityStats(contextKey);
+    const actions = getZoneActions(zoneData.zone, dynamicArms);
 
-    const learned = await getBestAction(context, availableActions, includeShortSessions, dynamicFocusArms);
-    console.log(`Learned best action: ${learned}`);
+    console.log('Zone:', zoneData.zone, '| Actions:', actions.join(', '));
 
+    // Get Thompson Sampling recommendation
     const model = await loadModel();
-    const key = createContextKey(context);
-    const params = model[key]?.[learned];
+    const totalObs = getTotalObservations(model, contextKey);
 
-    // Log all actions for this context
-    if (model[key]) {
-      console.log(`Model state for context "${key}":`);
-      Object.entries(model[key]).forEach(([action, p]) => {
-        const mean = p.alpha / (p.alpha + p.beta);
-        const obs = p.alpha + p.beta - DEFAULT_ALPHA - DEFAULT_BETA;
-        console.log(`  ${action}min: mean=${mean.toFixed(3)}, obs=${obs.toFixed(1)}, alpha=${p.alpha.toFixed(2)}, beta=${p.beta.toFixed(2)}`);
-      });
+    if (totalObs < 2) {
+      // Not enough data, use heuristic
+      const clamped = Math.max(Math.min(...actions), Math.min(heuristicRecommendation, Math.max(...actions)));
+      console.log('=== Returning', clamped, '(heuristic - low data) ===\n');
+      return { value: clamped, source: 'heuristic' };
+    }
+
+    const modelRec = await getBestAction(context, actions, dynamicArms);
+
+    // Apply capacity adjustment (respects energy level - no stretch for low energy)
+    const capacityAdjusted = adjustForCapacity(modelRec, capacityStats, context.energyLevel);
+
+    // Clamp to zone actions
+    const finalValue = Math.max(Math.min(...actions), Math.min(capacityAdjusted, Math.max(...actions)));
+
+    let source: 'learned' | 'blended' | 'capacity';
+    if (capacityAdjusted !== modelRec) {
+      source = 'capacity';
+    } else if (totalObs >= 5) {
+      source = 'learned';
     } else {
-      console.log(`No model data for context "${key}"`);
+      source = 'blended';
     }
 
-    if (!params) {
-      const finalValue = includeShortSessions ? Math.min(baseRecommendation, Math.max(...SHORT_ACTIONS)) : baseRecommendation;
-      console.log(`No params for learned action, returning heuristic: ${finalValue}`);
-      return { value: finalValue, source: 'heuristic' };
-    }
+    console.log('Model rec:', modelRec, '| Capacity adjusted:', capacityAdjusted, '| Final:', finalValue);
+    console.log('=== Returning', finalValue, '(' + source + ') ===\n');
 
-    const totalObs = params.alpha + params.beta - DEFAULT_ALPHA - DEFAULT_BETA;
-    const mean = params.alpha / (params.alpha + params.beta);
-    const confidence = Math.min(0.95, totalObs / 5);
-    console.log(`Learned action stats: obs=${totalObs.toFixed(1)}, mean=${mean.toFixed(3)}, confidence=${confidence.toFixed(3)}`);
-
-    if (totalObs > 0 && mean > 0.5) {
-      const learnedWeight = Math.min(0.9, confidence * 1.2);
-
-      //find successful durations to calculate proximity bonus
-      const successfulDurations = Object.entries(model[key])
-        .map(([action, p]) => {
-          const a = parseInt(action);
-          const m = p.alpha / (p.alpha + p.beta);
-          const obs = p.alpha + p.beta - DEFAULT_ALPHA - DEFAULT_BETA;
-          return { action: a, mean: m, observations: obs };
-        })
-        .filter(({ mean, observations }) => mean > 0.6 && observations > 0)
-        .sort((a, b) => b.mean - a.mean);
-
-      //calculate proximity bonus for base recommendation
-      let proximityBonus = 0;
-      if (successfulDurations.length > 0) {
-        const closestSuccess = successfulDurations.reduce((closest, current) => {
-          const currentDiff = Math.abs(current.action - baseRecommendation);
-          const closestDiff = Math.abs(closest.action - baseRecommendation);
-          return currentDiff < closestDiff ? current : closest;
-        });
-
-        const distance = Math.abs(closestSuccess.action - baseRecommendation);
-        if (distance <= 10) {
-          proximityBonus = (1 - distance / 10) * 0.5 * closestSuccess.mean;
-        }
-      }
-
-      const adjustedBase = baseRecommendation * (1 + proximityBonus);
-      const rawValue = adjustedBase * (1 - learnedWeight) + learned * learnedWeight;
-      const value = roundToNearest5(rawValue);
-
-      const source =
-        confidence < 0.3
-          ? 'heuristic'
-          : confidence > 0.7
-            ? 'learned'
-            : 'blended';
-
-      const finalValue = includeShortSessions
-        ? Math.min(value, Math.max(...SHORT_ACTIONS))
-        : value;
-
-      console.log(`Blending: base=${baseRecommendation}, learned=${learned}, weight=${learnedWeight.toFixed(2)}, raw=${rawValue.toFixed(1)}, final=${finalValue}`);
-      console.log(`=== Returning ${finalValue} (${source}) ===\n`);
-      return { value: finalValue, source };
-    }
-
-    const finalValue = includeShortSessions ? Math.min(baseRecommendation, Math.max(...SHORT_ACTIONS)) : baseRecommendation;
-    console.log(`Low confidence/mean, returning heuristic: ${finalValue}`);
-    console.log(`=== Returning ${finalValue} (heuristic) ===\n`);
-    return { value: finalValue, source: 'heuristic' };
-  } catch (err) {
-    console.error('Error in getSmartRecommendation:', err);
-    const finalValue = includeShortSessions ? Math.min(baseRecommendation, Math.max(...SHORT_ACTIONS)) : baseRecommendation;
-    return { value: finalValue, source: 'heuristic' };
+    return { value: finalValue, source };
+  } catch (error) {
+    console.error('[RL] Error in getSmartRecommendation:', error);
+    return { value: heuristicRecommendation, source: 'heuristic' };
   }
-};
+}
 
-//break recommendation via separate context
-export const getSmartBreakRecommendation = async (
+// ============================================================================
+// BREAK RECOMMENDATIONS
+// ============================================================================
+
+/**
+ * Get available break actions based on focus duration.
+ * Shorter focus sessions get shorter break options.
+ * 
+ * Rule: Max break = Focus duration ÷ 3 (minimum 5 min)
+ * 
+ * Examples:
+ *   15 min focus → max 5 min break  → [5]
+ *   25 min focus → max 8 min break  → [5]
+ *   30 min focus → max 10 min break → [5, 10]
+ *   45 min focus → max 15 min break → [5, 10, 15]
+ *   60 min focus → max 20 min break → [5, 10, 15, 20]
+ */
+export function getBreakActionsForFocus(focusDuration: number): number[] {
+  const maxBreak = Math.max(5, Math.floor(focusDuration / 3));
+  return BREAK_ACTIONS.filter(action => action <= maxBreak);
+}
+
+/**
+ * Get a smart break recommendation.
+ * @param context - The context (taskType, energyLevel)
+ * @param baseBreak - Heuristic break recommendation
+ * @param focusDuration - The focus session duration (to scale break options)
+ */
+export async function getSmartBreakRecommendation(
   context: Context,
   baseBreak: number,
-  includeShortSessions: boolean
-): Promise<{ value: number; source: 'heuristic' | 'learned' | 'blended' }> => {
-  const availableBreaks = includeShortSessions ? [5] : BREAK_ACTIONS;
-  const breakTask = context.taskType.replace(/-break(-break)+$/, '-break');
-  const breakCtx: Context = {
+  focusDuration: number = 25
+): Promise<{ value: number; source: 'heuristic' | 'learned' }> {
+  const breakContext: Context = {
     ...context,
-    taskType: breakTask.endsWith('-break') ? breakTask : `${breakTask}-break`,
+    taskType: `${context.taskType}-break`
   };
+  const contextKey = createContextKey(breakContext);
+
+  // Get available break actions based on focus duration
+  const availableBreaks = getBreakActionsForFocus(focusDuration);
+
+  // Clamp heuristic to available options
+  const clampedBase = Math.min(baseBreak, Math.max(...availableBreaks));
+
+  console.log(`[RL] Break for ${focusDuration}min focus: options=[${availableBreaks.join(',')}], base=${clampedBase}`);
 
   const model = await loadModel();
-  const key = createContextKey(breakCtx);
+  const totalObs = getTotalObservations(model, contextKey);
 
-  if (!model[key]) {
-    model[key] = {};
+  if (totalObs < 2) {
+    return { value: clampedBase, source: 'heuristic' };
   }
 
-  const totalTries = Object.values(model[key]).reduce((sum, { alpha, beta }) =>
-    sum + alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA, 0);
+  const best = await getBestAction(breakContext, availableBreaks);
+  return { value: best, source: 'learned' };
+}
 
-  let needsSave = false;
-  availableBreaks.forEach(action => {
-    if (!model[key][action]) {
-      model[key][action] = { alpha: DEFAULT_ALPHA, beta: DEFAULT_BETA };
-      needsSave = true;
-    }
-  });
-  if (needsSave) await saveModel(model);
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
 
-  //find successful durations
-  const successfulDurations = availableBreaks
-    .map(action => {
-      const { alpha, beta } = model[key][action]!;
-      const mean = alpha / (alpha + beta);
-      const observations = alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA;
-      return { action, mean, observations };
-    })
-    .filter(({ mean, observations }) => mean > 0.6 && observations > 0)
-    .sort((a, b) => b.mean - a.mean);
+/**
+ * Add a dynamic arm when user picks a custom duration.
+ */
+export function addDynamicArm(actions: number[], customDuration: number): number[] {
+  if (actions.includes(customDuration)) return [...actions];
+  return [...actions, customDuration].sort((a, b) => a - b);
+}
 
-  //early-phase: Weighted random selection
-  if (totalTries < 3 && Math.random() < 0.7) {
-    const weights = availableBreaks.map(action => {
-      let weight = 1.0;
-      if (successfulDurations.length > 0) {
-        const closestSuccess = successfulDurations.reduce((closest, current) => {
-          const currentDiff = Math.abs(current.action - action);
-          const closestDiff = Math.abs(closest.action - action);
-          return currentDiff < closestDiff ? current : closest;
-        });
-
-        const distance = Math.abs(closestSuccess.action - action);
-        if (distance <= 5) {
-          weight += (1 - distance / 5) * 0.5 * closestSuccess.mean;
-        }
-      }
-      return weight;
-    });
-
-    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-    const normalizedWeights = weights.map(w => w / totalWeight);
-
-    const random = Math.random();
-    let cumulativeWeight = 0;
-    let selectedAction = availableBreaks[0];
-
-    for (let i = 0; i < availableBreaks.length; i++) {
-      cumulativeWeight += normalizedWeights[i];
-      if (random <= cumulativeWeight) {
-        selectedAction = availableBreaks[i];
-        break;
-      }
-    }
-
-    return { value: selectedAction, source: 'learned' };
-  }
-
-  //sample from Beta distributions
-  const samples = availableBreaks.map(action => {
-    const { alpha, beta } = model[key][action]!;
-    const mean = alpha / (alpha + beta);
-    const variance = (alpha * beta) / (Math.pow(alpha + beta, 2) * (alpha + beta + 1));
-    const observations = alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA;
-
-    let proximityBonus = 0;
-    if (successfulDurations.length > 0) {
-      const closestSuccess = successfulDurations.reduce((closest, current) => {
-        const currentDiff = Math.abs(current.action - action);
-        const closestDiff = Math.abs(closest.action - action);
-        return currentDiff < closestDiff ? current : closest;
-      });
-
-      const distance = Math.abs(closestSuccess.action - action);
-      if (distance <= 5) {
-        proximityBonus = (1 - distance / 5) * 0.5 * closestSuccess.mean;
-      }
-    }
-
-    return {
-      action,
-      value: sampleBeta(alpha, beta) + proximityBonus,
-      mean,
-      variance,
-      observations
-    };
-  });
-
-  const explorationRate = Math.pow(EXPLORATION_DECAY, totalTries);
-
-  if (Math.random() < explorationRate) {
-    samples.sort((a, b) => {
-      if (a.mean > 0.5 && b.mean > 0.5) {
-        return b.mean - a.mean;
-      }
-      return b.variance - a.variance;
-    });
-    return { value: samples[0].action, source: 'learned' };
-  }
-
-  samples.sort((a, b) => {
-    if (a.observations === 0 && b.observations === 0) return 0;
-    if (a.observations === 0) return 1;
-    if (b.observations === 0) return -1;
-    return b.mean - a.mean;
-  });
-
-  const best = samples[0].action;
-  const params = model[key][best];
-  const totalObs = params.alpha + params.beta - DEFAULT_ALPHA - DEFAULT_BETA;
-  const mean = params.alpha / (params.alpha + params.beta);
-  const confidence = Math.min(0.95, totalObs / 5);
-
-  if (totalObs > 0 && mean > 0.5) {
-    const learnedWeight = Math.min(0.9, confidence * 1.2);
-
-    let proximityBonus = 0;
-    if (successfulDurations.length > 0) {
-      const closestSuccess = successfulDurations.reduce((closest, current) => {
-        const currentDiff = Math.abs(current.action - baseBreak);
-        const closestDiff = Math.abs(closest.action - baseBreak);
-        return currentDiff < closestDiff ? current : closest;
-      });
-
-      const distance = Math.abs(closestSuccess.action - baseBreak);
-      if (distance <= 5) {
-        proximityBonus = (1 - distance / 5) * 0.5 * closestSuccess.mean;
-      }
-    }
-
-    const adjustedBase = baseBreak * (1 + proximityBonus);
-    const rawValue = adjustedBase * (1 - learnedWeight) + best * learnedWeight;
-    const value = roundToNearest5(rawValue);
-
-    const source =
-      confidence < 0.3
-        ? 'heuristic'
-        : confidence > 0.7
-          ? 'learned'
-          : 'blended';
-
-    return { value, source };
-  }
-
-  return { value: baseBreak, source: 'heuristic' };
-};
-
-
-//removes old stacked keys like -break-break
-export const cleanBreakContextKeys = async () => {
-  try {
-    const model = await loadModel();
-    const cleanedModel: ModelState = {};
-
-    for (const contextKey in model) {
-      //skip if not a "dirty" break key
-      if (contextKey.includes('-break-break')) {
-        continue;
-      }
-
-      //keep all clean keys
-      cleanedModel[contextKey] = model[contextKey];
-    }
-
-    //save the cleaned model back
-    await saveModel(cleanedModel);
-  } catch (err) {
-    console.error('[Cleanup] Failed to clean model:', err);
-  }
-};
-
-
-//debugging helper
-export const debugModel = async (): Promise<void> => {
-  const model = await loadModel();
-  console.log('\n=== Model State Summary ===');
-  console.log('Contexts:', Object.keys(model).length);
-  console.log('\nContext Details:');
-  console.log('----------------');
-
-  for (const key in model) {
-    const [taskType, energy, timeOfDay] = key.split('|');
-    console.log(`\nContext: ${taskType} | ${energy} | ${timeOfDay}`);
-    console.log('Action | Mean | Confidence | Observations');
-    console.log('----------------------------------------');
-
-    const actions = Object.entries(model[key]);
-    if (actions.length === 0) continue;
-
-    actions.forEach(([action, params]) => {
-      const { alpha, beta } = params;
-      const mean = alpha / (alpha + beta);
-      const totalObs = alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA;
-      const confidence = Math.min(0.95, totalObs / 10);
-
-      console.log(`${action.toString().padStart(5)} | ${mean.toFixed(3)} | ${confidence.toFixed(3)} | ${totalObs}`);
-    });
-  }
-  console.log('\n========================\n');
-};
-
-//get the current model state
-export const getModelState = async (): Promise<ModelState> => {
+/**
+ * Get the current model state (for debugging).
+ */
+export async function getModelState(): Promise<ModelState> {
   return await loadModel();
-};
+}
+
+/**
+ * Debug function to print model state.
+ */
+export async function debugModel(): Promise<void> {
+  const model = await loadModel();
+  const zones = await loadZones();
+  const capacity = await loadCapacity();
+
+  console.log('\n========== RL Model Debug ==========');
+  console.log('Contexts:', Object.keys(model).length);
+
+  for (const key of Object.keys(model)) {
+    console.log(`\n--- ${key} ---`);
+    if (zones[key]) {
+      console.log(`Zone: ${zones[key].zone}, Confidence: ${zones[key].confidence.toFixed(2)}`);
+    }
+    if (capacity[key]) {
+      console.log(`Capacity: ${capacity[key].averageCapacity.toFixed(1)}min, Completion: ${(capacity[key].completionRate * 100).toFixed(0)}%, Trend: ${capacity[key].trend}`);
+    }
+    console.log('Actions:');
+    const actions = Object.entries(model[key]);
+    actions.sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+    for (const [action, params] of actions) {
+      const mean = params.alpha / (params.alpha + params.beta);
+      const obs = params.alpha + params.beta - DEFAULT_ALPHA - DEFAULT_BETA;
+      console.log(`  ${action}min: mean=${mean.toFixed(3)}, obs=${obs.toFixed(1)}`);
+    }
+  }
+  console.log('\n=====================================\n');
+}
+
+/**
+ * Clean up old data (migration utility).
+ */
+export async function cleanBreakContextKeys(): Promise<void> {
+  const model = await loadModel();
+  const cleaned: ModelState = {};
+
+  for (const key of Object.keys(model)) {
+    // Skip double-break keys
+    if (key.includes('-break-break')) continue;
+    cleaned[key] = model[key];
+  }
+
+  await saveModel(cleaned);
+  console.log('[RL] Cleaned model - removed duplicate break keys');
+}
