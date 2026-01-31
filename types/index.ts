@@ -1,13 +1,15 @@
-import { TimeOfDay } from '@/services/recommendations';
+export type EnergyLevel = "low" | "mid" | "high" | "";
+export type TimeRange = "week" | "month" | "year";
 
-export type EnergyLevel = 'low' | 'mid' | 'high' | '';
-export type TimeRange = 'week' | 'month' | 'year';
-
+/**
+ * Session data stored in the database.
+ * Note: timeOfDay is kept for historical sessions but no longer used for RL context.
+ */
 export interface Session {
   id?: number;
   taskType: string;
   energyLevel: EnergyLevel;
-  timeOfDay: string;
+  timeOfDay: string; // Kept for backward compatibility with existing database records
   recommendedDuration: number;
   recommendedBreak: number;
   userSelectedDuration: number;
@@ -18,8 +20,7 @@ export interface Session {
   reward: number;
   date: string;
   createdAt: string;
-  skipReason?: 'skippedFocus' | 'skippedBreak' | 'none';
-
+  skipReason?: "skippedFocus" | "skippedBreak" | "none";
 }
 
 export interface TimerState {
@@ -35,7 +36,7 @@ export interface TimerState {
   showTaskModal: boolean;
   showBreakModal: boolean;
   showSkipConfirm: boolean;
-  customTask: string;
+
   previousTasks: string[];
   sessions: Session[];
   isLoading: boolean;
@@ -48,15 +49,15 @@ export interface TimerState {
   focusSessionDuration: number;
   originalFocusDuration: number;
   hasSavedSession: boolean;
-  sessionJustCompleted: boolean;  // Flag to skip validation after session ends
-  scheduledNotificationId: string | null;  // ID of scheduled notification for background delivery
+  sessionJustCompleted: boolean;
+  scheduledNotificationId: string | null;
 
   //recommendation fields
   recommendedFocusDuration: number;
   recommendedBreakDuration: number;
   userAcceptedRecommendation: boolean;
   selectedBreakDuration: number;
-  timeOfDay: TimeOfDay;
+  // Note: timeOfDay removed from state - no longer used for RL context
 
   //actions
   startTimer: () => Promise<void> | void;
@@ -64,7 +65,7 @@ export interface TimerState {
   cancelTimer: () => Promise<void> | void;
   skipTimer: () => void;
   completeTimer: () => void;
-  adjustTime: (direction: 'up' | 'down') => void;
+  adjustTime: (direction: "up" | "down") => void;
   setTaskType: (task: string) => void;
   setEnergyLevel: (level: EnergyLevel) => void;
   addCustomTask: (task: string) => void;
