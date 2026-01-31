@@ -1,6 +1,5 @@
 import { TIME_ADJUSTMENT_STEP, TIMER_CONSTANTS } from "@/constants/timer";
 import {
-  Context,
   updateCapacityStats,
   updateModel,
   updateZoneData,
@@ -15,8 +14,12 @@ import {
 } from "@/services/sessionService";
 import { EnergyLevel, TimerState } from "@/types";
 import {
+  cancelScheduledNotification,
+  createBreakContext,
+  createFocusContext,
   detectTimeOfDay,
   resetTimerState,
+  secondsToMinutes,
   updateRecommendations,
 } from "@/utils/sessionUtils";
 import { normalizeTask } from "@/utils/task";
@@ -137,11 +140,7 @@ const useTimerStore = create<TimerStoreState>()(
         }
 
         // Cancel any existing scheduled notification
-        if (scheduledNotificationId) {
-          await Notifications.cancelScheduledNotificationAsync(
-            scheduledNotificationId,
-          ).catch(() => {});
-        }
+        await cancelScheduledNotification(scheduledNotificationId);
 
         // Schedule notification upfront for background delivery
         let newNotificationId: string | null = null;
@@ -203,11 +202,7 @@ const useTimerStore = create<TimerStoreState>()(
 
       cancelTimer: async () => {
         const { scheduledNotificationId } = get();
-        if (scheduledNotificationId) {
-          await Notifications.cancelScheduledNotificationAsync(
-            scheduledNotificationId,
-          ).catch(() => {});
-        }
+        await cancelScheduledNotification(scheduledNotificationId);
         set({
           isActive: false,
           showCancel: false,
@@ -239,20 +234,19 @@ const useTimerStore = create<TimerStoreState>()(
           isBreakTime,
         } = get();
 
-        const focusTimeInMinutes = Math.round(originalFocusDuration / 60);
-        const breakTimeInMinutes = Math.round(selectedBreakDuration / 60);
+        const focusTimeInMinutes = secondsToMinutes(originalFocusDuration);
+        const breakTimeInMinutes = secondsToMinutes(selectedBreakDuration);
 
-        // Create simplified context (no timeOfDay)
-        const context: Context = {
+        const context = createFocusContext(
           taskType,
-          energyLevel: energyLevel as EnergyLevel,
-        };
+          energyLevel as EnergyLevel,
+        );
 
         if (isBreakTime) {
-          const breakContext: Context = {
-            taskType: `${taskType}-break`,
-            energyLevel: energyLevel as EnergyLevel,
-          };
+          const breakContext = createBreakContext(
+            taskType,
+            energyLevel as EnergyLevel,
+          );
 
           if (get().hasSavedSession) return;
           set({ hasSavedSession: true, sessionJustCompleted: true });
@@ -261,7 +255,7 @@ const useTimerStore = create<TimerStoreState>()(
             const newSession = await createAndSaveSession({
               taskType,
               energyLevel: energyLevel as EnergyLevel,
-              timeOfDay: detectTimeOfDay(), // Still stored for DB
+              timeOfDay: detectTimeOfDay(),
               recommendedDuration: recommendedFocusDuration,
               recommendedBreak: recommendedBreakDuration,
               userSelectedDuration: focusTimeInMinutes,
@@ -274,7 +268,7 @@ const useTimerStore = create<TimerStoreState>()(
               createdAt: new Date().toISOString(),
             });
 
-            // Update model for FOCUS - this is the user's selected duration!
+            // Update model for FOCUS
             await updateModel(context, focusTimeInMinutes, newSession.reward);
 
             // Update model for break
@@ -323,16 +317,12 @@ const useTimerStore = create<TimerStoreState>()(
           scheduledNotificationId,
         } = get();
 
-        if (scheduledNotificationId) {
-          await Notifications.cancelScheduledNotificationAsync(
-            scheduledNotificationId,
-          ).catch(() => {});
-          set({ scheduledNotificationId: null });
-        }
+        await cancelScheduledNotification(scheduledNotificationId);
+        set({ scheduledNotificationId: null });
 
         const elapsedSeconds = focusSessionDuration - time;
-        let focusTimeInMinutes = Math.round(elapsedSeconds / 60);
-        const totalFocusDuration = Math.round(originalFocusDuration / 60);
+        let focusTimeInMinutes = secondsToMinutes(elapsedSeconds);
+        const totalFocusDuration = secondsToMinutes(originalFocusDuration);
 
         if (isSkippingBreak) {
           focusTimeInMinutes = totalFocusDuration;
@@ -347,10 +337,10 @@ const useTimerStore = create<TimerStoreState>()(
           return;
         }
 
-        const context: Context = {
+        const context = createFocusContext(
           taskType,
-          energyLevel: energyLevel as EnergyLevel,
-        };
+          energyLevel as EnergyLevel,
+        );
 
         const skipReason = isSkippingBreak
           ? "skippedBreak"
@@ -530,12 +520,13 @@ const useTimerStore = create<TimerStoreState>()(
           originalFocusDuration,
         } = get();
 
+        // Handle "skip break" case (duration === 0)
         if (duration === 0) {
           const remainingFocus = get().time;
           const elapsedFocusSeconds =
             get().focusSessionDuration - remainingFocus;
-          const focusTimeInMinutes = Math.round(elapsedFocusSeconds / 60);
-          const totalFocusDuration = Math.round(originalFocusDuration / 60);
+          const focusTimeInMinutes = secondsToMinutes(elapsedFocusSeconds);
+          const totalFocusDuration = secondsToMinutes(originalFocusDuration);
 
           const newSession: Omit<DBSession, "id"> = {
             taskType,
@@ -567,20 +558,20 @@ const useTimerStore = create<TimerStoreState>()(
           try {
             await createAndSaveSession(newSession);
 
-            const focusContext: Context = {
+            const focusContext = createFocusContext(
               taskType,
-              energyLevel: energyLevel as EnergyLevel,
-            };
+              energyLevel as EnergyLevel,
+            );
             await updateModel(
               focusContext,
               focusTimeInMinutes,
               newSession.reward,
             );
 
-            const breakContext: Context = {
-              taskType: `${taskType}-break`,
-              energyLevel: energyLevel as EnergyLevel,
-            };
+            const breakContext = createBreakContext(
+              taskType,
+              energyLevel as EnergyLevel,
+            );
             await updateModel(breakContext, 0, newSession.reward);
 
             get().loadSessions();

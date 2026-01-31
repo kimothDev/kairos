@@ -1,18 +1,84 @@
-import { Context, debugModel, loadModel, updateModel } from '@/services/contextualBandits';
-import { insertSession } from '@/services/database';
-import { calculateReward } from '@/services/recommendations';
-import { getSessionRecommendation } from '@/services/sessionPlanner';
-import { EnergyLevel } from '@/types';
-import { createContextKey } from '@/utils/contextKey';
+import {
+  Context,
+  debugModel,
+  loadModel,
+  updateModel,
+} from "@/services/contextualBandits";
+import { insertSession } from "@/services/database";
+import { calculateReward } from "@/services/recommendations";
+import { getSessionRecommendation } from "@/services/sessionPlanner";
+import { EnergyLevel } from "@/types";
+import { createContextKey } from "@/utils/contextKey";
+import * as Notifications from "expo-notifications";
+
+// ============================================================================
+// Context Helpers
+// ============================================================================
+
+/**
+ * Create a focus context for RL model updates.
+ */
+export function createFocusContext(
+  taskType: string,
+  energyLevel: EnergyLevel,
+): Context {
+  return {
+    taskType,
+    energyLevel,
+  };
+}
+
+/**
+ * Create a break context for RL model updates.
+ * Appends '-break' to the task type to differentiate from focus sessions.
+ */
+export function createBreakContext(
+  taskType: string,
+  energyLevel: EnergyLevel,
+): Context {
+  return {
+    taskType: `${taskType}-break`,
+    energyLevel,
+  };
+}
+
+// ============================================================================
+// Notification Helpers
+// ============================================================================
+
+/**
+ * Cancel a scheduled notification safely.
+ * Handles null/undefined IDs and swallows errors.
+ */
+export async function cancelScheduledNotification(
+  notificationId: string | null,
+): Promise<void> {
+  if (notificationId) {
+    await Notifications.cancelScheduledNotificationAsync(notificationId).catch(
+      () => {},
+    );
+  }
+}
+
+// ============================================================================
+// Time Helpers
+// ============================================================================
+
+/**
+ * Convert seconds to minutes (rounded).
+ */
+export function secondsToMinutes(seconds: number): number {
+  return Math.round(seconds / 60);
+}
 
 /**
  * Detect time of day - kept for backward compatibility with database storage.
  */
 export function detectTimeOfDay(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'morning';
-  if (hour < 17) return 'afternoon';
-  return 'evening';
+  if (hour < 12) return "morning";
+  if (hour < 17) return "afternoon";
+  return "evening";
 }
 
 /**
@@ -28,20 +94,20 @@ export function createSession(params: {
   acceptedRecommendation: boolean;
   sessionCompleted: boolean;
   focusedUntilSkipped: number;
-  skipReason?: 'skippedFocus' | 'skippedBreak';
+  skipReason?: "skippedFocus" | "skippedBreak";
 }) {
   return {
     ...params,
-    timeOfDay: detectTimeOfDay(),  // Still stored for historical data
+    timeOfDay: detectTimeOfDay(), // Still stored for historical data
     reward: calculateReward(
       params.sessionCompleted,
       params.acceptedRecommendation,
       params.focusedUntilSkipped,
       params.userSelectedDuration,
       params.recommendedDuration,
-      params.skipReason
+      params.skipReason,
     ),
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split("T")[0],
     createdAt: new Date().toISOString(),
   };
 }
@@ -61,34 +127,42 @@ export async function createSessionWithContext(
     acceptedRecommendation: boolean;
     sessionCompleted: boolean;
     focusedUntilSkipped: number;
-    skipReason?: 'skippedFocus' | 'skippedBreak';
+    skipReason?: "skippedFocus" | "skippedBreak";
   },
   store: any,
-  modelActionOverride?: number
+  modelActionOverride?: number,
 ) {
   const newSession = createSession(sessionData);
   await insertSession(newSession);
-  await updateModel(context, modelActionOverride ?? (sessionData.focusedUntilSkipped || 0), newSession.reward);
+  await updateModel(
+    context,
+    modelActionOverride ?? (sessionData.focusedUntilSkipped || 0),
+    newSession.reward,
+  );
   await store.loadSessions();
 
   // Debug logging
   const model = await loadModel();
   const contextKey = createContextKey(context);
-  const actions = Object.keys(model[contextKey] || {}).map(Number).sort((a, b) => a - b);
+  const actions = Object.keys(model[contextKey] || {})
+    .map(Number)
+    .sort((a, b) => a - b);
 
   console.log(`\n=== Session Model Update ===`);
   console.log(`Context: ${contextKey}`);
-  console.log('Action | Alpha | Beta | Mean | Observations');
-  console.log('------------------------------------------');
-  actions.forEach(action => {
+  console.log("Action | Alpha | Beta | Mean | Observations");
+  console.log("------------------------------------------");
+  actions.forEach((action) => {
     const params = model[contextKey][action];
     if (!params) return;
     const { alpha, beta } = params;
     const mean = alpha / (alpha + beta);
     const observations = alpha + beta - 1.5 - 1.0;
-    console.log(`${action.toString().padStart(5)} | ${alpha.toFixed(3).padStart(5)} | ${beta.toFixed(3).padStart(5)} | ${mean.toFixed(3).padStart(5)} | ${observations.toFixed(1)}`);
+    console.log(
+      `${action.toString().padStart(5)} | ${alpha.toFixed(3).padStart(5)} | ${beta.toFixed(3).padStart(5)} | ${mean.toFixed(3).padStart(5)} | ${observations.toFixed(1)}`,
+    );
   });
-  console.log('');
+  console.log("");
 
   await debugModel();
   return newSession;
@@ -123,13 +197,13 @@ export async function updateRecommendations(
   energyLevel: EnergyLevel,
   taskType: string,
   set: any,
-  dynamicFocusArms: number[]
+  dynamicFocusArms: number[],
 ) {
   try {
     const { focusDuration, breakDuration } = await getSessionRecommendation(
       energyLevel,
       taskType,
-      dynamicFocusArms
+      dynamicFocusArms,
     );
     set({
       recommendedFocusDuration: focusDuration,
@@ -137,7 +211,7 @@ export async function updateRecommendations(
       time: focusDuration * 60,
       initialTime: focusDuration * 60,
       userAcceptedRecommendation: false,
-      hasDismissedRecommendationCard: false
+      hasDismissedRecommendationCard: false,
     });
   } catch (error) {
     console.error("Error getting session recommendation:", error);
