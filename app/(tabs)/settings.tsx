@@ -1,30 +1,56 @@
-import Colors from '@/constants/colors';
-import { exportSessionsToCSV, importSessionsFromCSV } from '@/services/dataExport';
-import useTimerStore from '@/store/timerStore';
-import { Battery, Bell, Brain, Download, Github, Info, Trash2, Upload } from 'lucide-react-native';
-import React from 'react';
-import { ActivityIndicator, Alert, Linking, Platform, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import Colors from "@/constants/colors";
+import {
+  exportSessionsToCSV,
+  importSessionsFromCSV,
+} from "@/services/dataExport";
+import useTimerStore from "@/store/timerStore";
+import {
+  Battery,
+  Bell,
+  Brain,
+  Download,
+  Github,
+  Info,
+  Trash2,
+  Upload,
+} from "lucide-react-native";
+import React from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function SettingsScreen() {
   const { sessions, isLoading, clearAllSessions } = useTimerStore();
-  const includeShortSessions = useTimerStore(s => s.includeShortSessions);
-  const toggleShort = useTimerStore(s => s.toggleIncludeShortSessions);
-  const notificationsEnabled = useTimerStore(s => s.notificationsEnabled);
-  const toggleNotifications = useTimerStore(s => s.toggleNotificationsEnabled);
+  const includeShortSessions = useTimerStore((s) => s.includeShortSessions);
+  const toggleShort = useTimerStore((s) => s.toggleIncludeShortSessions);
+  const notificationsEnabled = useTimerStore((s) => s.notificationsEnabled);
+  const toggleNotifications = useTimerStore(
+    (s) => s.toggleNotificationsEnabled,
+  );
 
   const openBatterySettings = async () => {
-    if (Platform.OS === 'android') {
+    if (Platform.OS === "android") {
       // Show alert with instructions, then open app settings
       Alert.alert(
-        'Disable Battery Optimization',
+        "Disable Battery Optimization",
         'To ensure notifications work when the app is in background:\n\n1. Tap "Open Settings" below\n2. Select "Battery"\n3. Choose "Unrestricted"',
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: "Cancel", style: "cancel" },
           {
-            text: 'Open Settings',
-            onPress: () => Linking.openSettings()
-          }
-        ]
+            text: "Open Settings",
+            onPress: () => Linking.openSettings(),
+          },
+        ],
       );
     }
   };
@@ -36,32 +62,32 @@ export default function SettingsScreen() {
       [
         {
           text: "Cancel",
-          style: "cancel"
+          style: "cancel",
         },
         {
           text: "Clear",
           onPress: () => clearAllSessions(),
-          style: "destructive"
-        }
-      ]
+          style: "destructive",
+        },
+      ],
     );
   };
 
   const handleExport = async () => {
     try {
       await exportSessionsToCSV();
-      alert('CSV saved to your Downloads folder.');
+      alert("CSV saved to your Downloads folder.");
     } catch {
-      alert('Failed to export sessions.');
+      alert("Failed to export sessions.");
     }
   };
 
   const handleImport = async () => {
     try {
       await importSessionsFromCSV();
-      alert('Import and model sync complete.');
+      alert("Import and model sync complete.");
     } catch {
-      alert('Failed to import sessions.');
+      alert("Failed to import sessions.");
     }
   };
 
@@ -89,14 +115,18 @@ export default function SettingsScreen() {
             />
           </View>
 
-          {Platform.OS === 'android' && notificationsEnabled && (
+          {Platform.OS === "android" && notificationsEnabled && (
             <TouchableOpacity
               style={styles.settingItem}
               onPress={openBatterySettings}
             >
               <View style={styles.settingInfo}>
                 <Battery size={20} color={Colors.text.primary} />
-                <Text style={[styles.settingText, { color: Colors.text.primary }]}>Disable Battery Optimization</Text>
+                <Text
+                  style={[styles.settingText, { color: Colors.text.primary }]}
+                >
+                  Disable Battery Optimization
+                </Text>
               </View>
             </TouchableOpacity>
           )}
@@ -125,9 +155,13 @@ export default function SettingsScreen() {
           >
             <View style={styles.settingInfo}>
               <Trash2 size={20} color={Colors.error} />
-              <Text style={[styles.settingText, { color: Colors.error }]}>Clear all data</Text>
+              <Text style={[styles.settingText, { color: Colors.error }]}>
+                Clear all data
+              </Text>
             </View>
-            {isLoading && <ActivityIndicator size="small" color={Colors.primary} />}
+            {isLoading && (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            )}
           </TouchableOpacity>
 
           <View style={styles.settingItem}>
@@ -143,20 +177,14 @@ export default function SettingsScreen() {
           </View>
 
           <View style={styles.settingItem}>
-            <TouchableOpacity
-              style={styles.settingInfo}
-              onPress={handleExport}
-            >
+            <TouchableOpacity style={styles.settingInfo} onPress={handleExport}>
               <Upload size={20} color={Colors.text.primary} />
               <Text style={styles.settingText}>Export session data</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.settingItem}>
-            <TouchableOpacity
-              style={styles.settingInfo}
-              onPress={handleImport}
-            >
+            <TouchableOpacity style={styles.settingInfo} onPress={handleImport}>
               <Download size={20} color={Colors.text.primary} />
               <Text style={styles.settingText}>Import session data</Text>
             </TouchableOpacity>
@@ -171,7 +199,7 @@ export default function SettingsScreen() {
               <Github size={20} color={Colors.text.primary} />
               <Text style={styles.settingText}>Version</Text>
             </View>
-            <Text style={styles.settingValue}>1.1.0</Text>
+            <Text style={styles.settingValue}>1.3.0</Text>
           </View>
         </View>
       </ScrollView>
@@ -191,7 +219,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.text.primary,
     marginBottom: 10,
   },
@@ -204,21 +232,21 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.text.primary,
     marginBottom: 15,
   },
   settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   settingInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   settingText: {
     fontSize: 16,
