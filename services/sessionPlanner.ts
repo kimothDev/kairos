@@ -1,41 +1,46 @@
 import { EnergyLevel } from '@/types';
-import { getSmartBreakRecommendation, getSmartRecommendation } from './contextualBandits';
-import { FocusRecommendation, getRecommendations, TimeOfDay } from './recommendations';
+import { Context, getSmartBreakRecommendation, getSmartRecommendation } from './contextualBandits';
+import { FocusRecommendation, getRecommendations } from './recommendations';
 
 /**
  * Get a complete session recommendation, combining
  * rule-based logic with personalized learning using contextual bandits.
  *
- * @param context - Includes taskType, energyLevel, timeOfDay
- * @param includeShortSessions - Whether ADHD mode is enabled
+ * @param energyLevel - User's current energy level
+ * @param taskType - Type of task being performed
  * @param dynamicFocusArms - Custom focus durations added by user
  * @returns { focusDuration, breakDuration } both in minutes
  */
-export const getSessionRecommendation = async (
+export async function getSessionRecommendation(
   energyLevel: EnergyLevel,
-  timeOfDay: TimeOfDay,
   taskType: string,
-  includeShortSessions: boolean,
-  dynamicFocusArms: number[]
-): Promise<FocusRecommendation> => {
-  //get base recommendation from rule-based system
-  const baseRecommendation = await getRecommendations(energyLevel, timeOfDay, taskType);
+  dynamicFocusArms: number[] = []
+): Promise<FocusRecommendation> {
+  // Create context for bandits (simplified - no timeOfDay)
+  const context: Context = {
+    energyLevel,
+    taskType: taskType || 'default'
+  };
 
-  //get smart recommendation from contextual bandits
+  // Get base recommendation from rule-based system
+  const baseRecommendation = await getRecommendations(energyLevel, taskType);
+
+  // Get smart recommendation from contextual bandits
   const smartFocus = await getSmartRecommendation(
-    { energyLevel, timeOfDay, taskType: taskType || 'default' },
+    context,
     baseRecommendation.focusDuration,
-    includeShortSessions,
     dynamicFocusArms
   );
+
+  // Get smart break - scaled to focus duration
   const smartBreak = await getSmartBreakRecommendation(
-    { energyLevel, timeOfDay, taskType: taskType || 'default' },
+    context,
     baseRecommendation.breakDuration,
-    includeShortSessions
+    smartFocus.value  // Pass focus duration to scale break options
   );
 
   return {
     focusDuration: smartFocus.value,
     breakDuration: smartBreak.value
   };
-};
+}
