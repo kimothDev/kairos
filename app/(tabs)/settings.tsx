@@ -1,42 +1,54 @@
+import ImportModal from "@/components/ImportModal";
 import Colors from "@/constants/colors";
 import {
-  exportSessionsToCSV,
-  importSessionsFromCSV,
+    exportAllDataAsZip,
+    ImportSelection,
+    ParsedImportData,
+    performImport,
+    pickAndParseZip,
 } from "@/services/dataExport";
 import useTimerStore from "@/store/timerStore";
 import {
-  Battery,
-  Bell,
-  Brain,
-  Download,
-  Github,
-  Info,
-  Trash2,
-  Upload,
+    Battery,
+    Bell,
+    Brain,
+    Download,
+    Github,
+    Info,
+    Trash2,
+    Upload,
 } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Linking,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export default function SettingsScreen() {
-  const { sessions, isLoading, clearAllSessions } = useTimerStore();
+  const { sessions, isLoading, clearAllSessions, loadSessions } =
+    useTimerStore();
   const includeShortSessions = useTimerStore((s) => s.includeShortSessions);
   const toggleShort = useTimerStore((s) => s.toggleIncludeShortSessions);
   const notificationsEnabled = useTimerStore((s) => s.notificationsEnabled);
   const toggleNotifications = useTimerStore(
     (s) => s.toggleNotificationsEnabled,
   );
+
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+
+  // Import Modal State
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [importData, setImportData] = useState<ParsedImportData | null>(null);
 
   const openBatterySettings = async () => {
     if (Platform.OS === "android") {
@@ -75,24 +87,72 @@ export default function SettingsScreen() {
 
   const handleExport = async () => {
     try {
-      await exportSessionsToCSV();
-      alert("CSV saved to your Downloads folder.");
-    } catch {
-      alert("Failed to export sessions.");
+      setIsExporting(true);
+      await exportAllDataAsZip();
+      // No alert needed as share sheet handles feedback
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Export Failed", "Could not create backup file.");
+    } finally {
+      setIsExporting(false);
     }
   };
 
-  const handleImport = async () => {
+  const handleImportPick = async () => {
     try {
-      await importSessionsFromCSV();
-      alert("Import and model sync complete.");
-    } catch {
-      alert("Failed to import sessions.");
+      setIsImporting(true);
+      const data = await pickAndParseZip();
+
+      if (data) {
+        setImportData(data);
+        setImportModalVisible(true);
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert(
+        "Import Failed",
+        error instanceof Error ? error.message : "Failed to read backup file.",
+      );
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleImportConfirm = async (selection: ImportSelection) => {
+    if (!importData) return;
+
+    try {
+      setIsImporting(true);
+      setImportModalVisible(false);
+
+      await performImport(importData, selection);
+
+      // Refresh state
+      await loadSessions();
+
+      Alert.alert(
+        "Import Complete",
+        "Your data has been successfully restored.",
+      );
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Import Failed", "An error occurred while restoring data.");
+    } finally {
+      setIsImporting(false);
+      setImportData(null);
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Import Modal */}
+      <ImportModal
+        visible={importModalVisible}
+        onClose={() => setImportModalVisible(false)}
+        onImport={handleImportConfirm}
+        data={importData}
+      />
+
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
         <View style={styles.header}>
           <Text style={styles.title}>Settings</Text>
@@ -177,17 +237,31 @@ export default function SettingsScreen() {
           </View>
 
           <View style={styles.settingItem}>
-            <TouchableOpacity style={styles.settingInfo} onPress={handleExport}>
+            <TouchableOpacity
+              style={styles.settingInfo}
+              onPress={handleExport}
+              disabled={isExporting}
+            >
               <Upload size={20} color={Colors.text.primary} />
-              <Text style={styles.settingText}>Export session data</Text>
+              <Text style={styles.settingText}>Export data backup</Text>
             </TouchableOpacity>
+            {isExporting && (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            )}
           </View>
 
           <View style={styles.settingItem}>
-            <TouchableOpacity style={styles.settingInfo} onPress={handleImport}>
+            <TouchableOpacity
+              style={styles.settingInfo}
+              onPress={handleImportPick}
+              disabled={isImporting}
+            >
               <Download size={20} color={Colors.text.primary} />
-              <Text style={styles.settingText}>Import session data</Text>
+              <Text style={styles.settingText}>Import data backup</Text>
             </TouchableOpacity>
+            {isImporting && (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            )}
           </View>
         </View>
 
