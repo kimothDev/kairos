@@ -1,5 +1,6 @@
 import {
   DEFAULT_TASKS,
+  MIN_SESSION_FOR_SAVE,
   TIME_ADJUSTMENT_STEP,
   TIMER_CONSTANTS,
 } from "@/constants/timer";
@@ -212,7 +213,7 @@ const useTimerStore = create<TimerStoreState>()(
             if (get().isActive) {
               set({ showCancel: false, showSkip: true });
             }
-          }, 10000);
+          }, MIN_SESSION_FOR_SAVE * 1000);
         }
       },
 

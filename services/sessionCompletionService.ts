@@ -1,3 +1,4 @@
+import { MIN_SESSION_FOR_SAVE } from "@/constants/timer";
 import {
     updateCapacityStats,
     updateModel,
@@ -54,6 +55,15 @@ export async function completeSession(
     selectedBreakDuration,
     focusedTime,
   } = params;
+
+  // Skip saving sessions that are too short (likely accidental starts)
+  // Only applies to skipped sessions - completed sessions always get saved
+  if (type !== "completed" && focusedTime < MIN_SESSION_FOR_SAVE) {
+    console.log(
+      `[Session] Skipping save: session too short (${focusedTime}s < ${MIN_SESSION_FOR_SAVE}s minimum)`,
+    );
+    return;
+  }
 
   const focusTimeInMinutes = secondsToMinutes(focusedTime);
   const totalFocusDuration = secondsToMinutes(originalFocusDuration);
