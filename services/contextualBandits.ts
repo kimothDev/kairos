@@ -1,6 +1,6 @@
 /**
  * Contextual Bandits RL System
- * 
+ *
  * This module implements Thompson Sampling with:
  * - Zone-based action spaces (short: 5-30min, long: 25-60min)
  * - Dual-track learning (preference + capacity)
@@ -8,10 +8,10 @@
  * - Simplified context (taskType + energyLevel only)
  */
 
-import { EnergyLevel } from '@/types';
-import { createContextKey } from '@/utils/contextKey';
-import { roundToNearest5 } from '@/utils/time';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { EnergyLevel } from "@/types";
+import { createContextKey } from "@/utils/contextKey";
+import { roundToNearest5 } from "@/utils/time";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ============================================================================
 // TYPES
@@ -27,7 +27,7 @@ export interface Context {
 }
 
 export type Action = number;
-export type FocusZone = 'short' | 'long';
+export type FocusZone = "short" | "long";
 
 /**
  * Zone data tracks which zone a user prefers for a given context
@@ -52,7 +52,7 @@ export interface CapacityStats {
   }>;
   averageCapacity: number;
   completionRate: number;
-  trend: 'growing' | 'stable' | 'declining';
+  trend: "growing" | "stable" | "declining";
 }
 
 /**
@@ -60,7 +60,7 @@ export interface CapacityStats {
  */
 interface ModelParameters {
   alpha: number; // success evidence
-  beta: number;  // failure evidence
+  beta: number; // failure evidence
 }
 
 /**
@@ -90,9 +90,9 @@ interface CapacityState {
 // CONSTANTS
 // ============================================================================
 
-const MODEL_STORAGE_KEY = 'contextual_bandits_model_v2';
-const ZONE_STORAGE_KEY = 'contextual_bandits_zones';
-const CAPACITY_STORAGE_KEY = 'contextual_bandits_capacity';
+const MODEL_STORAGE_KEY = "contextual_bandits_model_v2";
+const ZONE_STORAGE_KEY = "contextual_bandits_zones";
+const CAPACITY_STORAGE_KEY = "contextual_bandits_capacity";
 
 // Pessimistic priors: unexplored arms start with mean=0.4 (1.0/(1.0+1.5))
 // This prevents random high samples from beating proven winners
@@ -107,7 +107,7 @@ const CAPACITY_HISTORY_LIMIT = 10;
  */
 const ZONE_ACTIONS: Record<FocusZone, number[]> = {
   short: [10, 15, 20, 25, 30],
-  long: [25, 30, 35, 40, 45, 50, 55, 60]
+  long: [25, 30, 35, 40, 45, 50, 55, 60],
 };
 
 const BREAK_ACTIONS: number[] = [5, 10, 15, 20];
@@ -121,7 +121,7 @@ export async function loadModel(): Promise<ModelState> {
     const json = await AsyncStorage.getItem(MODEL_STORAGE_KEY);
     return json ? JSON.parse(json) : {};
   } catch (error) {
-    console.error('[RL] Error loading model:', error);
+    console.error("[RL] Error loading model:", error);
     return {};
   }
 }
@@ -130,7 +130,7 @@ export async function saveModel(model: ModelState): Promise<void> {
   try {
     await AsyncStorage.setItem(MODEL_STORAGE_KEY, JSON.stringify(model));
   } catch (error) {
-    console.error('[RL] Error saving model:', error);
+    console.error("[RL] Error saving model:", error);
   }
 }
 
@@ -139,7 +139,7 @@ export async function loadZones(): Promise<ZoneState> {
     const json = await AsyncStorage.getItem(ZONE_STORAGE_KEY);
     return json ? JSON.parse(json) : {};
   } catch (error) {
-    console.error('[RL] Error loading zones:', error);
+    console.error("[RL] Error loading zones:", error);
     return {};
   }
 }
@@ -148,7 +148,7 @@ export async function saveZones(zones: ZoneState): Promise<void> {
   try {
     await AsyncStorage.setItem(ZONE_STORAGE_KEY, JSON.stringify(zones));
   } catch (error) {
-    console.error('[RL] Error saving zones:', error);
+    console.error("[RL] Error saving zones:", error);
   }
 }
 
@@ -157,7 +157,7 @@ export async function loadCapacity(): Promise<CapacityState> {
     const json = await AsyncStorage.getItem(CAPACITY_STORAGE_KEY);
     return json ? JSON.parse(json) : {};
   } catch (error) {
-    console.error('[RL] Error loading capacity:', error);
+    console.error("[RL] Error loading capacity:", error);
     return {};
   }
 }
@@ -166,7 +166,7 @@ export async function saveCapacity(capacity: CapacityState): Promise<void> {
   try {
     await AsyncStorage.setItem(CAPACITY_STORAGE_KEY, JSON.stringify(capacity));
   } catch (error) {
-    console.error('[RL] Error saving capacity:', error);
+    console.error("[RL] Error saving capacity:", error);
   }
 }
 
@@ -178,17 +178,23 @@ export async function saveCapacity(capacity: CapacityState): Promise<void> {
  * Detect which zone based on a selection and energy level.
  * Used for initial zone detection when no history exists.
  */
-export function detectZone(selection: number, energyLevel: EnergyLevel): FocusZone {
-  if (selection <= 25) return 'short';
-  if (selection >= 35) return 'long';
+export function detectZone(
+  selection: number,
+  energyLevel: EnergyLevel,
+): FocusZone {
+  if (selection <= 25) return "short";
+  if (selection >= 35) return "long";
   // 26-34 range: use energy level as tiebreaker
-  return energyLevel === 'low' ? 'short' : 'long';
+  return energyLevel === "low" ? "short" : "long";
 }
 
 /**
  * Get available actions for a zone.
  */
-export function getZoneActions(zone: FocusZone, dynamicArms: number[] = []): number[] {
+export function getZoneActions(
+  zone: FocusZone,
+  dynamicArms: number[] = [],
+): number[] {
   const base = ZONE_ACTIONS[zone];
   const combined = Array.from(new Set([...base, ...dynamicArms]));
   return combined.sort((a, b) => a - b);
@@ -205,18 +211,27 @@ export function checkZoneTransition(zoneData: ZoneData): FocusZone {
   if (selections.length < 5) return zone;
 
   const recentSelections = selections.slice(-5);
-  const avgRecent = recentSelections.reduce((a, b) => a + b, 0) / recentSelections.length;
+  const avgRecent =
+    recentSelections.reduce((a, b) => a + b, 0) / recentSelections.length;
 
   // Short → Long: user consistently choosing 30+ (avg must be >= 30, was 25)
-  if (zone === 'short' && avgRecent >= 30) {
-    console.log('[RL] Zone transition: short → long (avg:', avgRecent.toFixed(1), ')');
-    return 'long';
+  if (zone === "short" && avgRecent >= 30) {
+    console.log(
+      "[RL] Zone transition: short → long (avg:",
+      avgRecent.toFixed(1),
+      ")",
+    );
+    return "long";
   }
 
   // Long → Short: user consistently choosing 25 or less (was 30 - too close to short→long threshold)
-  if (zone === 'long' && avgRecent <= 25) {
-    console.log('[RL] Zone transition: long → short (avg:', avgRecent.toFixed(1), ')');
-    return 'short';
+  if (zone === "long" && avgRecent <= 25) {
+    console.log(
+      "[RL] Zone transition: long → short (avg:",
+      avgRecent.toFixed(1),
+      ")",
+    );
+    return "short";
   }
 
   return zone;
@@ -225,7 +240,11 @@ export function checkZoneTransition(zoneData: ZoneData): FocusZone {
 /**
  * Get or create zone data for a context.
  */
-export async function getZoneData(contextKey: string, energyLevel: EnergyLevel, heuristicDuration: number): Promise<ZoneData> {
+export async function getZoneData(
+  contextKey: string,
+  energyLevel: EnergyLevel,
+  heuristicDuration: number,
+): Promise<ZoneData> {
   const zones = await loadZones();
 
   if (!zones[contextKey]) {
@@ -235,10 +254,10 @@ export async function getZoneData(contextKey: string, energyLevel: EnergyLevel, 
       zone,
       confidence: 0,
       selections: [],
-      transitionReady: false
+      transitionReady: false,
     };
     await saveZones(zones);
-    console.log('[RL] Created zone for', contextKey, ':', zone);
+    console.log("[RL] Created zone for", contextKey, ":", zone);
   }
 
   return zones[contextKey];
@@ -247,15 +266,18 @@ export async function getZoneData(contextKey: string, energyLevel: EnergyLevel, 
 /**
  * Update zone data when user selects a duration.
  */
-export async function updateZoneData(contextKey: string, selectedDuration: number): Promise<void> {
+export async function updateZoneData(
+  contextKey: string,
+  selectedDuration: number,
+): Promise<void> {
   const zones = await loadZones();
 
   if (!zones[contextKey]) {
     zones[contextKey] = {
-      zone: selectedDuration <= 30 ? 'short' : 'long',
+      zone: selectedDuration <= 30 ? "short" : "long",
       confidence: 0,
       selections: [],
-      transitionReady: false
+      transitionReady: false,
     };
   }
 
@@ -266,7 +288,10 @@ export async function updateZoneData(contextKey: string, selectedDuration: numbe
   }
 
   // Update confidence
-  zones[contextKey].confidence = Math.min(1, zones[contextKey].selections.length / 5);
+  zones[contextKey].confidence = Math.min(
+    1,
+    zones[contextKey].selections.length / 5,
+  );
 
   // Check for zone transition
   const newZone = checkZoneTransition(zones[contextKey]);
@@ -285,11 +310,13 @@ export async function updateZoneData(contextKey: string, selectedDuration: numbe
 /**
  * Calculate trend from recent sessions.
  */
-function calculateTrend(sessions: CapacityStats['recentSessions']): CapacityStats['trend'] {
-  if (sessions.length < 3) return 'stable';
+function calculateTrend(
+  sessions: CapacityStats["recentSessions"],
+): CapacityStats["trend"] {
+  if (sessions.length < 3) return "stable";
 
   const recent = sessions.slice(-5);
-  const ratios = recent.map(s => s.actualFocusTime / s.selectedDuration);
+  const ratios = recent.map((s) => s.actualFocusTime / s.selectedDuration);
 
   // Linear regression on ratios
   const n = ratios.length;
@@ -300,15 +327,17 @@ function calculateTrend(sessions: CapacityStats['recentSessions']): CapacityStat
 
   const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
 
-  if (slope > 0.05) return 'growing';
-  if (slope < -0.05) return 'declining';
-  return 'stable';
+  if (slope > 0.05) return "growing";
+  if (slope < -0.05) return "declining";
+  return "stable";
 }
 
 /**
  * Get capacity stats for a context.
  */
-export async function getCapacityStats(contextKey: string): Promise<CapacityStats> {
+export async function getCapacityStats(
+  contextKey: string,
+): Promise<CapacityStats> {
   const capacityState = await loadCapacity();
 
   if (!capacityState[contextKey]) {
@@ -316,7 +345,7 @@ export async function getCapacityStats(contextKey: string): Promise<CapacityStat
       recentSessions: [],
       averageCapacity: 0,
       completionRate: 0,
-      trend: 'stable'
+      trend: "stable",
     };
   }
 
@@ -330,7 +359,7 @@ export async function updateCapacityStats(
   contextKey: string,
   selectedDuration: number,
   actualFocusTime: number,
-  completed: boolean
+  completed: boolean,
 ): Promise<void> {
   const capacityState = await loadCapacity();
 
@@ -339,7 +368,7 @@ export async function updateCapacityStats(
       recentSessions: [],
       averageCapacity: 0,
       completionRate: 0,
-      trend: 'stable'
+      trend: "stable",
     };
   }
 
@@ -350,7 +379,7 @@ export async function updateCapacityStats(
     selectedDuration,
     actualFocusTime,
     completed,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 
   // Trim to limit
@@ -359,20 +388,23 @@ export async function updateCapacityStats(
   }
 
   // Recalculate stats
-  const totalFocusTime = stats.recentSessions.reduce((sum, s) => sum + s.actualFocusTime, 0);
+  const totalFocusTime = stats.recentSessions.reduce(
+    (sum, s) => sum + s.actualFocusTime,
+    0,
+  );
   stats.averageCapacity = totalFocusTime / stats.recentSessions.length;
 
-  const completedCount = stats.recentSessions.filter(s => s.completed).length;
+  const completedCount = stats.recentSessions.filter((s) => s.completed).length;
   stats.completionRate = completedCount / stats.recentSessions.length;
 
   stats.trend = calculateTrend(stats.recentSessions);
 
   await saveCapacity(capacityState);
 
-  console.log('[RL] Capacity updated for', contextKey, ':', {
+  console.log("[RL] Capacity updated for", contextKey, ":", {
     avgCapacity: stats.averageCapacity.toFixed(1),
-    completionRate: (stats.completionRate * 100).toFixed(0) + '%',
-    trend: stats.trend
+    completionRate: (stats.completionRate * 100).toFixed(0) + "%",
+    trend: stats.trend,
   });
 }
 
@@ -385,7 +417,7 @@ export async function updateCapacityStats(
 export function adjustForCapacity(
   modelRec: number,
   stats: CapacityStats,
-  energyLevel: EnergyLevel = 'mid'
+  energyLevel: EnergyLevel = "mid",
 ): number {
   // Not enough data
   if (stats.recentSessions.length < 3) return modelRec;
@@ -393,23 +425,36 @@ export function adjustForCapacity(
   // If user consistently quits early, recommend their actual capacity
   if (stats.completionRate < 0.5) {
     const adjusted = roundToNearest5(stats.averageCapacity);
-    console.log('[RL] Capacity adjustment: user struggling, recommending', adjusted, 'instead of', modelRec);
+    console.log(
+      "[RL] Capacity adjustment: user struggling, recommending",
+      adjusted,
+      "instead of",
+      modelRec,
+    );
     return Math.max(10, adjusted);
   }
 
   // Don't stretch if low energy - respect user's preference
-  if (energyLevel === 'low') {
+  if (energyLevel === "low") {
     return modelRec;
   }
 
   // Stretch thresholds by energy level:
   // - High energy: stretch at 85% completion (more aggressive)
   // - Mid energy: stretch at 95% completion (conservative)
-  const stretchThreshold = energyLevel === 'high' ? 0.85 : 0.95;
+  const stretchThreshold = energyLevel === "high" ? 0.85 : 0.95;
 
-  if (stats.completionRate >= stretchThreshold && (stats.trend === 'stable' || stats.trend === 'growing')) {
+  if (
+    stats.completionRate >= stretchThreshold &&
+    (stats.trend === "stable" || stats.trend === "growing")
+  ) {
     const nudged = modelRec + 5;
-    console.log(`[RL] Capacity stretch (${energyLevel} energy, ${(stats.completionRate * 100).toFixed(0)}% completion):`, modelRec, '→', nudged);
+    console.log(
+      `[RL] Capacity stretch (${energyLevel} energy, ${(stats.completionRate * 100).toFixed(0)}% completion):`,
+      modelRec,
+      "→",
+      nudged,
+    );
     return nudged;
   }
 
@@ -438,7 +483,7 @@ function getTotalObservations(model: ModelState, contextKey: string): number {
   if (!model[contextKey]) return 0;
   return Object.values(model[contextKey]).reduce(
     (sum, { alpha, beta }) => sum + alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA,
-    0
+    0,
   );
 }
 
@@ -448,13 +493,13 @@ function getTotalObservations(model: ModelState, contextKey: string): number {
 export async function getBestAction(
   context: Context,
   actions: number[],
-  dynamicArms: number[] = []
+  dynamicArms: number[] = [],
 ): Promise<number> {
   const model = await loadModel();
   const contextKey = createContextKey(context);
   const availableActions = getZoneActions(
     (await getZoneData(contextKey, context.energyLevel, 25)).zone,
-    dynamicArms
+    dynamicArms,
   );
   const actionsToUse = actions.length > 0 ? actions : availableActions;
 
@@ -475,28 +520,40 @@ export async function getBestAction(
 
   // Early exploration: random selection
   if (totalTries < EARLY_EXPLORATION_THRESHOLD) {
-    const randomAction = actionsToUse[Math.floor(Math.random() * actionsToUse.length)];
-    console.log('[RL] Early exploration: randomly selected', randomAction, '(total tries:', totalTries, ')');
+    const randomAction =
+      actionsToUse[Math.floor(Math.random() * actionsToUse.length)];
+    console.log(
+      "[RL] Early exploration: randomly selected",
+      randomAction,
+      "(total tries:",
+      totalTries,
+      ")",
+    );
     return randomAction;
   }
 
   // Thompson Sampling: sample from each Beta distribution
-  const samples = actionsToUse.map(action => {
-    const { alpha, beta } = model[contextKey][action] || { alpha: DEFAULT_ALPHA, beta: DEFAULT_BETA };
+  const samples = actionsToUse.map((action) => {
+    const { alpha, beta } = model[contextKey][action] || {
+      alpha: DEFAULT_ALPHA,
+      beta: DEFAULT_BETA,
+    };
     return {
       action,
       value: sampleBeta(alpha, beta),
       mean: alpha / (alpha + beta),
-      observations: alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA
+      observations: alpha + beta - DEFAULT_ALPHA - DEFAULT_BETA,
     };
   });
 
   // Sort by sampled value (descending)
   samples.sort((a, b) => b.value - a.value);
 
-  console.log('[RL] Thompson Sampling for', contextKey, ':');
-  samples.slice(0, 3).forEach(s => {
-    console.log(`  ${s.action}min: sample=${s.value.toFixed(3)}, mean=${s.mean.toFixed(3)}, obs=${s.observations.toFixed(1)}`);
+  console.log("[RL] Thompson Sampling for", contextKey, ":");
+  samples.slice(0, 3).forEach((s) => {
+    console.log(
+      `  ${s.action}min: sample=${s.value.toFixed(3)}, mean=${s.mean.toFixed(3)}, obs=${s.observations.toFixed(1)}`,
+    );
   });
 
   return samples[0].action;
@@ -508,10 +565,10 @@ export async function getBestAction(
 export async function updateModel(
   context: Context,
   action: number,
-  reward: number
+  reward: number,
 ): Promise<void> {
   if (reward === 0 || isNaN(reward)) {
-    console.log('[RL] Skipping update: invalid reward', reward);
+    console.log("[RL] Skipping update: invalid reward", reward);
     return;
   }
 
@@ -533,15 +590,19 @@ export async function updateModel(
   model[contextKey][action].alpha += successWeight;
   model[contextKey][action].beta += failureWeight;
 
-  const newMean = model[contextKey][action].alpha / (model[contextKey][action].alpha + model[contextKey][action].beta);
+  const newMean =
+    model[contextKey][action].alpha /
+    (model[contextKey][action].alpha + model[contextKey][action].beta);
 
-  console.log('[RL] Model update:', {
+  console.log("[RL] Model update:", {
     context: contextKey,
-    action: action + 'min',
+    action: action + "min",
     reward: reward.toFixed(3),
-    alpha: oldAlpha.toFixed(2) + ' → ' + model[contextKey][action].alpha.toFixed(2),
-    beta: oldBeta.toFixed(2) + ' → ' + model[contextKey][action].beta.toFixed(2),
-    newMean: newMean.toFixed(3)
+    alpha:
+      oldAlpha.toFixed(2) + " → " + model[contextKey][action].alpha.toFixed(2),
+    beta:
+      oldBeta.toFixed(2) + " → " + model[contextKey][action].beta.toFixed(2),
+    newMean: newMean.toFixed(3),
   });
 
   await saveModel(model);
@@ -550,9 +611,12 @@ export async function updateModel(
 /**
  * Penalize a rejected recommendation.
  */
-export async function penalizeRejection(context: Context, rejectedAction: number): Promise<void> {
+export async function penalizeRejection(
+  context: Context,
+  rejectedAction: number,
+): Promise<void> {
   await updateModel(context, rejectedAction, -0.3);
-  console.log('[RL] Penalized rejected recommendation:', rejectedAction, 'min');
+  console.log("[RL] Penalized rejected recommendation:", rejectedAction, "min");
 }
 
 // ============================================================================
@@ -565,21 +629,28 @@ export async function penalizeRejection(context: Context, rejectedAction: number
 export async function getSmartRecommendation(
   context: Context,
   heuristicRecommendation: number,
-  dynamicArms: number[] = []
-): Promise<{ value: number; source: 'heuristic' | 'learned' | 'blended' | 'capacity' }> {
+  dynamicArms: number[] = [],
+): Promise<{
+  value: number;
+  source: "heuristic" | "learned" | "blended" | "capacity";
+}> {
   const contextKey = createContextKey(context);
 
-  console.log('\n=== Smart Recommendation ===');
-  console.log('Context:', contextKey);
-  console.log('Heuristic:', heuristicRecommendation);
+  console.log("\n=== Smart Recommendation ===");
+  console.log("Context:", contextKey);
+  console.log("Heuristic:", heuristicRecommendation);
 
   try {
     // Get zone and capacity data
-    const zoneData = await getZoneData(contextKey, context.energyLevel, heuristicRecommendation);
+    const zoneData = await getZoneData(
+      contextKey,
+      context.energyLevel,
+      heuristicRecommendation,
+    );
     const capacityStats = await getCapacityStats(contextKey);
     const actions = getZoneActions(zoneData.zone, dynamicArms);
 
-    console.log('Zone:', zoneData.zone, '| Actions:', actions.join(', '));
+    console.log("Zone:", zoneData.zone, "| Actions:", actions.join(", "));
 
     // Get Thompson Sampling recommendation
     const model = await loadModel();
@@ -587,35 +658,52 @@ export async function getSmartRecommendation(
 
     if (totalObs < 2) {
       // Not enough data, use heuristic
-      const clamped = Math.max(Math.min(...actions), Math.min(heuristicRecommendation, Math.max(...actions)));
-      console.log('=== Returning', clamped, '(heuristic - low data) ===\n');
-      return { value: clamped, source: 'heuristic' };
+      const clamped = Math.max(
+        Math.min(...actions),
+        Math.min(heuristicRecommendation, Math.max(...actions)),
+      );
+      console.log("=== Returning", clamped, "(heuristic - low data) ===\n");
+      return { value: clamped, source: "heuristic" };
     }
 
     const modelRec = await getBestAction(context, actions, dynamicArms);
 
     // Apply capacity adjustment (respects energy level - no stretch for low energy)
-    const capacityAdjusted = adjustForCapacity(modelRec, capacityStats, context.energyLevel);
+    const capacityAdjusted = adjustForCapacity(
+      modelRec,
+      capacityStats,
+      context.energyLevel,
+    );
 
     // Clamp to zone actions
-    const finalValue = Math.max(Math.min(...actions), Math.min(capacityAdjusted, Math.max(...actions)));
+    const finalValue = Math.max(
+      Math.min(...actions),
+      Math.min(capacityAdjusted, Math.max(...actions)),
+    );
 
-    let source: 'learned' | 'blended' | 'capacity';
+    let source: "learned" | "blended" | "capacity";
     if (capacityAdjusted !== modelRec) {
-      source = 'capacity';
+      source = "capacity";
     } else if (totalObs >= 5) {
-      source = 'learned';
+      source = "learned";
     } else {
-      source = 'blended';
+      source = "blended";
     }
 
-    console.log('Model rec:', modelRec, '| Capacity adjusted:', capacityAdjusted, '| Final:', finalValue);
-    console.log('=== Returning', finalValue, '(' + source + ') ===\n');
+    console.log(
+      "Model rec:",
+      modelRec,
+      "| Capacity adjusted:",
+      capacityAdjusted,
+      "| Final:",
+      finalValue,
+    );
+    console.log("=== Returning", finalValue, "(" + source + ") ===\n");
 
     return { value: finalValue, source };
   } catch (error) {
-    console.error('[RL] Error in getSmartRecommendation:', error);
-    return { value: heuristicRecommendation, source: 'heuristic' };
+    console.error("[RL] Error in getSmartRecommendation:", error);
+    return { value: heuristicRecommendation, source: "heuristic" };
   }
 }
 
@@ -626,9 +714,9 @@ export async function getSmartRecommendation(
 /**
  * Get available break actions based on focus duration.
  * Shorter focus sessions get shorter break options.
- * 
+ *
  * Rule: Max break = Focus duration ÷ 3 (minimum 5 min)
- * 
+ *
  * Examples:
  *   15 min focus → max 5 min break  → [5]
  *   25 min focus → max 8 min break  → [5]
@@ -638,7 +726,7 @@ export async function getSmartRecommendation(
  */
 export function getBreakActionsForFocus(focusDuration: number): number[] {
   const maxBreak = Math.max(5, Math.floor(focusDuration / 3));
-  return BREAK_ACTIONS.filter(action => action <= maxBreak);
+  return BREAK_ACTIONS.filter((action) => action <= maxBreak);
 }
 
 /**
@@ -650,11 +738,11 @@ export function getBreakActionsForFocus(focusDuration: number): number[] {
 export async function getSmartBreakRecommendation(
   context: Context,
   baseBreak: number,
-  focusDuration: number = 25
-): Promise<{ value: number; source: 'heuristic' | 'learned' }> {
+  focusDuration: number = 25,
+): Promise<{ value: number; source: "heuristic" | "learned" }> {
   const breakContext: Context = {
     ...context,
-    taskType: `${context.taskType}-break`
+    taskType: `${context.taskType}-break`,
   };
   const contextKey = createContextKey(breakContext);
 
@@ -664,17 +752,19 @@ export async function getSmartBreakRecommendation(
   // Clamp heuristic to available options
   const clampedBase = Math.min(baseBreak, Math.max(...availableBreaks));
 
-  console.log(`[RL] Break for ${focusDuration}min focus: options=[${availableBreaks.join(',')}], base=${clampedBase}`);
+  console.log(
+    `[RL] Break for ${focusDuration}min focus: options=[${availableBreaks.join(",")}], base=${clampedBase}`,
+  );
 
   const model = await loadModel();
   const totalObs = getTotalObservations(model, contextKey);
 
   if (totalObs < 2) {
-    return { value: clampedBase, source: 'heuristic' };
+    return { value: clampedBase, source: "heuristic" };
   }
 
   const best = await getBestAction(breakContext, availableBreaks);
-  return { value: best, source: 'learned' };
+  return { value: best, source: "learned" };
 }
 
 // ============================================================================
@@ -684,7 +774,10 @@ export async function getSmartBreakRecommendation(
 /**
  * Add a dynamic arm when user picks a custom duration.
  */
-export function addDynamicArm(actions: number[], customDuration: number): number[] {
+export function addDynamicArm(
+  actions: number[],
+  customDuration: number,
+): number[] {
   if (actions.includes(customDuration)) return [...actions];
   return [...actions, customDuration].sort((a, b) => a - b);
 }
@@ -704,27 +797,33 @@ export async function debugModel(): Promise<void> {
   const zones = await loadZones();
   const capacity = await loadCapacity();
 
-  console.log('\n========== RL Model Debug ==========');
-  console.log('Contexts:', Object.keys(model).length);
+  console.log("\n========== RL Model Debug ==========");
+  console.log("Contexts:", Object.keys(model).length);
 
   for (const key of Object.keys(model)) {
     console.log(`\n--- ${key} ---`);
     if (zones[key]) {
-      console.log(`Zone: ${zones[key].zone}, Confidence: ${zones[key].confidence.toFixed(2)}`);
+      console.log(
+        `Zone: ${zones[key].zone}, Confidence: ${zones[key].confidence.toFixed(2)}`,
+      );
     }
     if (capacity[key]) {
-      console.log(`Capacity: ${capacity[key].averageCapacity.toFixed(1)}min, Completion: ${(capacity[key].completionRate * 100).toFixed(0)}%, Trend: ${capacity[key].trend}`);
+      console.log(
+        `Capacity: ${capacity[key].averageCapacity.toFixed(1)}min, Completion: ${(capacity[key].completionRate * 100).toFixed(0)}%, Trend: ${capacity[key].trend}`,
+      );
     }
-    console.log('Actions:');
+    console.log("Actions:");
     const actions = Object.entries(model[key]);
     actions.sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
     for (const [action, params] of actions) {
       const mean = params.alpha / (params.alpha + params.beta);
       const obs = params.alpha + params.beta - DEFAULT_ALPHA - DEFAULT_BETA;
-      console.log(`  ${action}min: mean=${mean.toFixed(3)}, obs=${obs.toFixed(1)}`);
+      console.log(
+        `  ${action}min: mean=${mean.toFixed(3)}, obs=${obs.toFixed(1)}`,
+      );
     }
   }
-  console.log('\n=====================================\n');
+  console.log("\n=====================================\n");
 }
 
 /**
@@ -736,10 +835,41 @@ export async function cleanBreakContextKeys(): Promise<void> {
 
   for (const key of Object.keys(model)) {
     // Skip double-break keys
-    if (key.includes('-break-break')) continue;
+    if (key.includes("-break-break")) continue;
     cleaned[key] = model[key];
   }
 
   await saveModel(cleaned);
-  console.log('[RL] Cleaned model - removed duplicate break keys');
+  console.log("[RL] Cleaned model - removed duplicate break keys");
+}
+
+/**
+ * Export complete RL state for backup.
+ */
+export async function exportRLState(): Promise<{
+  model: ModelState;
+  zones: ZoneState;
+  capacity: CapacityState;
+}> {
+  const model = await loadModel();
+  const zones = await loadZones();
+  const capacity = await loadCapacity();
+
+  return { model, zones, capacity };
+}
+
+/**
+ * Import complete RL state from backup.
+ * @param data - The RL state object to import
+ */
+export async function importRLState(data: {
+  model: ModelState;
+  zones: ZoneState;
+  capacity: CapacityState;
+}): Promise<void> {
+  if (data.model) await saveModel(data.model);
+  if (data.zones) await saveZones(data.zones);
+  if (data.capacity) await saveCapacity(data.capacity);
+
+  console.log("[RL] Imported RL state from backup");
 }
