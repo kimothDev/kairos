@@ -1,4 +1,4 @@
-import Colors from "@/constants/colors";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { ImportSelection, ParsedImportData } from "@/services/dataExport";
 import { TriangleAlert as AlertTriangle, X } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
@@ -26,6 +26,7 @@ export default function ImportModal({
   onImport,
   data,
 }: ImportModalProps) {
+  const colors = useThemeColor();
   const [selection, setSelection] = useState<ImportSelection>({
     sessions: true,
     rlModel: true,
@@ -61,16 +62,20 @@ export default function ImportModal({
       onRequestClose={onClose}
     >
       <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-          <View style={styles.header}>
-            <Text style={styles.modalTitle}>Import Backup</Text>
+        <View style={[styles.modalView, { backgroundColor: colors.card }]}>
+          <View style={[styles.header, { borderBottomColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.text.primary }]}>
+              Import Backup
+            </Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={24} color={Colors.text.secondary} />
+              <X size={24} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.content}>
-            <Text style={styles.subtitle}>Select what to restore:</Text>
+            <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
+              Select what to restore:
+            </Text>
 
             {/* Sessions Option */}
             <TouchableOpacity
@@ -84,8 +89,14 @@ export default function ImportModal({
               disabled={data.counts.sessions === 0}
             >
               <View style={styles.optionInfo}>
-                <Text style={styles.optionLabel}>Session History</Text>
-                <Text style={styles.optionDetail}>
+                <Text
+                  style={[styles.optionLabel, { color: colors.text.primary }]}
+                >
+                  Session History
+                </Text>
+                <Text
+                  style={[styles.optionDetail, { color: colors.text.light }]}
+                >
                   {data.counts.sessions} sessions found
                 </Text>
               </View>
@@ -93,8 +104,8 @@ export default function ImportModal({
                 value={selection.sessions}
                 onValueChange={() => toggleSelection("sessions")}
                 disabled={data.counts.sessions === 0}
-                trackColor={{ false: Colors.inactive, true: Colors.primary }}
-                thumbColor={Colors.card}
+                trackColor={{ false: colors.inactive, true: colors.primary }}
+                thumbColor={colors.card}
               />
             </TouchableOpacity>
 
@@ -110,8 +121,14 @@ export default function ImportModal({
               disabled={!data.counts.hasRLModel}
             >
               <View style={styles.optionInfo}>
-                <Text style={styles.optionLabel}>AI Learning Data</Text>
-                <Text style={styles.optionDetail}>
+                <Text
+                  style={[styles.optionLabel, { color: colors.text.primary }]}
+                >
+                  AI Learning Data
+                </Text>
+                <Text
+                  style={[styles.optionDetail, { color: colors.text.light }]}
+                >
                   {data.counts.hasRLModel ? "Available" : "Not found in backup"}
                 </Text>
               </View>
@@ -119,8 +136,8 @@ export default function ImportModal({
                 value={selection.rlModel}
                 onValueChange={() => toggleSelection("rlModel")}
                 disabled={!data.counts.hasRLModel}
-                trackColor={{ false: Colors.inactive, true: Colors.primary }}
-                thumbColor={Colors.card}
+                trackColor={{ false: colors.inactive, true: colors.primary }}
+                thumbColor={colors.card}
               />
             </TouchableOpacity>
 
@@ -136,8 +153,14 @@ export default function ImportModal({
               disabled={!data.counts.hasSettings}
             >
               <View style={styles.optionInfo}>
-                <Text style={styles.optionLabel}>App Settings</Text>
-                <Text style={styles.optionDetail}>
+                <Text
+                  style={[styles.optionLabel, { color: colors.text.primary }]}
+                >
+                  App Settings
+                </Text>
+                <Text
+                  style={[styles.optionDetail, { color: colors.text.light }]}
+                >
                   {data.counts.hasSettings
                     ? "Preferences & custom tasks"
                     : "Not found in backup"}
@@ -147,8 +170,8 @@ export default function ImportModal({
                 value={selection.settings}
                 onValueChange={() => toggleSelection("settings")}
                 disabled={!data.counts.hasSettings}
-                trackColor={{ false: Colors.inactive, true: Colors.primary }}
-                thumbColor={Colors.card}
+                trackColor={{ false: colors.inactive, true: colors.primary }}
+                thumbColor={colors.card}
               />
             </TouchableOpacity>
 
@@ -157,10 +180,12 @@ export default function ImportModal({
               <View style={styles.warningContainer}>
                 <AlertTriangle
                   size={20}
-                  color={Colors.warning}
+                  color={colors.warning}
                   style={styles.warningIcon}
                 />
-                <Text style={styles.warningText}>
+                <Text
+                  style={[styles.warningText, { color: colors.text.primary }]}
+                >
                   If you reinstalled the app, you may need to disable battery
                   optimization again for background notifications to work
                   reliably.
@@ -169,17 +194,37 @@ export default function ImportModal({
             )}
           </ScrollView>
 
-          <View style={styles.footer}>
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+          <View style={[styles.footer, { borderTopColor: colors.border }]}>
+            <TouchableOpacity
+              style={[
+                styles.cancelButton,
+                { backgroundColor: colors.inactive + "40" },
+              ]}
+              onPress={onClose}
+            >
+              <Text
+                style={[
+                  styles.cancelButtonText,
+                  { color: colors.text.primary },
+                ]}
+              >
+                Cancel
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.importButton,
+                {
+                  backgroundColor: colors.primary,
+                  shadowColor: colors.primary,
+                },
                 !selection.sessions &&
                   !selection.rlModel &&
                   !selection.settings &&
                   styles.disabledButton,
+                !selection.sessions &&
+                  !selection.rlModel &&
+                  !selection.settings && { backgroundColor: colors.inactive },
               ]}
               onPress={handleImport}
               disabled={
@@ -205,7 +250,6 @@ const styles = StyleSheet.create({
   modalView: {
     width: "90%",
     maxHeight: "80%",
-    backgroundColor: Colors.card,
     borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: {
@@ -223,12 +267,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: Colors.text.primary,
   },
   closeButton: {
     padding: 4,
@@ -238,7 +280,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.text.secondary,
     marginBottom: 15,
   },
   optionRow: {
@@ -258,12 +299,10 @@ const styles = StyleSheet.create({
   optionLabel: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.text.primary,
     marginBottom: 4,
   },
   optionDetail: {
     fontSize: 14,
-    color: Colors.text.light,
   },
   warningContainer: {
     flexDirection: "row",
@@ -282,37 +321,31 @@ const styles = StyleSheet.create({
   warningText: {
     flex: 1,
     fontSize: 13,
-    color: Colors.text.primary,
     lineHeight: 18,
   },
   footer: {
     flexDirection: "row",
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
     gap: 12,
   },
   cancelButton: {
     flex: 1,
     height: 48,
     borderRadius: 12,
-    backgroundColor: Colors.inactive + "40", // lighter inactive
     justifyContent: "center",
     alignItems: "center",
   },
   cancelButtonText: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.text.primary,
   },
   importButton: {
     flex: 1,
     height: 48,
     borderRadius: 12,
-    backgroundColor: Colors.primary,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: Colors.primary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -322,7 +355,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   disabledButton: {
-    backgroundColor: Colors.inactive,
     shadowOpacity: 0,
     elevation: 0,
   },

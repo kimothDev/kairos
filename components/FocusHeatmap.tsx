@@ -1,4 +1,4 @@
-import Colors from "@/constants/colors";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { Session } from "@/types";
 import { getHeatmapData } from "@/utils/performanceUtils";
 import React, { useMemo, useState } from "react";
@@ -20,6 +20,7 @@ export default function FocusHeatmap({
   sessions,
   daysCount = 365,
 }: FocusHeatmapProps) {
+  const colors = useThemeColor();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedMinutes, setSelectedMinutes] = useState<number | null>(null);
   const scrollViewRef = React.useRef<ScrollView>(null);
@@ -40,11 +41,12 @@ export default function FocusHeatmap({
   // Determine color intensity
   const getCellVisuals = (minutes: number, cellDate: string) => {
     // Base Calculation (Standard View)
-    let fill = "rgba(200, 200, 200, 0.15)";
+    // Use border color or a light/dark adjusted opacity for empty cells
+    let fill = colors.border;
     let opacity = 1;
 
     if (minutes > 0) {
-      fill = Colors.primary;
+      fill = colors.primary;
       const intensity = maxMinutes > 0 ? minutes / maxMinutes : 0;
       // GitHub-like shades via opacity
       if (intensity < 0.25) opacity = 0.4;
@@ -60,8 +62,9 @@ export default function FocusHeatmap({
         if (minutes > 0) {
           opacity = Math.min(1.0, opacity * 1.5);
         } else {
-          // If selecting an empty cell, slightly darken grey
-          fill = "rgba(200, 200, 200, 0.3)";
+          // If selecting an empty cell, darken/lighten slightly
+          // For dynamic themes, maybe just change opacity of border color or use secondary
+          fill = colors.text.light;
         }
       } else {
         // NOT SELECTED:
@@ -138,18 +141,20 @@ export default function FocusHeatmap({
   const totalHeight = 7 * (SQUARE_SIZE + GAP_SIZE) + MONTH_LABEL_HEIGHT;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.card }]}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Consistency</Text>
+        <Text style={[styles.title, { color: colors.text.primary }]}>
+          Consistency
+        </Text>
         {selectedDate && (
-          <Text style={styles.stats}>
+          <Text style={[styles.stats, { color: colors.text.secondary }]}>
             {new Date(selectedDate).toLocaleDateString(undefined, {
               weekday: "short",
               month: "short",
               day: "numeric",
             })}
             :{" "}
-            <Text style={{ color: Colors.primary }}>
+            <Text style={{ color: colors.primary }}>
               {selectedMinutes
                 ? selectedMinutes >= 60
                   ? `${(selectedMinutes / 60).toFixed(1)} hrs`
@@ -163,13 +168,21 @@ export default function FocusHeatmap({
       <View style={styles.chartLayout}>
         {/* Fixed Left Column: Day Labels */}
         <View style={styles.dayLabelsColumn}>
-          <Text style={[styles.dayLabel, { top: MONTH_LABEL_HEIGHT + 0 }]}>
+          <Text
+            style={[
+              styles.dayLabel,
+              { top: MONTH_LABEL_HEIGHT + 0, color: colors.text.secondary },
+            ]}
+          >
             Mon
           </Text>
           <Text
             style={[
               styles.dayLabel,
-              { top: MONTH_LABEL_HEIGHT + 2 * (SQUARE_SIZE + GAP_SIZE) },
+              {
+                top: MONTH_LABEL_HEIGHT + 2 * (SQUARE_SIZE + GAP_SIZE),
+                color: colors.text.secondary,
+              },
             ]}
           >
             Wed
@@ -177,7 +190,10 @@ export default function FocusHeatmap({
           <Text
             style={[
               styles.dayLabel,
-              { top: MONTH_LABEL_HEIGHT + 4 * (SQUARE_SIZE + GAP_SIZE) },
+              {
+                top: MONTH_LABEL_HEIGHT + 4 * (SQUARE_SIZE + GAP_SIZE),
+                color: colors.text.secondary,
+              },
             ]}
           >
             Fri
@@ -199,7 +215,7 @@ export default function FocusHeatmap({
                 x={l.x}
                 y={l.y}
                 fontSize="10"
-                fill={Colors.text.secondary}
+                fill={colors.text.secondary}
                 fontWeight="600"
               >
                 {l.text}
@@ -243,7 +259,6 @@ export default function FocusHeatmap({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: Colors.card,
     borderRadius: 16,
     margin: 16,
     shadowColor: "#000",
@@ -260,11 +275,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: "bold",
-    color: Colors.text.primary,
   },
   stats: {
     fontSize: 12,
-    color: Colors.text.secondary,
     fontWeight: "600",
   },
   chartLayout: {
@@ -278,7 +291,6 @@ const styles = StyleSheet.create({
   dayLabel: {
     position: "absolute",
     fontSize: 10,
-    color: Colors.text.secondary,
     lineHeight: SQUARE_SIZE,
     width: "100%",
   },

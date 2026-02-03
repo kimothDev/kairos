@@ -1,22 +1,29 @@
-import Colors from '@/constants/colors';
-import useTimerStore from '@/store/timerStore';
-import { ChevronDown, ChevronUp, Play, SkipForward, X } from 'lucide-react-native';
-import React, { useEffect, useRef } from 'react';
+import { useThemeColor } from "@/hooks/useThemeColor";
+import useTimerStore from "@/store/timerStore";
+import {
+  ChevronDown,
+  ChevronUp,
+  Play,
+  SkipForward,
+  X,
+} from "lucide-react-native";
+import React, { useEffect, useRef } from "react";
 import {
   Animated,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import Svg, { Circle as SvgCircle } from 'react-native-svg';
+} from "react-native";
+import Svg, { Circle as SvgCircle } from "react-native-svg";
 
-const CIRCLE_RADIUS = 150;
-const STROKE_WIDTH = 15;
+const CIRCLE_RADIUS = 130;
+const STROKE_WIDTH = 12;
 const CIRCUMFERENCE = 2 * Math.PI * (CIRCLE_RADIUS - STROKE_WIDTH / 2);
 const AnimatedCircle = Animated.createAnimatedComponent(SvgCircle);
 
 export default function CircularTimer() {
+  const colors = useThemeColor();
   const {
     sessionStartTimestamp,
     initialTime,
@@ -33,7 +40,7 @@ export default function CircularTimer() {
     userAcceptedRecommendation,
   } = useTimerStore();
 
-  const [, forceRender] = React.useReducer(x => x + 1, 0);
+  const [, forceRender] = React.useReducer((x) => x + 1, 0);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const animatedProgress = useRef(new Animated.Value(0)).current;
   const isFirstRender = useRef(true);
@@ -71,13 +78,12 @@ export default function CircularTimer() {
     const safeSec = Number(sec) || 0;
     const m = Math.floor(safeSec / 60)
       .toString()
-      .padStart(2, '0');
+      .padStart(2, "0");
     const s = Math.floor(safeSec % 60)
       .toString()
-      .padStart(2, '0');
+      .padStart(2, "0");
     return `${m}:${s}`;
   };
-
 
   const handleStartPause = () => {
     startTimer();
@@ -95,7 +101,7 @@ export default function CircularTimer() {
     ]).start();
   };
   const label = formatTime(time);
-  const display = label.includes('NaN') ? '00:00' : label;
+  const display = label.includes("NaN") ? "00:00" : label;
 
   return (
     <View style={styles.timerContainer}>
@@ -113,7 +119,7 @@ export default function CircularTimer() {
               cx={CIRCLE_RADIUS}
               cy={CIRCLE_RADIUS}
               r={CIRCLE_RADIUS - STROKE_WIDTH / 2}
-              stroke={Colors.border}
+              stroke={colors.border}
               strokeWidth={STROKE_WIDTH}
               fill="none"
             />
@@ -121,7 +127,7 @@ export default function CircularTimer() {
               cx={CIRCLE_RADIUS}
               cy={CIRCLE_RADIUS}
               r={CIRCLE_RADIUS - STROKE_WIDTH / 2}
-              stroke={Colors.primary}
+              stroke={colors.primary}
               strokeWidth={STROKE_WIDTH}
               strokeDasharray={CIRCUMFERENCE}
               strokeDashoffset={animatedProgress.interpolate({
@@ -140,66 +146,96 @@ export default function CircularTimer() {
             <View style={styles.timeAdjustContainer}>
               {!isActive && showTimeAdjust && (
                 <TouchableOpacity
-                  onPress={() => adjustTime('up')}
+                  onPress={() => adjustTime("up")}
                   style={styles.timeAdjustButton}
                 >
-                  <ChevronUp size={60} color={Colors.secondary} />
+                  <ChevronUp size={60} color={colors.secondary} />
                 </TouchableOpacity>
               )}
-              {((!isActive && !userAcceptedRecommendation) || showTimeAdjust) ? (
+              {(!isActive && !userAcceptedRecommendation) || showTimeAdjust ? (
                 <TouchableOpacity
                   onPress={() => {
                     const store = useTimerStore.getState();
 
                     if (store.showTimeAdjust) {
                       useTimerStore.setState({ showTimeAdjust: false });
-                    } else if (!store.hasInteractedWithTimer && !store.userAcceptedRecommendation && !store.hasDismissedRecommendationCard) {
+                    } else if (
+                      !store.hasInteractedWithTimer &&
+                      !store.userAcceptedRecommendation &&
+                      !store.hasDismissedRecommendationCard
+                    ) {
                       useTimerStore.setState({
                         userAcceptedRecommendation: false,
-                        hasInteractedWithTimer: true
+                        hasInteractedWithTimer: true,
                       });
                     }
                   }}
                   style={styles.timeTextContainer}
                 >
-                  <Text style={styles.timeText}>{display}</Text>
+                  <Text
+                    style={[styles.timeText, { color: colors.text.primary }]}
+                  >
+                    {display}
+                  </Text>
                 </TouchableOpacity>
               ) : (
                 <View style={styles.timeTextContainer}>
-                  <Text style={styles.timeText}>{display}</Text>
+                  <Text
+                    style={[styles.timeText, { color: colors.text.primary }]}
+                  >
+                    {display}
+                  </Text>
                 </View>
               )}
 
               {!isActive && showTimeAdjust && (
                 <TouchableOpacity
-                  onPress={() => adjustTime('down')}
+                  onPress={() => adjustTime("down")}
                   style={styles.timeAdjustButton}
                 >
-                  <ChevronDown size={60} color={Colors.secondary} />
+                  <ChevronDown size={60} color={colors.secondary} />
                 </TouchableOpacity>
               )}
             </View>
 
-            {(!isActive && !showTimeAdjust) ? (
+            {!isActive && !showTimeAdjust ? (
               <TouchableOpacity
                 onPress={handleStartPause}
-                style={styles.startPauseButton}
+                style={[
+                  styles.startPauseButton,
+                  {
+                    backgroundColor: colors.card,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  },
+                ]}
               >
-                <Play size={32} color={Colors.secondary} />
+                <Play size={32} color={colors.secondary} />
               </TouchableOpacity>
             ) : !isActive && showTimeAdjust ? null : showCancel ? (
               <TouchableOpacity
                 onPress={cancelTimer}
-                style={[styles.startPauseButton, styles.cancelButton]}
+                style={[
+                  styles.startPauseButton,
+                  styles.cancelButton,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.secondary,
+                  },
+                ]}
               >
-                <X size={32} color={Colors.secondary} />
+                <X size={32} color={colors.secondary} />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 onPress={skipTimer}
-                style={[styles.startPauseButton, styles.skipButton]}
+                style={[
+                  styles.startPauseButton,
+                  styles.skipButton,
+                  { backgroundColor: colors.card, borderColor: colors.primary },
+                ]}
               >
-                <SkipForward size={32} color={Colors.primary} />
+                <SkipForward size={32} color={colors.primary} />
               </TouchableOpacity>
             )}
           </View>
@@ -212,40 +248,38 @@ export default function CircularTimer() {
 const styles = StyleSheet.create({
   timerContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   circularProgress: {
     width: CIRCLE_RADIUS * 2,
     height: CIRCLE_RADIUS * 2,
     borderRadius: CIRCLE_RADIUS,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   circleContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: CIRCLE_RADIUS,
   },
   circleContent: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
   },
   timeText: {
     fontSize: 48,
-    fontWeight: 'bold',
-    color: Colors.text.primary,
+    fontWeight: "bold",
     marginBottom: 20,
   },
   startPauseButton: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -255,8 +289,8 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   timeAdjustContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   timeTextContainer: {
     paddingVertical: 4,
@@ -268,13 +302,9 @@ const styles = StyleSheet.create({
     marginVertical: -10,
   },
   cancelButton: {
-    backgroundColor: Colors.card,
     borderWidth: 2,
-    borderColor: Colors.secondary,
   },
   skipButton: {
-    backgroundColor: Colors.card,
     borderWidth: 2,
-    borderColor: Colors.primary,
   },
 });

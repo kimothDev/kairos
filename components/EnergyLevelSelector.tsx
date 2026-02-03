@@ -1,12 +1,14 @@
-import Colors from '@/constants/colors';
-import useTimerStore from '@/store/timerStore';
-import { EnergyLevel } from '@/types';
-import { BatteryFull, BatteryLow, BatteryMedium } from 'lucide-react-native';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useThemeColor } from "@/hooks/useThemeColor";
+import useTimerStore from "@/store/timerStore";
+import { EnergyLevel } from "@/types";
+import { BatteryFull, BatteryLow, BatteryMedium } from "lucide-react-native";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function EnergyLevelSelector() {
-  const { energyLevel, setEnergyLevel, isActive, isBreakTime } = useTimerStore();
+  const colors = useThemeColor();
+  const { energyLevel, setEnergyLevel, isActive, isBreakTime } =
+    useTimerStore();
   const isTimerRunning = isActive || isBreakTime;
 
   const handleSelect = (level: EnergyLevel) => {
@@ -14,62 +16,105 @@ export default function EnergyLevelSelector() {
   };
 
   return (
-    <View style={styles.slotButton}>
+    <View style={[styles.slotButton, { backgroundColor: colors.card }]}>
       <View>
-        <Text style={styles.slotLabel}>Energy Level</Text>
+        <Text style={[styles.slotLabel, { color: colors.text.secondary }]}>
+          Energy Level
+        </Text>
         <View style={styles.energySelector}>
           <View style={styles.energyButtons}>
-            <TouchableOpacity 
+            <TouchableOpacity
               disabled={isTimerRunning}
               style={[
                 styles.energyButton,
-                energyLevel === 'low' && styles.energyButtonSelected,
-                isTimerRunning && { opacity: 0.5 }
+                energyLevel === "low" && {
+                  borderColor: colors.primary,
+                  backgroundColor: colors.primary + "1A", // 10% opacity hex
+                }, // Dynamic selected style
+                isTimerRunning && { opacity: 0.5 },
               ]}
-              onPress={() => !isTimerRunning && handleSelect('low')}
+              onPress={() => !isTimerRunning && handleSelect("low")}
             >
-              <BatteryLow 
-                size={20} 
-                color={energyLevel === 'low' ? Colors.primary : Colors.text.secondary} 
+              <BatteryLow
+                size={20}
+                color={
+                  energyLevel === "low" ? colors.primary : colors.text.secondary
+                }
               />
-              <Text style={[
-                styles.energyText,
-                energyLevel === 'low' && styles.energyTextSelected
-              ]}>Low</Text>
+              <Text
+                style={[
+                  styles.energyText,
+                  { color: colors.text.secondary },
+                  energyLevel === "low" && {
+                    color: colors.text.primary,
+                    fontWeight: "600",
+                  },
+                ]}
+              >
+                Low
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
                 styles.energyButton,
-                energyLevel === 'mid' && styles.energyButtonSelected,
-                isTimerRunning && { opacity: 0.5 }
+                energyLevel === "mid" && {
+                  borderColor: colors.primary,
+                  backgroundColor: colors.primary + "1A",
+                },
+                isTimerRunning && { opacity: 0.5 },
               ]}
-              onPress={() => !isTimerRunning && handleSelect('mid')}
+              onPress={() => !isTimerRunning && handleSelect("mid")}
             >
-              <BatteryMedium 
-                size={20} 
-                color={energyLevel === 'mid' ? Colors.primary : Colors.text.secondary} 
+              <BatteryMedium
+                size={20}
+                color={
+                  energyLevel === "mid" ? colors.primary : colors.text.secondary
+                }
               />
-              <Text style={[
-                styles.energyText,
-                energyLevel === 'mid' && styles.energyTextSelected
-              ]}>Mid</Text>
+              <Text
+                style={[
+                  styles.energyText,
+                  { color: colors.text.secondary },
+                  energyLevel === "mid" && {
+                    color: colors.text.primary,
+                    fontWeight: "600",
+                  },
+                ]}
+              >
+                Mid
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
                 styles.energyButton,
-                energyLevel === 'high' && styles.energyButtonSelected,
-                isTimerRunning && { opacity: 0.5 }
+                energyLevel === "high" && {
+                  borderColor: colors.primary,
+                  backgroundColor: colors.primary + "1A",
+                },
+                isTimerRunning && { opacity: 0.5 },
               ]}
-              onPress={() => !isTimerRunning && handleSelect('high')}
+              onPress={() => !isTimerRunning && handleSelect("high")}
             >
-              <BatteryFull 
-                size={20} 
-                color={energyLevel === 'high' ? Colors.primary : Colors.text.secondary} 
+              <BatteryFull
+                size={20}
+                color={
+                  energyLevel === "high"
+                    ? colors.primary
+                    : colors.text.secondary
+                }
               />
-              <Text style={[
-                styles.energyText,
-                energyLevel === 'high' && styles.energyTextSelected
-              ]}>High</Text>
+              <Text
+                style={[
+                  styles.energyText,
+                  { color: colors.text.secondary },
+                  energyLevel === "high" && {
+                    color: colors.text.primary,
+                    fontWeight: "600",
+                  },
+                ]}
+              >
+                High
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -80,48 +125,36 @@ export default function EnergyLevelSelector() {
 
 const styles = StyleSheet.create({
   slotButton: {
-    backgroundColor: Colors.background,
-    padding: 15,
+    padding: 16,
     borderRadius: 12,
-    marginBottom: 10,
+    marginBottom: 16,
   },
   slotLabel: {
     fontSize: 14,
-    color: Colors.text.secondary,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
   },
   energySelector: {
     marginTop: 2,
   },
   energyButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 4,
   },
   energyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
     borderRadius: 8,
     flex: 1,
     marginHorizontal: 4,
-    justifyContent: 'center',
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  energyButtonSelected: {
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+    borderColor: "transparent",
   },
   energyText: {
     marginLeft: 5,
     fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  energyTextSelected: {
-    color: Colors.text.primary,
-    fontWeight: '600',
   },
 });
