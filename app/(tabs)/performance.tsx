@@ -1,27 +1,25 @@
-import FocusHeatmap from "@/components/FocusHeatmap";
-import { useThemeColor } from "@/hooks/useThemeColor";
+import AdaptiveBarChart from "@/components/AdaptiveBarChart";
+// import FocusHeatmap from "@/components/FocusHeatmap"; // Preserved for future use
+import Colors, { darkColors, lightColors } from "@/constants/colors";
 import useTimerStore from "@/store/timerStore";
-import { TimeRange } from "@/types";
+import { generateInsights } from "@/utils/insightEngine";
 import {
   calculatePeriodDelta,
   calculatePeriodMetrics,
-  filterSessionsInDateRange,
-  findBestEnergyLevel,
-  findMostProductiveTask,
   formatMinutes,
+  getAdaptiveChartData,
   getPeriodDates,
 } from "@/utils/performanceUtils";
 import {
   ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
-  Award,
-  Battery,
   BatteryFull,
-  BatteryLow,
-  BatteryMedium,
   Calendar,
+  ChevronLeft,
+  ChevronRight,
   Clock,
+  Flame,
   Target,
   TrendingUp,
   Zap,
@@ -34,22 +32,27 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 
+const TimeRanges = ["day", "week", "month", "year"] as const;
+type TimeRange = (typeof TimeRanges)[number];
+
+// Utility to display trend icons
 const MetricItemWithDelta = ({
   icon,
   value,
   label,
   delta,
+  colors,
 }: {
   icon: React.ReactNode;
   value: string | number;
   label: string;
   delta: { percentage: number; trend: "up" | "down" | "neutral" };
+  colors: typeof lightColors;
 }) => {
-  const colors = useThemeColor();
-
   const getTrendColor = () => {
     if (delta.trend === "up") return colors.success;
     if (delta.trend === "down") return colors.error;
@@ -77,7 +80,10 @@ const MetricItemWithDelta = ({
       <View style={styles.deltaContainer}>
         {getTrendIcon()}
         <Text style={[styles.deltaText, { color: getTrendColor() }]}>
-          {Math.abs(delta.percentage)}%
+          {Math.abs(delta.percentage) === 999
+            ? ">999"
+            : Math.abs(delta.percentage)}
+          %
         </Text>
       </View>
     </View>
@@ -85,64 +91,42 @@ const MetricItemWithDelta = ({
 };
 
 export default function PerformanceScreen() {
-  const colors = useThemeColor();
+  const colorScheme = useColorScheme();
+  const activeColors = colorScheme === "dark" ? darkColors : lightColors;
+
   const { sessions, isLoading } = useTimerStore();
   const [timeRange, setTimeRange] = useState<TimeRange>("week");
+  const [offset, setOffset] = useState(0);
 
-  //utility to map energy level to battery icon and color
-  const getEnergyLevelProps = (level: string) => {
-    switch (level) {
-      case "high":
-        return {
-          color: colors.success,
-          icon: <BatteryFull size={20} color={colors.card} />,
-          label: "High energy",
-        };
-      case "mid":
-        return {
-          color: colors.warning,
-          icon: <BatteryMedium size={20} color={colors.card} />,
-          label: "Mid energy",
-        };
-      case "low":
-        return {
-          color: colors.error,
-          icon: <BatteryLow size={20} color={colors.card} />,
-          label: "Low energy",
-        };
-      default:
-        return {
-          color: colors.inactive,
-          icon: <Battery size={20} color={colors.card} />,
-          label: "Not enough data",
-        };
-    }
-  };
+  // -- Derived Data --
 
-  // Get filtered sessions based on time range (calendar based)
-  const filteredSessions = useMemo(() => {
-    const { startDate, endDate } = getPeriodDates(timeRange, 0); // Current period
-    return filterSessionsInDateRange(sessions, startDate, endDate);
-  }, [sessions, timeRange]);
+  // 1. Chart Data
+  const chartData = useMemo(() => {
+    return getAdaptiveChartData(sessions, timeRange, offset);
+  }, [sessions, timeRange, offset]);
 
-  //calculate performance metrics
+  // 2. Metrics
   const metrics = useMemo(() => {
     // Current period metrics
+    const { startDate, endDate } = getPeriodDates(timeRange, offset);
+    const filteredSessions = sessions.filter((s) => {
+      const d = new Date(s.createdAt || s.date);
+      return d >= startDate && d <= endDate;
+    });
+
     const currentMetrics = calculatePeriodMetrics(filteredSessions);
 
     // Previous period metrics
     const { startDate: prevStart, endDate: prevEnd } = getPeriodDates(
       timeRange,
-      1,
+      offset + 1,
     );
-    const prevSessions = filterSessionsInDateRange(
-      sessions,
-      prevStart,
-      prevEnd,
-    );
+    const prevSessions = sessions.filter((s) => {
+      const d = new Date(s.createdAt || s.date);
+      return d >= prevStart && d <= prevEnd;
+    });
     const prevMetrics = calculatePeriodMetrics(prevSessions);
 
-    // Calculate deltas
     const focusDelta = calculatePeriodDelta(
       currentMetrics.totalFocusTime,
       prevMetrics.totalFocusTime,
@@ -156,54 +140,43 @@ export default function PerformanceScreen() {
       prevMetrics.completionRate,
     );
 
-    // Other existing metrics...
-    const mostProductiveTask = findMostProductiveTask(filteredSessions);
-    const bestEnergyLevel = findBestEnergyLevel(filteredSessions);
-
-    // --- IMPROVED: Smart Recommendation Acceptance Rate ---
-    //only count focus sessions (not breaks), with a valid recommendedDuration, and user made a choice
-    const recommendationSessions = filteredSessions.filter(
-      (s) =>
-        s.recommendedDuration &&
-        s.recommendedDuration > 0 &&
-        !s.taskType.endsWith("-break") &&
-        s.userSelectedDuration > 0, // user made a choice
-    );
-    const acceptedRecommendations = recommendationSessions.filter(
-      (s) =>
-        s.acceptedRecommendation &&
-        s.userSelectedDuration === s.recommendedDuration,
-    ).length;
-    const recommendationAcceptanceRate =
-      recommendationSessions.length > 0
-        ? (acceptedRecommendations / recommendationSessions.length) * 100
-        : 0;
-
     return {
       ...currentMetrics,
-      avgSessionLength:
-        currentMetrics.sessionCount > 0
-          ? currentMetrics.totalFocusTime / currentMetrics.sessionCount
-          : 0,
-      mostProductiveTask,
-      bestEnergyLevel,
-      recommendationAcceptanceRate,
       deltas: {
         focus: focusDelta,
         sessions: sessionsDelta,
         completion: completionDelta,
       },
     };
-  }, [filteredSessions, sessions, timeRange]);
+  }, [sessions, timeRange, offset]);
+
+  // 3. AI Insights
+  const insights = useMemo(() => {
+    return generateInsights(sessions);
+  }, [sessions]);
+
+  // Handlers
+  const handleRangeChange = (range: TimeRange) => {
+    setTimeRange(range);
+    setOffset(0);
+  };
+  const handleNextPeriod = () => {
+    if (offset > 0) setOffset(offset - 1);
+  };
+  const handlePrevPeriod = () => {
+    setOffset(offset + 1);
+  };
 
   if (isLoading) {
     return (
       <SafeAreaView
-        style={[styles.container, { backgroundColor: colors.background }]}
+        style={[styles.container, { backgroundColor: activeColors.background }]}
       >
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.text.secondary }]}>
+          <ActivityIndicator size="large" color={activeColors.primary} />
+          <Text
+            style={[styles.loadingText, { color: activeColors.text.secondary }]}
+          >
             Loading performance data...
           </Text>
         </View>
@@ -213,248 +186,266 @@ export default function PerformanceScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: activeColors.background }]}
     >
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
-        <View style={[styles.header, { backgroundColor: colors.card }]}>
-          <Text style={[styles.title, { color: colors.text.primary }]}>
-            Performance Analytics
+        {/* Header & Controls */}
+        <View
+          style={[styles.header, { backgroundColor: activeColors.background }]}
+        >
+          <Text style={[styles.title, { color: activeColors.text.primary }]}>
+            Overview
           </Text>
 
+          {/* Time Range Selector */}
           <View
             style={[
               styles.timeRangeSelector,
-              { backgroundColor: colors.background },
+              { backgroundColor: activeColors.card },
             ]}
           >
-            <TouchableOpacity
-              style={[
-                styles.timeRangeButton,
-                timeRange === "week" && { backgroundColor: colors.primary },
-              ]}
-              onPress={() => setTimeRange("week")}
-            >
-              <Text
+            {TimeRanges.map((range) => (
+              <TouchableOpacity
+                key={range}
                 style={[
-                  styles.timeRangeText,
-                  { color: colors.text.secondary },
-                  timeRange === "week" && {
-                    color: colors.card,
-                    fontWeight: "600",
+                  styles.timeRangeButton,
+                  timeRange === range && {
+                    backgroundColor: activeColors.primary,
                   },
                 ]}
+                onPress={() => handleRangeChange(range)}
               >
-                Week
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.timeRangeButton,
-                timeRange === "month" && { backgroundColor: colors.primary },
-              ]}
-              onPress={() => setTimeRange("month")}
-            >
-              <Text
-                style={[
-                  styles.timeRangeText,
-                  { color: colors.text.secondary },
-                  timeRange === "month" && {
-                    color: colors.card,
-                    fontWeight: "600",
-                  },
-                ]}
-              >
-                Month
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.timeRangeButton,
-                timeRange === "year" && { backgroundColor: colors.primary },
-              ]}
-              onPress={() => setTimeRange("year")}
-            >
-              <Text
-                style={[
-                  styles.timeRangeText,
-                  { color: colors.text.secondary },
-                  timeRange === "year" && {
-                    color: colors.card,
-                    fontWeight: "600",
-                  },
-                ]}
-              >
-                Year
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.timeRangeText,
+                    { color: activeColors.text.secondary },
+                    timeRange === range && {
+                      color: activeColors.card,
+                      fontWeight: "700",
+                    },
+                  ]}
+                >
+                  {range.charAt(0).toUpperCase() + range.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
-        {/* summary card */}
-        <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
+        {/* Date Navigation */}
+        <View style={styles.dateNavRow}>
+          <TouchableOpacity onPress={handlePrevPeriod} style={styles.navButton}>
+            <ChevronLeft size={24} color={activeColors.text.primary} />
+          </TouchableOpacity>
+          <Text
+            style={[styles.dateRangeText, { color: activeColors.text.primary }]}
+          >
+            {chartData.dateRange}
+          </Text>
+          <TouchableOpacity
+            onPress={handleNextPeriod}
+            style={[styles.navButton, offset === 0 && styles.disabledNav]}
+            disabled={offset === 0}
+          >
+            <ChevronRight
+              size={24}
+              color={
+                offset === 0 ? activeColors.inactive : activeColors.text.primary
+              }
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* --- Main Chart --- */}
+        <View style={{ marginHorizontal: 16 }}>
+          <AdaptiveBarChart data={chartData} />
+        </View>
+
+        {/* --- Summary Metrics --- */}
+        <View
+          style={[styles.summaryCard, { backgroundColor: activeColors.card }]}
+        >
           <View style={styles.summaryHeader}>
-            <Text style={[styles.summaryTitle, { color: colors.text.primary }]}>
-              Focus Summary
-            </Text>
-            <Text
-              style={[styles.summarySubtitle, { color: colors.text.secondary }]}
-            >
-              vs previous period
-            </Text>
+            <View>
+              <Text
+                style={[
+                  styles.summaryTitle,
+                  { color: activeColors.text.primary },
+                ]}
+              >
+                Statistics
+              </Text>
+              <Text
+                style={[
+                  styles.summarySubtitle,
+                  { color: activeColors.text.secondary, marginTop: 4 },
+                ]}
+              >
+                vs{" "}
+                {timeRange === "day"
+                  ? "Yesterday"
+                  : timeRange === "week"
+                    ? "Last Week"
+                    : timeRange === "month"
+                      ? "Last Month"
+                      : "Last Year"}
+              </Text>
+            </View>
           </View>
 
           <View style={styles.metricsRow}>
             <MetricItemWithDelta
-              icon={<Clock size={20} color={colors.primary} />}
+              icon={<Clock size={20} color={activeColors.primary} />}
               value={formatMinutes(metrics.totalFocusTime)}
-              label="Total Focus"
+              label="Focus Time"
               delta={metrics.deltas.focus}
+              colors={activeColors}
             />
             <MetricItemWithDelta
-              icon={<Calendar size={20} color={colors.primary} />}
+              icon={<Calendar size={20} color={activeColors.primary} />}
               value={metrics.sessionCount}
               label="Sessions"
               delta={metrics.deltas.sessions}
+              colors={activeColors}
             />
             <MetricItemWithDelta
-              icon={<Target size={20} color={colors.primary} />}
+              icon={<Target size={20} color={activeColors.primary} />}
               value={`${Math.round(metrics.completionRate)}%`}
               label="Completion"
               delta={metrics.deltas.completion}
+              colors={activeColors}
             />
           </View>
         </View>
 
-        {/* heatmap visualization */}
-        <FocusHeatmap sessions={sessions} />
-
-        {/* insights */}
-        <View style={[styles.insightsCard, { backgroundColor: colors.card }]}>
-          <Text style={[styles.insightsTitle, { color: colors.text.primary }]}>
+        {/* --- Insights --- */}
+        <View
+          style={[styles.insightsCard, { backgroundColor: activeColors.card }]}
+        >
+          <Text
+            style={[styles.insightsTitle, { color: activeColors.text.primary }]}
+          >
             Performance Insights
           </Text>
-          {/* most productive task */}
+
+          {/* Energy Correlation */}
           <View style={styles.insightItem}>
             <View
               style={[
                 styles.insightIconContainer,
-                { backgroundColor: colors.primary },
+                { backgroundColor: activeColors.warning },
               ]}
             >
-              <Award size={20} color={"#FFFFFF"} />
+              <BatteryFull size={20} color={activeColors.card} />
             </View>
             <View style={styles.insightContent}>
               <Text
-                style={[styles.insightLabel, { color: colors.text.secondary }]}
+                style={[
+                  styles.insightLabel,
+                  { color: activeColors.text.secondary },
+                ]}
               >
-                Most Productive Task
+                Energy Impact
               </Text>
               <Text
-                style={[styles.insightValue, { color: colors.text.primary }]}
+                style={[
+                  styles.insightValue,
+                  { color: activeColors.text.primary },
+                ]}
               >
-                {metrics.mostProductiveTask}
+                {insights.energyCorrelation.isSignificant
+                  ? `High energy sessions are ${insights.energyCorrelation.diffPercent}% longer`
+                  : "Energy level hasn't significantly impacted duration yet."}
               </Text>
             </View>
           </View>
-          {/* typical energy level */}
-          {(() => {
-            const { color, icon, label } = getEnergyLevelProps(
-              metrics.bestEnergyLevel,
-            );
-            return (
-              <View style={[styles.insightItem]}>
-                <View
-                  style={[
-                    styles.insightIconContainer,
-                    { backgroundColor: color },
-                  ]}
-                >
-                  {icon}
-                </View>
-                <View style={styles.insightContent}>
-                  <Text
-                    style={[
-                      styles.insightLabel,
-                      { color: colors.text.secondary },
-                    ]}
-                  >
-                    Typical Energy Level
-                  </Text>
-                  <Text
-                    style={[
-                      styles.insightValue,
-                      { color: colors.text.primary },
-                    ]}
-                  >
-                    {label}
-                  </Text>
-                </View>
-              </View>
-            );
-          })()}
-          {/* average session length */}
+
+          {/* Time of Day */}
           <View style={styles.insightItem}>
             <View
               style={[
                 styles.insightIconContainer,
-                { backgroundColor: colors.warning },
+                { backgroundColor: activeColors.primary },
               ]}
             >
-              <Clock size={20} color={colors.card} />
+              <Zap size={20} color={activeColors.card} />
             </View>
             <View style={styles.insightContent}>
               <Text
-                style={[styles.insightLabel, { color: colors.text.secondary }]}
+                style={[
+                  styles.insightLabel,
+                  { color: activeColors.text.secondary },
+                ]}
               >
-                Average Session Length
+                Peak Performance
               </Text>
               <Text
-                style={[styles.insightValue, { color: colors.text.primary }]}
+                style={[
+                  styles.insightValue,
+                  { color: activeColors.text.primary },
+                ]}
               >
-                {metrics.avgSessionLength > 0
-                  ? formatMinutes(Math.round(metrics.avgSessionLength))
-                  : "Not enough data"}
+                {insights.timeOfDay.bestPeriod !== "N/A"
+                  ? `You focus best in the ${insights.timeOfDay.bestPeriod}`
+                  : "Keep focusing to find your peak time."}
               </Text>
             </View>
           </View>
-          {/* smart recommendations */}
+
+          {/* Streak */}
           <View style={styles.insightItem}>
             <View
               style={[
                 styles.insightIconContainer,
-                { backgroundColor: colors.success },
+                { backgroundColor: activeColors.error },
               ]}
             >
-              <Zap size={20} color={colors.card} />
+              <Flame size={20} color={activeColors.card} />
             </View>
             <View style={styles.insightContent}>
               <Text
-                style={[styles.insightLabel, { color: colors.text.secondary }]}
+                style={[
+                  styles.insightLabel,
+                  { color: activeColors.text.secondary },
+                ]}
               >
-                Smart Recommendations
+                Consistency Streak
               </Text>
               <Text
-                style={[styles.insightValue, { color: colors.text.primary }]}
+                style={[
+                  styles.insightValue,
+                  { color: activeColors.text.primary },
+                ]}
               >
-                {metrics.recommendationAcceptanceRate > 0
-                  ? `${Math.round(metrics.recommendationAcceptanceRate)}% accepted`
-                  : "Not enough data"}
+                {insights.streak.current > 1
+                  ? `${insights.streak.current} day streak! (Best: ${insights.streak.best})`
+                  : insights.streak.best > 1
+                    ? `Best streak: ${insights.streak.best} days. Start a new one!`
+                    : "Focus today to start a streak!"}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* empty state for no data */}
-        {filteredSessions.length === 0 && (
-          <View style={[styles.emptyState, { backgroundColor: colors.card }]}>
-            <TrendingUp size={50} color={colors.inactive} />
+        {/* empty state */}
+        {chartData.values.every((v) => v === 0) && (
+          <View
+            style={[styles.emptyState, { backgroundColor: activeColors.card }]}
+          >
+            <TrendingUp size={50} color={activeColors.inactive} />
             <Text
-              style={[styles.emptyStateTitle, { color: colors.text.primary }]}
+              style={[
+                styles.emptyStateTitle,
+                { color: activeColors.text.primary },
+              ]}
             >
               No data available
             </Text>
             <Text
-              style={[styles.emptyStateText, { color: colors.text.secondary }]}
+              style={[
+                styles.emptyStateText,
+                { color: activeColors.text.secondary },
+              ]}
             >
               Complete focus sessions to see your performance analytics
             </Text>
@@ -468,6 +459,7 @@ export default function PerformanceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -477,32 +469,57 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
+    color: Colors.text.secondary,
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 15,
+    paddingBottom: 10,
+    backgroundColor: Colors.background,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
+    color: Colors.text.primary,
     marginBottom: 15,
   },
   timeRangeSelector: {
     flexDirection: "row",
-    borderRadius: 20,
+    backgroundColor: Colors.card,
+    borderRadius: 12,
     padding: 4,
   },
   timeRangeButton: {
     flex: 1,
     paddingVertical: 8,
     alignItems: "center",
-    borderRadius: 16,
+    borderRadius: 8,
   },
   timeRangeText: {
-    fontSize: 14,
+    fontSize: 13,
+    color: Colors.text.secondary,
+    fontWeight: "500",
+  },
+  dateNavRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  dateRangeText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.text.primary,
+  },
+  navButton: {
+    padding: 8,
+  },
+  disabledNav: {
+    opacity: 0.3,
   },
   summaryCard: {
+    backgroundColor: Colors.card,
     borderRadius: 16,
     margin: 16,
     padding: 16,
@@ -519,21 +536,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   summaryTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
+    color: Colors.text.primary,
   },
-  trendBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(46, 204, 113, 0.1)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  trendText: {
+  summarySubtitle: {
     fontSize: 12,
-    fontWeight: "600",
-    marginLeft: 4,
+    color: Colors.text.secondary,
   },
   metricsRow: {
     flexDirection: "row",
@@ -546,60 +555,30 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 18,
     fontWeight: "bold",
+    color: Colors.text.primary,
     marginTop: 8,
     marginBottom: 4,
   },
   metricLabel: {
     fontSize: 12,
+    color: Colors.text.secondary,
   },
-  chartCard: {
-    borderRadius: 16,
-    margin: 16,
-    marginTop: 0,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  chartTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  chartContainer: {
+  deltaContainer: {
     flexDirection: "row",
-    height: 200,
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    paddingTop: 20,
-  },
-  chartColumn: {
-    flex: 1,
     alignItems: "center",
+    marginTop: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    backgroundColor: "rgba(128, 128, 128, 0.05)",
   },
-  barContainer: {
-    height: 150,
-    width: 20,
-    borderRadius: 10,
-    justifyContent: "flex-end",
-    overflow: "hidden",
-  },
-  bar: {
-    width: "100%",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  barLabel: {
-    fontSize: 12,
-    marginTop: 8,
-  },
-  barValue: {
+  deltaText: {
     fontSize: 10,
-    marginTop: 2,
+    fontWeight: "700",
+    marginLeft: 2,
   },
   insightsCard: {
+    backgroundColor: Colors.card,
     borderRadius: 16,
     margin: 16,
     marginTop: 0,
@@ -611,8 +590,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   insightsTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
+    color: Colors.text.primary,
     marginBottom: 16,
   },
   insightItem: {
@@ -633,16 +613,20 @@ const styles = StyleSheet.create({
   },
   insightLabel: {
     fontSize: 14,
+    color: Colors.text.secondary,
     marginBottom: 2,
   },
   insightValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
+    color: Colors.text.primary,
+    lineHeight: 20,
   },
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
     padding: 40,
+    backgroundColor: Colors.card,
     borderRadius: 16,
     margin: 16,
     marginTop: 0,
@@ -650,28 +634,13 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 18,
     fontWeight: "bold",
+    color: Colors.text.primary,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 14,
+    color: Colors.text.secondary,
     textAlign: "center",
-  },
-  deltaContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    backgroundColor: "rgba(128, 128, 128, 0.05)",
-  },
-  deltaText: {
-    fontSize: 10,
-    fontWeight: "700",
-    marginLeft: 2,
-  },
-  summarySubtitle: {
-    fontSize: 12,
   },
 });
