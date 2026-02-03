@@ -29,7 +29,10 @@ import { createJSONStorage, persist } from "zustand/middleware";
 const DYNAMIC_ARMS_KEY = "dynamic_focus_arms";
 const SPEED_FACTOR = 1;
 
-interface TimerStoreState extends TimerState {}
+interface TimerStoreState extends TimerState {
+  hasMigratedTasks: boolean;
+  migrateTasks: () => void;
+}
 
 // Helper to centralize session saving logic
 const saveAndCompleteSession = async (
@@ -120,6 +123,7 @@ const useTimerStore = create<TimerStoreState>()(
 
       // Settings
       previousTasks: [],
+      hasMigratedTasks: false,
       includeShortSessions: false,
       dynamicFocusArms: [],
       notificationsEnabled: false,
@@ -575,6 +579,17 @@ const useTimerStore = create<TimerStoreState>()(
           JSON.stringify(updatedArms),
         ).catch((err) => console.error("Failed to save dynamic arms:", err));
       },
+
+      migrateTasks: () => {
+        // One-time migration to ensure all defaults are in previousTasks
+        set((state) => {
+          const merged = new Set([...state.previousTasks, ...DEFAULT_TASKS]);
+          return {
+            previousTasks: Array.from(merged),
+            hasMigratedTasks: true,
+          };
+        });
+      },
     }),
     {
       name: "timer-storage",
@@ -584,6 +599,7 @@ const useTimerStore = create<TimerStoreState>()(
         includeShortSessions: state.includeShortSessions,
         dynamicFocusArms: state.dynamicFocusArms,
         notificationsEnabled: state.notificationsEnabled,
+        hasMigratedTasks: state.hasMigratedTasks,
       }),
     },
   ),
@@ -591,13 +607,6 @@ const useTimerStore = create<TimerStoreState>()(
 
 // Initialize on load
 useTimerStore.getState().loadSessions();
-
-const existingTasks = useTimerStore.getState().previousTasks;
-if (!existingTasks || existingTasks.length === 0) {
-  useTimerStore.setState({
-    previousTasks: DEFAULT_TASKS,
-  });
-}
 
 export const loadDynamicFocusArms = async () => {
   try {
