@@ -285,14 +285,19 @@ export function filterSessionsInDateRange(
  * @param periodsAgo 0 for current, 1 for previous, etc.
  */
 export function getPeriodDates(
-  range: "week" | "month" | "year",
+  range: "day" | "week" | "month" | "year",
   periodsAgo: number = 0,
 ): { startDate: Date; endDate: Date } {
   const now = new Date();
   let startDate = new Date(now);
   let endDate = new Date(now);
 
-  if (range === "week") {
+  if (range === "day") {
+    startDate.setHours(0, 0, 0, 0);
+    startDate.setDate(startDate.getDate() - periodsAgo);
+    endDate = new Date(startDate);
+    endDate.setHours(23, 59, 59, 999);
+  } else if (range === "week") {
     // Current week starts on Monday
     const day = now.getDay(); // 0 is Sunday
     const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
@@ -376,7 +381,11 @@ export function calculatePeriodDelta(
     return { delta, percentage: 100, trend: "up" };
   }
 
-  const percentage = Math.round((delta / previous) * 100);
+  let percentage = Math.round((delta / previous) * 100);
+
+  // Cap extreme values
+  if (percentage > 999) percentage = 999;
+  if (percentage < -999) percentage = -999;
 
   let trend: "up" | "down" | "neutral" = "neutral";
   if (percentage > 5) trend = "up";
@@ -422,4 +431,172 @@ export function getHeatmapData(
   });
 
   return { data, maxMinutes };
+}
+
+/**
+ * Get aggregated chart data for Adaptive Bar Chart
+ * Day: 24 bars (hours)
+ * Week: 7 bars (days)
+ * Month: 28-31 bars (days)
+ * Year: 12 bars (months)
+ */
+export function getAdaptiveChartData(
+  sessions: Session[],
+  timeRange: "day" | "week" | "month" | "year",
+  offset: number = 0,
+): { labels: string[]; values: number[]; maxValue: number; dateRange: string } {
+  const { startDate, endDate } = getPeriodDates(timeRange, offset);
+  const labels: string[] = [];
+  const values: number[] = [];
+
+  // Filter sessions in range
+  const rangeSessions = sessions.filter((s) => {
+    const d = new Date(s.createdAt || s.date);
+    return d >= startDate && d <= endDate;
+  });
+
+  const getDuration = (s: Session) =>
+    s.sessionCompleted ? s.userSelectedDuration : s.focusedUntilSkipped;
+
+  if (timeRange === "day") {
+    // 24 Hours
+    // Labels: 00:00, 06:00, 12:00, 18:00, and 23:00 explicitly requested
+    for (let i = 0; i < 24; i++) {
+      let label = "";
+      if (i % 6 === 0 || i === 23) {
+        label = `${i.toString().padStart(2, "0")}:00`;
+      }
+      labels.push(label);
+      values.push(0);
+    }
+
+    rangeSessions.forEach((s) => {
+      const d = new Date(s.createdAt || s.date);
+      const hour = d.getHours();
+      values[hour] += getDuration(s);
+    });
+  } else if (timeRange === "week") {
+    // 7 Days
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    // But we want Mon-Sun order usually?
+    // Let's stick to standard starting Mon
+    // Re-calculating start date to ensure logic matches
+
+    // We already have startDate (Mon) and endDate (Sun) from getPeriodDates
+    // So we iterate 7 days from startDate
+    const current = new Date(startDate);
+    for (let i = 0; i < 7; i++) {
+      const dayName = days[current.getDay()];
+      labels.push(dayName); // Mon, Tue...
+      values.push(0);
+
+      // Sum for this day
+      const dayStart = new Date(current);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(current);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const dailySum = rangeSessions.reduce((acc, s) => {
+        const d = new Date(s.createdAt || s.date);
+        return d >= dayStart && d <= dayEnd ? acc + getDuration(s) : acc;
+      }, 0);
+
+      values[i] = dailySum;
+      current.setDate(current.getDate() + 1);
+    }
+  } else if (timeRange === "month") {
+    // Daily bars for the month
+    // 1 to 31
+    const current = new Date(startDate); // 1st of month
+    const end = new Date(endDate); // Last of month
+
+    // Helper to check if it's the last day of the month
+    const isLastDay = (d: Date) => {
+      const test = new Date(d);
+      test.setDate(test.getDate() + 1);
+      return test.getDate() === 1;
+    };
+
+    let index = 0;
+    while (current <= end) {
+      const dateNum = current.getDate();
+      // USER REQUEST: Match explicit pattern "9/1, 9/8, 9/15, 9/23, 9/30"
+      // We check for 1, 8, 15, 23 specifically, OR if it is the last day of the month.
+
+      const showLabel = [1, 8, 15, 23].includes(dateNum) || isLastDay(current);
+
+      if (showLabel) {
+        labels.push(`${current.getMonth() + 1}/${dateNum}`);
+      } else {
+        // Still push empty string to maintain bar alignment
+        labels.push("");
+      }
+
+      values.push(0);
+
+      const dayStart = new Date(current);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(current);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const dailySum = rangeSessions.reduce((acc, s) => {
+        const d = new Date(s.createdAt || s.date);
+        return d >= dayStart && d <= dayEnd ? acc + getDuration(s) : acc;
+      }, 0);
+
+      values[index] = dailySum; // Assign to current index
+
+      current.setDate(current.getDate() + 1);
+      index++;
+    }
+  } else if (timeRange === "year") {
+    // 12 Months
+    // USER REQUEST: 1 to 12 instead of J to D.
+    const months = [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+    ];
+    labels.push(...months);
+    values.push(...new Array(12).fill(0));
+
+    rangeSessions.forEach((s) => {
+      const d = new Date(s.createdAt || s.date);
+      const m = d.getMonth();
+      values[m] += getDuration(s);
+    });
+  }
+
+  const maxValue = Math.max(...values, 1);
+
+  // Format Date Range String
+  let dateRange = "";
+  if (timeRange === "day") {
+    dateRange = startDate.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    if (offset === 1) dateRange += " (Yesterday)";
+  } else if (timeRange === "week") {
+    dateRange = `${startDate.toLocaleDateString(undefined, { month: "short", day: "numeric" })} - ${endDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
+  } else if (timeRange === "month") {
+    dateRange = startDate.toLocaleDateString(undefined, {
+      month: "long",
+      year: "numeric",
+    });
+  } else {
+    dateRange = startDate.getFullYear().toString();
+  }
+
+  return { labels, values, maxValue, dateRange };
 }
