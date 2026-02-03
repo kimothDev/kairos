@@ -1,5 +1,5 @@
 import FocusHeatmap from "@/components/FocusHeatmap";
-import Colors from "@/constants/colors";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { TimeRange } from "@/types";
 import {
@@ -37,36 +37,6 @@ import {
   View,
 } from "react-native";
 
-//utility to map energy level to battery icon and color
-const getEnergyLevelProps = (level: string) => {
-  switch (level) {
-    case "high":
-      return {
-        color: Colors.success,
-        icon: <BatteryFull size={20} color={Colors.card} />,
-        label: "High energy",
-      };
-    case "mid":
-      return {
-        color: Colors.warning,
-        icon: <BatteryMedium size={20} color={Colors.card} />,
-        label: "Mid energy",
-      };
-    case "low":
-      return {
-        color: Colors.error,
-        icon: <BatteryLow size={20} color={Colors.card} />,
-        label: "Low energy",
-      };
-    default:
-      return {
-        color: Colors.inactive,
-        icon: <Battery size={20} color={Colors.card} />,
-        label: "Not enough data",
-      };
-  }
-};
-
 const MetricItemWithDelta = ({
   icon,
   value,
@@ -78,25 +48,31 @@ const MetricItemWithDelta = ({
   label: string;
   delta: { percentage: number; trend: "up" | "down" | "neutral" };
 }) => {
+  const colors = useThemeColor();
+
   const getTrendColor = () => {
-    if (delta.trend === "up") return Colors.success;
-    if (delta.trend === "down") return Colors.error;
-    return Colors.text.secondary;
+    if (delta.trend === "up") return colors.success;
+    if (delta.trend === "down") return colors.error;
+    return colors.text.secondary;
   };
 
   const getTrendIcon = () => {
     if (delta.trend === "up")
-      return <ArrowUpRight size={12} color={Colors.success} />;
+      return <ArrowUpRight size={12} color={colors.success} />;
     if (delta.trend === "down")
-      return <ArrowDownRight size={12} color={Colors.error} />;
-    return <ArrowRight size={12} color={Colors.text.secondary} />;
+      return <ArrowDownRight size={12} color={colors.error} />;
+    return <ArrowRight size={12} color={colors.text.secondary} />;
   };
 
   return (
     <View style={styles.metricItem}>
       {icon}
-      <Text style={styles.metricValue}>{value}</Text>
-      <Text style={styles.metricLabel}>{label}</Text>
+      <Text style={[styles.metricValue, { color: colors.text.primary }]}>
+        {value}
+      </Text>
+      <Text style={[styles.metricLabel, { color: colors.text.secondary }]}>
+        {label}
+      </Text>
 
       <View style={styles.deltaContainer}>
         {getTrendIcon()}
@@ -109,8 +85,39 @@ const MetricItemWithDelta = ({
 };
 
 export default function PerformanceScreen() {
+  const colors = useThemeColor();
   const { sessions, isLoading } = useTimerStore();
   const [timeRange, setTimeRange] = useState<TimeRange>("week");
+
+  //utility to map energy level to battery icon and color
+  const getEnergyLevelProps = (level: string) => {
+    switch (level) {
+      case "high":
+        return {
+          color: colors.success,
+          icon: <BatteryFull size={20} color={colors.card} />,
+          label: "High energy",
+        };
+      case "mid":
+        return {
+          color: colors.warning,
+          icon: <BatteryMedium size={20} color={colors.card} />,
+          label: "Mid energy",
+        };
+      case "low":
+        return {
+          color: colors.error,
+          icon: <BatteryLow size={20} color={colors.card} />,
+          label: "Low energy",
+        };
+      default:
+        return {
+          color: colors.inactive,
+          icon: <Battery size={20} color={colors.card} />,
+          label: "Not enough data",
+        };
+    }
+  };
 
   // Get filtered sessions based on time range (calendar based)
   const filteredSessions = useMemo(() => {
@@ -191,33 +198,50 @@ export default function PerformanceScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Loading performance data...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.text.secondary }]}>
+            Loading performance data...
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Performance Analytics</Text>
+        <View style={[styles.header, { backgroundColor: colors.card }]}>
+          <Text style={[styles.title, { color: colors.text.primary }]}>
+            Performance Analytics
+          </Text>
 
-          <View style={styles.timeRangeSelector}>
+          <View
+            style={[
+              styles.timeRangeSelector,
+              { backgroundColor: colors.background },
+            ]}
+          >
             <TouchableOpacity
               style={[
                 styles.timeRangeButton,
-                timeRange === "week" && styles.timeRangeActive,
+                timeRange === "week" && { backgroundColor: colors.primary },
               ]}
               onPress={() => setTimeRange("week")}
             >
               <Text
                 style={[
                   styles.timeRangeText,
-                  timeRange === "week" && styles.timeRangeTextActive,
+                  { color: colors.text.secondary },
+                  timeRange === "week" && {
+                    color: colors.card,
+                    fontWeight: "600",
+                  },
                 ]}
               >
                 Week
@@ -226,14 +250,18 @@ export default function PerformanceScreen() {
             <TouchableOpacity
               style={[
                 styles.timeRangeButton,
-                timeRange === "month" && styles.timeRangeActive,
+                timeRange === "month" && { backgroundColor: colors.primary },
               ]}
               onPress={() => setTimeRange("month")}
             >
               <Text
                 style={[
                   styles.timeRangeText,
-                  timeRange === "month" && styles.timeRangeTextActive,
+                  { color: colors.text.secondary },
+                  timeRange === "month" && {
+                    color: colors.card,
+                    fontWeight: "600",
+                  },
                 ]}
               >
                 Month
@@ -242,14 +270,18 @@ export default function PerformanceScreen() {
             <TouchableOpacity
               style={[
                 styles.timeRangeButton,
-                timeRange === "year" && styles.timeRangeActive,
+                timeRange === "year" && { backgroundColor: colors.primary },
               ]}
               onPress={() => setTimeRange("year")}
             >
               <Text
                 style={[
                   styles.timeRangeText,
-                  timeRange === "year" && styles.timeRangeTextActive,
+                  { color: colors.text.secondary },
+                  timeRange === "year" && {
+                    color: colors.card,
+                    fontWeight: "600",
+                  },
                 ]}
               >
                 Year
@@ -259,27 +291,33 @@ export default function PerformanceScreen() {
         </View>
 
         {/* summary card */}
-        <View style={styles.summaryCard}>
+        <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
           <View style={styles.summaryHeader}>
-            <Text style={styles.summaryTitle}>Focus Summary</Text>
-            <Text style={styles.summarySubtitle}>vs previous period</Text>
+            <Text style={[styles.summaryTitle, { color: colors.text.primary }]}>
+              Focus Summary
+            </Text>
+            <Text
+              style={[styles.summarySubtitle, { color: colors.text.secondary }]}
+            >
+              vs previous period
+            </Text>
           </View>
 
           <View style={styles.metricsRow}>
             <MetricItemWithDelta
-              icon={<Clock size={20} color={Colors.primary} />}
+              icon={<Clock size={20} color={colors.primary} />}
               value={formatMinutes(metrics.totalFocusTime)}
               label="Total Focus"
               delta={metrics.deltas.focus}
             />
             <MetricItemWithDelta
-              icon={<Calendar size={20} color={Colors.primary} />}
+              icon={<Calendar size={20} color={colors.primary} />}
               value={metrics.sessionCount}
               label="Sessions"
               delta={metrics.deltas.sessions}
             />
             <MetricItemWithDelta
-              icon={<Target size={20} color={Colors.primary} />}
+              icon={<Target size={20} color={colors.primary} />}
               value={`${Math.round(metrics.completionRate)}%`}
               label="Completion"
               delta={metrics.deltas.completion}
@@ -291,21 +329,29 @@ export default function PerformanceScreen() {
         <FocusHeatmap sessions={sessions} />
 
         {/* insights */}
-        <View style={styles.insightsCard}>
-          <Text style={styles.insightsTitle}>Performance Insights</Text>
+        <View style={[styles.insightsCard, { backgroundColor: colors.card }]}>
+          <Text style={[styles.insightsTitle, { color: colors.text.primary }]}>
+            Performance Insights
+          </Text>
           {/* most productive task */}
           <View style={styles.insightItem}>
             <View
               style={[
                 styles.insightIconContainer,
-                { backgroundColor: Colors.primary },
+                { backgroundColor: colors.primary },
               ]}
             >
-              <Award size={20} color={Colors.card} />
+              <Award size={20} color={"#FFFFFF"} />
             </View>
             <View style={styles.insightContent}>
-              <Text style={styles.insightLabel}>Most Productive Task</Text>
-              <Text style={styles.insightValue}>
+              <Text
+                style={[styles.insightLabel, { color: colors.text.secondary }]}
+              >
+                Most Productive Task
+              </Text>
+              <Text
+                style={[styles.insightValue, { color: colors.text.primary }]}
+              >
                 {metrics.mostProductiveTask}
               </Text>
             </View>
@@ -326,8 +372,22 @@ export default function PerformanceScreen() {
                   {icon}
                 </View>
                 <View style={styles.insightContent}>
-                  <Text style={styles.insightLabel}>Typical Energy Level</Text>
-                  <Text style={styles.insightValue}>{label}</Text>
+                  <Text
+                    style={[
+                      styles.insightLabel,
+                      { color: colors.text.secondary },
+                    ]}
+                  >
+                    Typical Energy Level
+                  </Text>
+                  <Text
+                    style={[
+                      styles.insightValue,
+                      { color: colors.text.primary },
+                    ]}
+                  >
+                    {label}
+                  </Text>
                 </View>
               </View>
             );
@@ -337,14 +397,20 @@ export default function PerformanceScreen() {
             <View
               style={[
                 styles.insightIconContainer,
-                { backgroundColor: Colors.warning },
+                { backgroundColor: colors.warning },
               ]}
             >
-              <Clock size={20} color={Colors.card} />
+              <Clock size={20} color={colors.card} />
             </View>
             <View style={styles.insightContent}>
-              <Text style={styles.insightLabel}>Average Session Length</Text>
-              <Text style={styles.insightValue}>
+              <Text
+                style={[styles.insightLabel, { color: colors.text.secondary }]}
+              >
+                Average Session Length
+              </Text>
+              <Text
+                style={[styles.insightValue, { color: colors.text.primary }]}
+              >
                 {metrics.avgSessionLength > 0
                   ? formatMinutes(Math.round(metrics.avgSessionLength))
                   : "Not enough data"}
@@ -356,14 +422,20 @@ export default function PerformanceScreen() {
             <View
               style={[
                 styles.insightIconContainer,
-                { backgroundColor: Colors.success },
+                { backgroundColor: colors.success },
               ]}
             >
-              <Zap size={20} color={Colors.card} />
+              <Zap size={20} color={colors.card} />
             </View>
             <View style={styles.insightContent}>
-              <Text style={styles.insightLabel}>Smart Recommendations</Text>
-              <Text style={styles.insightValue}>
+              <Text
+                style={[styles.insightLabel, { color: colors.text.secondary }]}
+              >
+                Smart Recommendations
+              </Text>
+              <Text
+                style={[styles.insightValue, { color: colors.text.primary }]}
+              >
                 {metrics.recommendationAcceptanceRate > 0
                   ? `${Math.round(metrics.recommendationAcceptanceRate)}% accepted`
                   : "Not enough data"}
@@ -374,10 +446,16 @@ export default function PerformanceScreen() {
 
         {/* empty state for no data */}
         {filteredSessions.length === 0 && (
-          <View style={styles.emptyState}>
-            <TrendingUp size={50} color={Colors.inactive} />
-            <Text style={styles.emptyStateTitle}>No data available</Text>
-            <Text style={styles.emptyStateText}>
+          <View style={[styles.emptyState, { backgroundColor: colors.card }]}>
+            <TrendingUp size={50} color={colors.inactive} />
+            <Text
+              style={[styles.emptyStateTitle, { color: colors.text.primary }]}
+            >
+              No data available
+            </Text>
+            <Text
+              style={[styles.emptyStateText, { color: colors.text.secondary }]}
+            >
               Complete focus sessions to see your performance analytics
             </Text>
           </View>
@@ -390,7 +468,6 @@ export default function PerformanceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -400,23 +477,19 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: Colors.text.secondary,
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 15,
-    backgroundColor: Colors.card,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: Colors.text.primary,
     marginBottom: 15,
   },
   timeRangeSelector: {
     flexDirection: "row",
-    backgroundColor: Colors.background,
     borderRadius: 20,
     padding: 4,
   },
@@ -426,19 +499,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 16,
   },
-  timeRangeActive: {
-    backgroundColor: Colors.primary,
-  },
   timeRangeText: {
     fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  timeRangeTextActive: {
-    color: Colors.card,
-    fontWeight: "600",
   },
   summaryCard: {
-    backgroundColor: Colors.card,
     borderRadius: 16,
     margin: 16,
     padding: 16,
@@ -457,7 +521,6 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: Colors.text.primary,
   },
   trendBadge: {
     flexDirection: "row",
@@ -483,16 +546,13 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 18,
     fontWeight: "bold",
-    color: Colors.text.primary,
     marginTop: 8,
     marginBottom: 4,
   },
   metricLabel: {
     fontSize: 12,
-    color: Colors.text.secondary,
   },
   chartCard: {
-    backgroundColor: Colors.card,
     borderRadius: 16,
     margin: 16,
     marginTop: 0,
@@ -506,7 +566,6 @@ const styles = StyleSheet.create({
   chartTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: Colors.text.primary,
     marginBottom: 16,
   },
   chartContainer: {
@@ -523,7 +582,6 @@ const styles = StyleSheet.create({
   barContainer: {
     height: 150,
     width: 20,
-    backgroundColor: "rgba(78, 205, 196, 0.1)",
     borderRadius: 10,
     justifyContent: "flex-end",
     overflow: "hidden",
@@ -535,16 +593,13 @@ const styles = StyleSheet.create({
   },
   barLabel: {
     fontSize: 12,
-    color: Colors.text.secondary,
     marginTop: 8,
   },
   barValue: {
     fontSize: 10,
-    color: Colors.text.light,
     marginTop: 2,
   },
   insightsCard: {
-    backgroundColor: Colors.card,
     borderRadius: 16,
     margin: 16,
     marginTop: 0,
@@ -558,7 +613,6 @@ const styles = StyleSheet.create({
   insightsTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: Colors.text.primary,
     marginBottom: 16,
   },
   insightItem: {
@@ -570,7 +624,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.primary,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -580,19 +633,16 @@ const styles = StyleSheet.create({
   },
   insightLabel: {
     fontSize: 14,
-    color: Colors.text.secondary,
     marginBottom: 2,
   },
   insightValue: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.text.primary,
   },
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
     padding: 40,
-    backgroundColor: Colors.card,
     borderRadius: 16,
     margin: 16,
     marginTop: 0,
@@ -600,13 +650,11 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: Colors.text.primary,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 14,
-    color: Colors.text.secondary,
     textAlign: "center",
   },
   deltaContainer: {
@@ -625,6 +673,5 @@ const styles = StyleSheet.create({
   },
   summarySubtitle: {
     fontSize: 12,
-    color: Colors.text.secondary,
   },
 });

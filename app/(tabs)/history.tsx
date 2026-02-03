@@ -1,15 +1,24 @@
-import SessionHistoryItem from '@/components/SessionHistoryItem';
-import Colors from '@/constants/colors';
-import useTimerStore from '@/store/timerStore';
-import { Filter, History } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import SessionHistoryItem from "@/components/SessionHistoryItem";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import useTimerStore from "@/store/timerStore";
+import { Filter, History } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
-type FilterPeriod = 'all' | 'today' | 'week' | 'month';
+type FilterPeriod = "all" | "today" | "week" | "month";
 
 export default function HistoryScreen() {
+  const colors = useThemeColor();
   const { sessions, isLoading, loadSessions } = useTimerStore();
-  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('all');
+  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("all");
 
   //refresh sessions when the screen is focused
   useEffect(() => {
@@ -18,22 +27,32 @@ export default function HistoryScreen() {
 
   const getFilteredSessions = () => {
     const now = new Date();
-    
+
     switch (filterPeriod) {
-      case 'today':
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        return sessions.filter(session => new Date(session.createdAt) >= today);
-      
-      case 'week':
+      case "today":
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+        return sessions.filter(
+          (session) => new Date(session.createdAt) >= today,
+        );
+
+      case "week":
         const oneWeekAgo = new Date(now);
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        return sessions.filter(session => new Date(session.createdAt) >= oneWeekAgo);
-      
-      case 'month':
+        return sessions.filter(
+          (session) => new Date(session.createdAt) >= oneWeekAgo,
+        );
+
+      case "month":
         const oneMonthAgo = new Date(now);
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        return sessions.filter(session => new Date(session.createdAt) >= oneMonthAgo);
-      
+        return sessions.filter(
+          (session) => new Date(session.createdAt) >= oneMonthAgo,
+        );
+
       default:
         return sessions;
     }
@@ -42,61 +61,144 @@ export default function HistoryScreen() {
   const filteredSessions = getFilteredSessions();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Session History</Text>
-          
+        <View style={[styles.header, { backgroundColor: colors.card }]}>
+          <Text style={[styles.title, { color: colors.text.primary }]}>
+            Session History
+          </Text>
+
           <View style={styles.filterContainer}>
-            <TouchableOpacity 
-              style={[styles.filterButton, filterPeriod === 'all' && styles.filterButtonActive]}
-              onPress={() => setFilterPeriod('all')}
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                { backgroundColor: colors.background },
+                filterPeriod === "all" && { backgroundColor: colors.primary },
+              ]}
+              onPress={() => setFilterPeriod("all")}
             >
-              <Text style={[styles.filterText, filterPeriod === 'all' && styles.filterTextActive]}>All</Text>
+              <Text
+                style={[
+                  styles.filterText,
+                  { color: colors.text.secondary },
+                  filterPeriod === "all" && {
+                    color: "#FFFFFF",
+                    fontWeight: "600",
+                  },
+                ]}
+              >
+                All
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.filterButton, filterPeriod === 'today' && styles.filterButtonActive]}
-              onPress={() => setFilterPeriod('today')}
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                { backgroundColor: colors.background },
+                filterPeriod === "today" && { backgroundColor: colors.primary },
+              ]}
+              onPress={() => setFilterPeriod("today")}
             >
-              <Text style={[styles.filterText, filterPeriod === 'today' && styles.filterTextActive]}>Today</Text>
+              <Text
+                style={[
+                  styles.filterText,
+                  { color: colors.text.secondary },
+                  filterPeriod === "today" && {
+                    color: "#FFFFFF",
+                    fontWeight: "600",
+                  },
+                ]}
+              >
+                Today
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.filterButton, filterPeriod === 'week' && styles.filterButtonActive]}
-              onPress={() => setFilterPeriod('week')}
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                { backgroundColor: colors.background },
+                filterPeriod === "week" && { backgroundColor: colors.primary },
+              ]}
+              onPress={() => setFilterPeriod("week")}
             >
-              <Text style={[styles.filterText, filterPeriod === 'week' && styles.filterTextActive]}>Week</Text>
+              <Text
+                style={[
+                  styles.filterText,
+                  { color: colors.text.secondary },
+                  filterPeriod === "week" && {
+                    color: "#FFFFFF",
+                    fontWeight: "600",
+                  },
+                ]}
+              >
+                Week
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.filterButton, filterPeriod === 'month' && styles.filterButtonActive]}
-              onPress={() => setFilterPeriod('month')}
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                { backgroundColor: colors.background },
+                filterPeriod === "month" && { backgroundColor: colors.primary },
+              ]}
+              onPress={() => setFilterPeriod("month")}
             >
-              <Text style={[styles.filterText, filterPeriod === 'month' && styles.filterTextActive]}>Month</Text>
+              <Text
+                style={[
+                  styles.filterText,
+                  { color: colors.text.secondary },
+                  filterPeriod === "month" && {
+                    color: "#FFFFFF",
+                    fontWeight: "600",
+                  },
+                ]}
+              >
+                Month
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
-        
+
         <View style={styles.historyContainer}>
           <View style={styles.historyHeader}>
-            <Text style={styles.historyTitle}>Your Sessions</Text>
-            <Filter size={18} color={Colors.text.secondary} />
+            <Text style={[styles.historyTitle, { color: colors.text.primary }]}>
+              Your Sessions
+            </Text>
+            <Filter size={18} color={colors.text.secondary} />
           </View>
-          
+
           {isLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={Colors.primary} />
-              <Text style={styles.loadingText}>Loading sessions...</Text>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text
+                style={[styles.loadingText, { color: colors.text.secondary }]}
+              >
+                Loading sessions...
+              </Text>
             </View>
           ) : filteredSessions.length > 0 ? (
             filteredSessions
-              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-              .map(session => (
+              .sort(
+                (a, b) =>
+                  new Date(b.createdAt).getTime() -
+                  new Date(a.createdAt).getTime(),
+              )
+              .map((session) => (
                 <SessionHistoryItem key={session.id} session={session} />
               ))
           ) : (
-            <View style={styles.emptyState}>
-              <History size={50} color={Colors.inactive} />
-              <Text style={styles.emptyStateText}>No sessions found</Text>
-              <Text style={styles.emptyStateSubtext}>
+            <View style={[styles.emptyState, { backgroundColor: colors.card }]}>
+              <History size={50} color={colors.inactive} />
+              <Text
+                style={[styles.emptyStateText, { color: colors.text.primary }]}
+              >
+                No sessions found
+              </Text>
+              <Text
+                style={[
+                  styles.emptyStateSubtext,
+                  { color: colors.text.secondary },
+                ]}
+              >
                 Complete focus sessions to see your history here
               </Text>
             </View>
@@ -110,22 +212,19 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 10,
-    backgroundColor: Colors.card,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text.primary,
+    fontWeight: "bold",
     marginBottom: 15,
   },
   filterContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 10,
   },
   filterButton: {
@@ -133,18 +232,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 20,
     marginRight: 8,
-    backgroundColor: Colors.background,
-  },
-  filterButtonActive: {
-    backgroundColor: Colors.primary,
   },
   filterText: {
     fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  filterTextActive: {
-    color: Colors.card,
-    fontWeight: '600',
   },
   historyContainer: {
     paddingHorizontal: 20,
@@ -152,44 +242,39 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 15,
   },
   historyTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text.primary,
+    fontWeight: "bold",
   },
   loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 40,
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: Colors.text.secondary,
   },
   emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 40,
-    backgroundColor: Colors.card,
     borderRadius: 12,
   },
   emptyStateText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text.primary,
+    fontWeight: "bold",
     marginTop: 16,
     marginBottom: 8,
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: Colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     paddingHorizontal: 20,
   },
 });
