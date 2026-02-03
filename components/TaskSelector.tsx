@@ -1,18 +1,18 @@
-import { DEFAULT_TASKS } from "@/constants/timer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
-import { ChevronRight, Trash2 } from "lucide-react-native";
+import { ChevronRight } from "lucide-react-native";
 import React, { useState } from "react";
 
 import {
-    Dimensions,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function TaskSelector() {
@@ -29,17 +29,32 @@ export default function TaskSelector() {
     isActive,
     isBreakTime,
     removeCustomTask,
+    hasMigratedTasks,
+    migrateTasks,
   } = useTimerStore();
 
-  // Unified task list: custom tasks first (excluding default ones), then default tasks
-  const customTasks = previousTasks.filter(
-    (task) => !DEFAULT_TASKS.includes(task),
-  );
+  React.useEffect(() => {
+    if (!hasMigratedTasks) {
+      migrateTasks();
+    }
+  }, [hasMigratedTasks]);
 
-  const unifiedTaskList = [...customTasks, ...DEFAULT_TASKS].filter(
-    (task, index, self) => self.indexOf(task) === index,
-  );
+  // Use previousTasks as the single source of truth after migration
+  // but ensure we have unique values just in case
+  const taskList = [...new Set(previousTasks)];
+
   const isTimerRunning = isActive || isBreakTime;
+
+  const handleDeleteTask = (task: string) => {
+    Alert.alert("Delete Task", `Are you sure you want to delete "${task}"?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => removeCustomTask(task),
+      },
+    ]);
+  };
 
   return (
     <>
@@ -79,9 +94,9 @@ export default function TaskSelector() {
             <ScrollView
               style={styles.taskList}
               contentContainerStyle={styles.taskListContent}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator={false}
             >
-              {unifiedTaskList.map((task, index) => (
+              {taskList.map((task, index) => (
                 <View
                   key={`task-${index}`}
                   style={[
@@ -92,12 +107,14 @@ export default function TaskSelector() {
                   <TouchableOpacity
                     style={[
                       styles.taskItem,
-                      { backgroundColor: colors.background },
+                      { backgroundColor: colors.background, flex: 1 },
                     ]}
                     onPress={() => {
                       setTaskType(task);
                       toggleTaskModal(false);
                     }}
+                    onLongPress={() => handleDeleteTask(task)}
+                    delayLongPress={500}
                   >
                     <Text
                       style={[
@@ -108,15 +125,6 @@ export default function TaskSelector() {
                       {task}
                     </Text>
                   </TouchableOpacity>
-
-                  {!DEFAULT_TASKS.includes(task) && (
-                    <TouchableOpacity
-                      onPress={() => removeCustomTask(task)}
-                      style={styles.deleteIcon}
-                    >
-                      <Trash2 size={20} color={colors.error} />
-                    </TouchableOpacity>
-                  )}
                 </View>
               ))}
             </ScrollView>
@@ -134,7 +142,9 @@ export default function TaskSelector() {
                 placeholder="Add new task type"
                 placeholderTextColor={colors.text.light}
                 value={customTask}
-                onChangeText={setCustomTask}
+                onChangeText={(text) =>
+                  setCustomTask(text.charAt(0).toUpperCase() + text.slice(1))
+                }
                 onSubmitEditing={() => {
                   addCustomTask(customTask);
                   setCustomTask("");
