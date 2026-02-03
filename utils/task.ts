@@ -1,3 +1,3 @@
 export function normalizeTask(task: string | undefined): string {
-  return (task || '').trim().toLowerCase();
-} 
+  return (task || "").trim();
+}
