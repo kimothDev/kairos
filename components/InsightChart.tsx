@@ -1,6 +1,6 @@
-import Colors from '@/constants/colors';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useThemeColor } from "@/hooks/useThemeColor";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 interface InsightCardProps {
   icon: React.ReactNode;
@@ -9,20 +9,29 @@ interface InsightCardProps {
   color?: string;
 }
 
-export default function InsightCard({ 
-  icon, 
-  title, 
-  value, 
-  color = Colors.primary 
+export default function InsightCard({
+  icon,
+  title,
+  value,
+  color,
 }: InsightCardProps) {
+  const colors = useThemeColor();
+  const iconColor = color || colors.primary;
+
   return (
     <View style={styles.insightItem}>
-      <View style={[styles.insightIconContainer, { backgroundColor: color }]}>
+      <View
+        style={[styles.insightIconContainer, { backgroundColor: iconColor }]}
+      >
         {icon}
       </View>
       <View style={styles.insightContent}>
-        <Text style={styles.insightLabel}>{title}</Text>
-        <Text style={styles.insightValue}>{value}</Text>
+        <Text style={[styles.insightLabel, { color: colors.text.secondary }]}>
+          {title}
+        </Text>
+        <Text style={[styles.insightValue, { color: colors.text.primary }]}>
+          {value}
+        </Text>
       </View>
     </View>
   );
@@ -30,16 +39,16 @@ export default function InsightCard({
 
 const styles = StyleSheet.create({
   insightItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 16,
   },
   insightIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   insightContent: {
@@ -47,12 +56,10 @@ const styles = StyleSheet.create({
   },
   insightLabel: {
     fontSize: 14,
-    color: Colors.text.secondary,
     marginBottom: 2,
   },
   insightValue: {
     fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text.primary,
+    fontWeight: "600",
   },
 });

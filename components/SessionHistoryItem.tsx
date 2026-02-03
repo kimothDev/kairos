@@ -1,12 +1,12 @@
-import Colors from "@/constants/colors";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { EnergyLevel, Session } from "@/types";
 import {
-  BatteryFull,
-  BatteryLow,
-  BatteryMedium,
-  CheckCircle,
-  Clock,
-  XCircle,
+    BatteryFull,
+    BatteryLow,
+    BatteryMedium,
+    CheckCircle,
+    Clock,
+    XCircle,
 } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -18,6 +18,8 @@ interface SessionHistoryItemProps {
 export default function SessionHistoryItem({
   session,
 }: SessionHistoryItemProps) {
+  const colors = useThemeColor();
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -47,11 +49,11 @@ export default function SessionHistoryItem({
   const renderEnergyIcon = (level: EnergyLevel) => {
     switch (level) {
       case "low":
-        return <BatteryLow size={16} color={Colors.text.secondary} />;
+        return <BatteryLow size={16} color={colors.text.secondary} />;
       case "mid":
-        return <BatteryMedium size={16} color={Colors.text.secondary} />;
+        return <BatteryMedium size={16} color={colors.text.secondary} />;
       case "high":
-        return <BatteryFull size={16} color={Colors.text.secondary} />;
+        return <BatteryFull size={16} color={colors.text.secondary} />;
       default:
         return null;
     }
@@ -61,8 +63,8 @@ export default function SessionHistoryItem({
     if (session.sessionCompleted) {
       return {
         status: "Completed",
-        color: Colors.success,
-        icon: <CheckCircle size={16} color={Colors.success} />,
+        color: colors.success,
+        icon: <CheckCircle size={16} color={colors.success} />,
       };
     }
 
@@ -70,20 +72,20 @@ export default function SessionHistoryItem({
       case "skippedFocus":
         return {
           status: "Focus Skipped",
-          color: Colors.error,
-          icon: <XCircle size={16} color={Colors.error} />,
+          color: colors.error,
+          icon: <XCircle size={16} color={colors.error} />,
         };
       case "skippedBreak":
         return {
           status: "Break Skipped",
-          color: Colors.warning,
-          icon: <XCircle size={16} color={Colors.warning} />,
+          color: colors.warning,
+          icon: <XCircle size={16} color={colors.warning} />,
         };
       default:
         return {
           status: "Skipped",
-          color: Colors.error,
-          icon: <XCircle size={16} color={Colors.error} />,
+          color: colors.error,
+          icon: <XCircle size={16} color={colors.error} />,
         };
     }
   };
@@ -91,22 +93,28 @@ export default function SessionHistoryItem({
   const { status, color, icon } = getSessionStatus();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.card }]}>
       <View style={styles.header}>
-        <Text style={styles.taskType}>{session.taskType}</Text>
-        <Text style={styles.date}>{formatDate(session.createdAt)}</Text>
+        <Text style={[styles.taskType, { color: colors.text.primary }]}>
+          {session.taskType}
+        </Text>
+        <Text style={[styles.date, { color: colors.text.secondary }]}>
+          {formatDate(session.createdAt)}
+        </Text>
       </View>
 
       <View style={styles.details}>
         <View style={styles.detailRow}>
           <View style={styles.detailItem}>
-            <Clock size={16} color={Colors.text.secondary} />
-            <Text style={styles.detailText}>{getDurationText()}</Text>
+            <Clock size={16} color={colors.text.secondary} />
+            <Text style={[styles.detailText, { color: colors.text.secondary }]}>
+              {getDurationText()}
+            </Text>
           </View>
 
           <View style={styles.detailItem}>
             {renderEnergyIcon(session.energyLevel as EnergyLevel)}
-            <Text style={styles.detailText}>
+            <Text style={[styles.detailText, { color: colors.text.secondary }]}>
               {session.energyLevel || "Not set"}
             </Text>
           </View>
@@ -125,7 +133,6 @@ export default function SessionHistoryItem({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -147,11 +154,9 @@ const styles = StyleSheet.create({
   taskType: {
     fontSize: 16,
     fontWeight: "bold",
-    color: Colors.text.primary,
   },
   date: {
     fontSize: 12,
-    color: Colors.text.secondary,
   },
   details: {
     gap: 8,
@@ -166,7 +171,6 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    color: Colors.text.secondary,
     marginLeft: 4,
   },
 });

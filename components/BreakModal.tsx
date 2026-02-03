@@ -1,15 +1,16 @@
-import Colors from '@/constants/colors';
-import useTimerStore from '@/store/timerStore';
-import { getBreakOptions } from '@/utils/options';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useThemeColor } from "@/hooks/useThemeColor";
+import useTimerStore from "@/store/timerStore";
+import { getBreakOptions } from "@/utils/options";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function BreakModal() {
+  const colors = useThemeColor();
   const {
     showBreakModal,
     startBreak,
     recommendedBreakDuration,
-    includeShortSessions
+    includeShortSessions,
   } = useTimerStore();
 
   if (!showBreakModal) return null;
@@ -19,9 +20,11 @@ export default function BreakModal() {
 
   return (
     <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
-        <Text style={styles.modalTitle}>Great Job!</Text>
-        <Text style={styles.modalText}>
+      <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+        <Text style={[styles.modalTitle, { color: colors.text.primary }]}>
+          Great Job!
+        </Text>
+        <Text style={[styles.modalText, { color: colors.text.primary }]}>
           You completed your focus session. Take a break!
         </Text>
         <View style={styles.breakOptions}>
@@ -30,15 +33,29 @@ export default function BreakModal() {
               key={option.duration}
               style={[
                 styles.breakOption,
-                option.duration === recommendedBreakDuration * 60 && styles.recommendedOption,
-                option.duration === 0 && styles.skipOption
+                {
+                  backgroundColor: colors.background,
+                  borderColor: colors.primary,
+                },
+                option.duration === recommendedBreakDuration * 60 && {
+                  backgroundColor: colors.primary + "1A", // 10% opacity, hex
+                  borderWidth: 2,
+                  borderColor: colors.primary, // Explicitly set border color for recommended
+                },
+                option.duration === 0 && {
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                },
               ]}
               onPress={() => startBreak(option.duration)}
             >
-              <Text style={[
-                styles.breakOptionText,
-                option.duration === 0 && styles.skipOptionText
-              ]}>
+              <Text
+                style={[
+                  styles.breakOptionText,
+                  { color: colors.text.primary },
+                  option.duration === 0 && { color: colors.text.secondary },
+                ]}
+              >
                 {option.label}
               </Text>
             </TouchableOpacity>
@@ -52,18 +69,17 @@ export default function BreakModal() {
 const styles = StyleSheet.create({
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 1000,
   },
   modalContent: {
-    backgroundColor: Colors.card,
     borderRadius: 16,
-    width: '85%',
+    width: "85%",
     maxWidth: 400,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 5,
@@ -71,45 +87,29 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text.primary,
+    fontWeight: "bold",
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalText: {
     fontSize: 16,
-    color: Colors.text.primary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 10,
     marginBottom: 20,
   },
   breakOptions: {
     marginTop: 20,
-    width: '100%',
+    width: "100%",
   },
   breakOption: {
-    backgroundColor: Colors.background,
     padding: 15,
     borderRadius: 12,
     marginBottom: 10,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  recommendedOption: {
-    backgroundColor: 'rgba(78, 205, 196, 0.1)',
-    borderWidth: 2,
-  },
-  skipOption: {
-    backgroundColor: Colors.background,
-    borderColor: Colors.border,
   },
   breakOptionText: {
     fontSize: 16,
-    color: Colors.text.primary,
-    fontWeight: '600',
-  },
-  skipOptionText: {
-    color: Colors.text.secondary,
+    fontWeight: "600",
   },
 });

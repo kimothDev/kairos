@@ -1,5 +1,5 @@
 import ImportModal from "@/components/ImportModal";
-import Colors from "@/constants/colors";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import {
     exportAllDataAsZip,
     ImportSelection,
@@ -7,6 +7,7 @@ import {
     performImport,
     pickAndParseZip,
 } from "@/services/dataExport";
+import { useThemeStore } from "@/store/themeStore";
 import useTimerStore from "@/store/timerStore";
 import {
     Battery,
@@ -15,6 +16,9 @@ import {
     Download,
     Github,
     Info,
+    Monitor,
+    Moon,
+    Sun,
     Trash2,
     Upload,
 } from "lucide-react-native";
@@ -34,6 +38,8 @@ import {
 } from "react-native";
 
 export default function SettingsScreen() {
+  const colors = useThemeColor();
+  const { themeMode, setThemeMode } = useThemeStore();
   const { sessions, isLoading, clearAllSessions, loadSessions } =
     useTimerStore();
   const includeShortSessions = useTimerStore((s) => s.includeShortSessions);
@@ -143,8 +149,46 @@ export default function SettingsScreen() {
     }
   };
 
+  const ThemeOption = ({
+    mode,
+    icon: Icon,
+    label,
+  }: {
+    mode: "light" | "dark" | "system";
+    icon: any;
+    label: string;
+  }) => (
+    <TouchableOpacity
+      onPress={() => setThemeMode(mode)}
+      style={[
+        styles.themeOption,
+        {
+          backgroundColor: themeMode === mode ? colors.primary : "transparent",
+          borderColor: colors.border,
+        },
+      ]}
+    >
+      <Icon
+        size={20}
+        color={themeMode === mode ? "#FFF" : colors.text.primary}
+      />
+      <Text
+        style={[
+          styles.themeOptionLabel,
+          {
+            color: themeMode === mode ? "#FFF" : colors.text.primary,
+          },
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       {/* Import Modal */}
       <ImportModal
         visible={importModalVisible}
@@ -155,21 +199,42 @@ export default function SettingsScreen() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
         <View style={styles.header}>
-          <Text style={styles.title}>Settings</Text>
+          <Text style={[styles.title, { color: colors.text.primary }]}>
+            Settings
+          </Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>App</Text>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+            Appearance
+          </Text>
+          <View style={styles.themeSelector}>
+            <ThemeOption mode="system" icon={Monitor} label="System" />
+            <ThemeOption mode="light" icon={Sun} label="Light" />
+            <ThemeOption mode="dark" icon={Moon} label="Dark" />
+          </View>
+        </View>
 
-          <View style={styles.settingItem}>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+            App
+          </Text>
+
+          <View
+            style={[styles.settingItem, { borderBottomColor: colors.border }]}
+          >
             <View style={styles.settingInfo}>
-              <Bell size={20} color={Colors.text.primary} />
-              <Text style={styles.settingText}>Notifications</Text>
+              <Bell size={20} color={colors.text.primary} />
+              <Text
+                style={[styles.settingText, { color: colors.text.primary }]}
+              >
+                Notifications
+              </Text>
             </View>
             <Switch
-              trackColor={{ false: Colors.inactive, true: Colors.primary }}
-              thumbColor={Colors.card}
-              ios_backgroundColor={Colors.inactive}
+              trackColor={{ false: colors.inactive, true: colors.primary }}
+              thumbColor={colors.card}
+              ios_backgroundColor={colors.inactive}
               value={notificationsEnabled}
               onValueChange={toggleNotifications}
             />
@@ -177,13 +242,13 @@ export default function SettingsScreen() {
 
           {Platform.OS === "android" && notificationsEnabled && (
             <TouchableOpacity
-              style={styles.settingItem}
+              style={[styles.settingItem, { borderBottomColor: colors.border }]}
               onPress={openBatterySettings}
             >
               <View style={styles.settingInfo}>
-                <Battery size={20} color={Colors.text.primary} />
+                <Battery size={20} color={colors.text.primary} />
                 <Text
-                  style={[styles.settingText, { color: Colors.text.primary }]}
+                  style={[styles.settingText, { color: colors.text.primary }]}
                 >
                   Disable Battery Optimization
                 </Text>
@@ -191,89 +256,140 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           )}
 
-          <View style={styles.settingItem}>
+          <View
+            style={[
+              styles.settingItem,
+              { borderBottomColor: colors.border, borderBottomWidth: 0 },
+            ]}
+          >
             <View style={styles.settingInfo}>
-              <Brain size={20} color={Colors.text.primary} />
-              <Text style={styles.settingText}>ADHD Mode</Text>
+              <Brain size={20} color={colors.text.primary} />
+              <Text
+                style={[styles.settingText, { color: colors.text.primary }]}
+              >
+                ADHD Mode
+              </Text>
             </View>
             <Switch
-              trackColor={{ false: Colors.inactive, true: Colors.primary }}
-              thumbColor={Colors.card}
+              trackColor={{ false: colors.inactive, true: colors.primary }}
+              thumbColor={colors.card}
               value={includeShortSessions}
               onValueChange={toggleShort}
             />
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Data</Text>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+            Data
+          </Text>
 
           <TouchableOpacity
-            style={styles.settingItem}
+            style={[styles.settingItem, { borderBottomColor: colors.border }]}
             onPress={clearAllData}
             disabled={isLoading}
           >
             <View style={styles.settingInfo}>
-              <Trash2 size={20} color={Colors.error} />
-              <Text style={[styles.settingText, { color: Colors.error }]}>
+              <Trash2 size={20} color={colors.error} />
+              <Text style={[styles.settingText, { color: colors.error }]}>
                 Clear all data
               </Text>
             </View>
             {isLoading && (
-              <ActivityIndicator size="small" color={Colors.primary} />
+              <ActivityIndicator size="small" color={colors.primary} />
             )}
           </TouchableOpacity>
 
-          <View style={styles.settingItem}>
+          <View
+            style={[styles.settingItem, { borderBottomColor: colors.border }]}
+          >
             <View style={styles.settingInfo}>
-              <Info size={20} color={Colors.text.primary} />
-              <Text style={styles.settingText}>Sessions stored</Text>
+              <Info size={20} color={colors.text.primary} />
+              <Text
+                style={[styles.settingText, { color: colors.text.primary }]}
+              >
+                Sessions stored
+              </Text>
             </View>
             {isLoading ? (
-              <ActivityIndicator size="small" color={Colors.primary} />
+              <ActivityIndicator size="small" color={colors.primary} />
             ) : (
-              <Text style={styles.settingValue}>{sessions.length}</Text>
+              <Text
+                style={[styles.settingValue, { color: colors.text.secondary }]}
+              >
+                {sessions.length}
+              </Text>
             )}
           </View>
 
-          <View style={styles.settingItem}>
+          <View
+            style={[styles.settingItem, { borderBottomColor: colors.border }]}
+          >
             <TouchableOpacity
               style={styles.settingInfo}
               onPress={handleExport}
               disabled={isExporting}
             >
-              <Upload size={20} color={Colors.text.primary} />
-              <Text style={styles.settingText}>Export data backup</Text>
+              <Upload size={20} color={colors.text.primary} />
+              <Text
+                style={[styles.settingText, { color: colors.text.primary }]}
+              >
+                Export data backup
+              </Text>
             </TouchableOpacity>
             {isExporting && (
-              <ActivityIndicator size="small" color={Colors.primary} />
+              <ActivityIndicator size="small" color={colors.primary} />
             )}
           </View>
 
-          <View style={styles.settingItem}>
+          <View
+            style={[
+              styles.settingItem,
+              { borderBottomColor: colors.border, borderBottomWidth: 0 },
+            ]}
+          >
             <TouchableOpacity
               style={styles.settingInfo}
               onPress={handleImportPick}
               disabled={isImporting}
             >
-              <Download size={20} color={Colors.text.primary} />
-              <Text style={styles.settingText}>Import data backup</Text>
+              <Download size={20} color={colors.text.primary} />
+              <Text
+                style={[styles.settingText, { color: colors.text.primary }]}
+              >
+                Import data backup
+              </Text>
             </TouchableOpacity>
             {isImporting && (
-              <ActivityIndicator size="small" color={Colors.primary} />
+              <ActivityIndicator size="small" color={colors.primary} />
             )}
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+            About
+          </Text>
 
-          <View style={styles.settingItem}>
+          <View
+            style={[
+              styles.settingItem,
+              { borderBottomColor: colors.border, borderBottomWidth: 0 },
+            ]}
+          >
             <View style={styles.settingInfo}>
-              <Github size={20} color={Colors.text.primary} />
-              <Text style={styles.settingText}>Version</Text>
+              <Github size={20} color={colors.text.primary} />
+              <Text
+                style={[styles.settingText, { color: colors.text.primary }]}
+              >
+                Version
+              </Text>
             </View>
-            <Text style={styles.settingValue}>1.3.0</Text>
+            <Text
+              style={[styles.settingValue, { color: colors.text.secondary }]}
+            >
+              1.3.0
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -284,7 +400,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   header: {
     paddingHorizontal: 20,
@@ -294,11 +409,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: Colors.text.primary,
     marginBottom: 10,
   },
   section: {
-    backgroundColor: Colors.card,
     borderRadius: 12,
     marginHorizontal: 20,
     marginBottom: 20,
@@ -307,7 +420,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.text.primary,
     marginBottom: 15,
   },
   settingItem: {
@@ -316,7 +428,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   settingInfo: {
     flexDirection: "row",
@@ -324,16 +435,32 @@ const styles = StyleSheet.create({
   },
   settingText: {
     fontSize: 16,
-    color: Colors.text.primary,
     marginLeft: 12,
   },
   settingValue: {
     fontSize: 16,
-    color: Colors.text.secondary,
   },
   settingHint: {
     fontSize: 12,
-    color: Colors.text.light,
     marginTop: 2,
+  },
+  themeSelector: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  themeOption: {
+    flex: 1, // Distribute space evenly
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  themeOptionLabel: {
+    marginTop: 5,
+    fontSize: 12,
+    fontWeight: "500",
   },
 });

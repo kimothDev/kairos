@@ -1,6 +1,6 @@
-import Colors from '@/constants/colors';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useThemeColor } from "@/hooks/useThemeColor";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 interface PerformanceChartProps {
   data: {
@@ -16,31 +16,44 @@ interface PerformanceChartProps {
 export default function PerformanceChart({
   data,
   maxValue: propMaxValue,
-  barColor = Colors.primary,
+  barColor,
   barWidth = 20,
-  height = 150
+  height = 150,
 }: PerformanceChartProps) {
+  const colors = useThemeColor();
   //calculate max value if not provided
-  const maxValue = propMaxValue || Math.max(...data.map(item => item.value), 1);
+  const maxValue =
+    propMaxValue || Math.max(...data.map((item) => item.value), 1);
+  const actualBarColor = barColor || colors.primary;
 
   return (
     <View style={[styles.container, { height }]}>
       {data.map((item, index) => (
         <View key={index} style={styles.barColumn}>
-          <View style={[styles.barContainer, { height: height * 0.8 }]}>
-            <View 
+          <View
+            style={[
+              styles.barContainer,
+              { height: height * 0.8, backgroundColor: colors.primary + "1A" },
+            ]}
+          >
+            <View
               style={[
-                styles.bar, 
-                { 
+                styles.bar,
+                {
                   height: `${(item.value / maxValue) * 100}%`,
-                  backgroundColor: item.value > 0 ? barColor : Colors.inactive,
-                  width: barWidth
-                }
-              ]} 
+                  backgroundColor:
+                    item.value > 0 ? actualBarColor : colors.inactive,
+                  width: barWidth,
+                },
+              ]}
             />
           </View>
-          <Text style={styles.barLabel}>{item.label}</Text>
-          <Text style={styles.barValue}>{Math.round(item.value)}</Text>
+          <Text style={[styles.barLabel, { color: colors.text.secondary }]}>
+            {item.label}
+          </Text>
+          <Text style={[styles.barValue, { color: colors.text.light }]}>
+            {Math.round(item.value)}
+          </Text>
         </View>
       ))}
     </View>
@@ -49,34 +62,31 @@ export default function PerformanceChart({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
     paddingTop: 20,
   },
   barColumn: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   barContainer: {
-    backgroundColor: 'rgba(78, 205, 196, 0.1)',
     borderRadius: 10,
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
+    justifyContent: "flex-end",
+    overflow: "hidden",
   },
   bar: {
-    width: '100%',
+    width: "100%",
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
   },
   barLabel: {
     fontSize: 12,
-    color: Colors.text.secondary,
     marginTop: 8,
   },
   barValue: {
     fontSize: 10,
-    color: Colors.text.light,
     marginTop: 2,
   },
 });

@@ -1,5 +1,6 @@
-import React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { useThemeColor } from "@/hooks/useThemeColor";
+import React from "react";
+import { Platform, StyleSheet, Text, View } from "react-native";
 
 interface Props {
   children: React.ReactNode;
@@ -11,24 +12,22 @@ interface State {
   error: Error | null;
 }
 
-const IFRAME_ID = 'web-preview';
+const IFRAME_ID = "web-preview";
 
-const webTargetOrigins = [
-  "http://localhost:3000",
-];    
+const webTargetOrigins = ["http://localhost:3000"];
 
 function sendErrorToIframeParent(error: any, errorInfo?: any) {
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    console.debug('Sending error to parent:', {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    console.debug("Sending error to parent:", {
       error,
       errorInfo,
-      referrer: document.referrer
+      referrer: document.referrer,
     });
 
     const errorMessage = {
-      type: 'ERROR',
+      type: "ERROR",
       error: {
-        message: error?.message || error?.toString() || 'Unknown error',
+        message: error?.message || error?.toString() || "Unknown error",
         stack: error?.stack,
         componentStack: errorInfo?.componentStack,
         timestamp: new Date().toISOString(),
@@ -39,40 +38,57 @@ function sendErrorToIframeParent(error: any, errorInfo?: any) {
     try {
       window.parent.postMessage(
         errorMessage,
-        webTargetOrigins.includes(document.referrer) ? document.referrer : '*'
+        webTargetOrigins.includes(document.referrer) ? document.referrer : "*",
       );
     } catch (postMessageError) {
-      console.error('Failed to send error to parent:', postMessageError);
+      console.error("Failed to send error to parent:", postMessageError);
     }
   }
 }
 
-if (Platform.OS === 'web' && typeof window !== 'undefined') {
-  window.addEventListener('error', (event) => {
-    event.preventDefault();
-    const errorDetails = event.error ?? {
-      message: event.message ?? 'Unknown error',
-      filename: event.filename ?? 'Unknown file',
-      lineno: event.lineno ?? 'Unknown line',
-      colno: event.colno ?? 'Unknown column'
-    };
-    sendErrorToIframeParent(errorDetails);
-  }, true);
+if (Platform.OS === "web" && typeof window !== "undefined") {
+  window.addEventListener(
+    "error",
+    (event) => {
+      event.preventDefault();
+      const errorDetails = event.error ?? {
+        message: event.message ?? "Unknown error",
+        filename: event.filename ?? "Unknown file",
+        lineno: event.lineno ?? "Unknown line",
+        colno: event.colno ?? "Unknown column",
+      };
+      sendErrorToIframeParent(errorDetails);
+    },
+    true,
+  );
 
-  window.addEventListener('unhandledrejection', (event) => {
-    event.preventDefault();
-    sendErrorToIframeParent(event.reason);
-  }, true);
+  window.addEventListener(
+    "unhandledrejection",
+    (event) => {
+      event.preventDefault();
+      sendErrorToIframeParent(event.reason);
+    },
+    true,
+  );
 
   const originalConsoleError = console.error;
   console.error = (...args) => {
-    sendErrorToIframeParent(args.join(' '));
+    sendErrorToIframeParent(args.join(" "));
     originalConsoleError.apply(console, args);
   };
 }
 
-export class ErrorBoundary extends React.Component<Props, State> {
-  constructor(props: Props) {
+// Wrapper for ErrorBoundary to use hooks
+const ErrorBoundaryWrapper = (props: Props) => {
+  const colors = useThemeColor();
+  return <ErrorBoundaryClass {...props} colors={colors} />;
+};
+
+class ErrorBoundaryClass extends React.Component<
+  Props & { colors: any },
+  State
+> {
+  constructor(props: Props & { colors: any }) {
     super(props);
     this.state = { hasError: false, error: null };
   }
@@ -89,14 +105,23 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   render() {
+    const { colors } = this.props;
     if (this.state.hasError) {
       return (
-        <View style={styles.container}>
+        <View
+          style={[styles.container, { backgroundColor: colors.background }]}
+        >
           <View style={styles.content}>
-            <Text style={styles.title}>Something went wrong</Text>
-            <Text style={styles.subtitle}>{this.state.error?.message}</Text>
-            {Platform.OS !== 'web' && (
-              <Text style={styles.description}>
+            <Text style={[styles.title, { color: colors.text.primary }]}>
+              Something went wrong
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
+              {this.state.error?.message}
+            </Text>
+            {Platform.OS !== "web" && (
+              <Text
+                style={[styles.description, { color: colors.text.secondary }]}
+              >
                 Please check your device logs for more details.
               </Text>
             )}
@@ -112,32 +137,29 @@ export class ErrorBoundary extends React.Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   content: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   title: {
     fontSize: 36,
-    textAlign: 'center',
-    fontWeight: 'bold',
+    textAlign: "center",
+    fontWeight: "bold",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   description: {
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 8,
   },
-}); 
+});
 
-export default ErrorBoundary;
+export default ErrorBoundaryWrapper;

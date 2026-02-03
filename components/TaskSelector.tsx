@@ -1,5 +1,5 @@
-import Colors from "@/constants/colors";
 import { DEFAULT_TASKS } from "@/constants/timer";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { ChevronRight, Trash2 } from "lucide-react-native";
 import React, { useState } from "react";
@@ -16,6 +16,7 @@ import {
 } from "react-native";
 
 export default function TaskSelector() {
+  const colors = useThemeColor();
   const [customTask, setCustomTask] = useState("");
 
   const {
@@ -43,15 +44,23 @@ export default function TaskSelector() {
   return (
     <>
       <TouchableOpacity
-        style={[styles.slotButton, isTimerRunning && { opacity: 0.5 }]}
+        style={[
+          styles.slotButton,
+          isTimerRunning && { opacity: 0.5 },
+          { backgroundColor: colors.card },
+        ]}
         onPress={() => !isTimerRunning && toggleTaskModal(true)}
         disabled={isTimerRunning}
       >
         <View>
-          <Text style={styles.slotLabel}>Task Type</Text>
-          <Text style={styles.slotValue}>{taskType || "Select Task Type"}</Text>
+          <Text style={[styles.slotLabel, { color: colors.text.secondary }]}>
+            Task Type
+          </Text>
+          <Text style={[styles.slotValue, { color: colors.text.secondary }]}>
+            {taskType || "Select Task Type"}
+          </Text>
         </View>
-        <ChevronRight size={24} color={Colors.text.secondary} />
+        <ChevronRight size={24} color={colors.text.secondary} />
       </TouchableOpacity>
 
       {/* Task Selection Modal */}
@@ -62,8 +71,10 @@ export default function TaskSelector() {
         onRequestClose={() => toggleTaskModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Task Type</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.text.primary }]}>
+              Select Task Type
+            </Text>
 
             <ScrollView
               style={styles.taskList}
@@ -71,15 +82,31 @@ export default function TaskSelector() {
               showsVerticalScrollIndicator={true}
             >
               {unifiedTaskList.map((task, index) => (
-                <View key={`task-${index}`} style={styles.taskItemRow}>
+                <View
+                  key={`task-${index}`}
+                  style={[
+                    styles.taskItemRow,
+                    { backgroundColor: colors.background },
+                  ]}
+                >
                   <TouchableOpacity
-                    style={styles.taskItem}
+                    style={[
+                      styles.taskItem,
+                      { backgroundColor: colors.background },
+                    ]}
                     onPress={() => {
                       setTaskType(task);
                       toggleTaskModal(false);
                     }}
                   >
-                    <Text style={styles.taskItemText}>{task}</Text>
+                    <Text
+                      style={[
+                        styles.taskItemText,
+                        { color: colors.text.primary },
+                      ]}
+                    >
+                      {task}
+                    </Text>
                   </TouchableOpacity>
 
                   {!DEFAULT_TASKS.includes(task) && (
@@ -87,7 +114,7 @@ export default function TaskSelector() {
                       onPress={() => removeCustomTask(task)}
                       style={styles.deleteIcon}
                     >
-                      <Trash2 size={20} color="red" />
+                      <Trash2 size={20} color={colors.error} />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -96,8 +123,16 @@ export default function TaskSelector() {
 
             <View style={styles.addTaskContainer}>
               <TextInput
-                style={styles.taskInput}
+                style={[
+                  styles.taskInput,
+                  {
+                    borderColor: colors.border,
+                    color: colors.text.primary,
+                    backgroundColor: colors.background,
+                  },
+                ]}
                 placeholder="Add new task type"
+                placeholderTextColor={colors.text.light}
                 value={customTask}
                 onChangeText={setCustomTask}
                 onSubmitEditing={() => {
@@ -106,7 +141,7 @@ export default function TaskSelector() {
                 }}
               />
               <TouchableOpacity
-                style={styles.addButton}
+                style={[styles.addButton, { backgroundColor: colors.primary }]}
                 onPress={() => {
                   addCustomTask(customTask);
                   setCustomTask("");
@@ -117,10 +152,14 @@ export default function TaskSelector() {
             </View>
 
             <TouchableOpacity
-              style={styles.closeButton}
+              style={[styles.closeButton, { backgroundColor: colors.card }]}
               onPress={() => toggleTaskModal(false)}
             >
-              <Text style={styles.closeButtonText}>Close</Text>
+              <Text
+                style={[styles.closeButtonText, { color: colors.text.primary }]}
+              >
+                Close
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -136,19 +175,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: Colors.card,
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
   },
   slotLabel: {
     fontSize: 14,
-    color: Colors.text.secondary,
   },
   slotValue: {
     fontSize: 15,
     fontWeight: "bold",
-    color: Colors.text.secondary,
   },
   modalOverlay: {
     flex: 1,
@@ -157,7 +193,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    backgroundColor: Colors.card,
     padding: 20,
     borderRadius: 16,
     width: "85%",
@@ -173,7 +208,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 12,
-    color: Colors.text.primary,
     textAlign: "center",
   },
   taskList: {
@@ -188,11 +222,9 @@ const styles = StyleSheet.create({
     padding: 12,
     marginVertical: 4,
     borderRadius: 8,
-    backgroundColor: Colors.background,
   },
   taskItemText: {
     fontSize: 16,
-    color: Colors.text.primary,
   },
   addTaskContainer: {
     flexDirection: "row",
@@ -203,15 +235,11 @@ const styles = StyleSheet.create({
   taskInput: {
     flex: 1,
     padding: 12,
-    borderColor: Colors.border,
     borderWidth: 1,
     borderRadius: 8,
     marginRight: 8,
-    color: Colors.text.primary,
-    backgroundColor: Colors.background,
   },
   addButton: {
-    backgroundColor: Colors.primary,
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -225,14 +253,12 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 12,
-    backgroundColor: Colors.card,
     borderRadius: 8,
     alignItems: "center",
   },
   closeButtonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: Colors.text.primary,
   },
   taskItemRow: {
     flexDirection: "row",
@@ -240,7 +266,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginVertical: 4,
     borderRadius: 8,
-    backgroundColor: Colors.background,
     paddingHorizontal: 12,
   },
   deleteIcon: {
