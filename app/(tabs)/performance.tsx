@@ -1,39 +1,39 @@
 import AdaptiveBarChart from "@/components/AdaptiveBarChart";
 // import FocusHeatmap from "@/components/FocusHeatmap"; // Preserved for future use
-import Colors, { darkColors, lightColors } from "@/constants/colors";
+import Colors, { lightColors } from "@/constants/colors";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { generateInsights } from "@/utils/insightEngine";
 import {
-  calculatePeriodDelta,
-  calculatePeriodMetrics,
-  formatMinutes,
-  getAdaptiveChartData,
-  getPeriodDates,
+    calculatePeriodDelta,
+    calculatePeriodMetrics,
+    formatMinutes,
+    getAdaptiveChartData,
+    getPeriodDates,
 } from "@/utils/performanceUtils";
 import {
-  ArrowDownRight,
-  ArrowRight,
-  ArrowUpRight,
-  BatteryFull,
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Flame,
-  Target,
-  TrendingUp,
-  Zap,
+    ArrowDownRight,
+    ArrowRight,
+    ArrowUpRight,
+    BatteryFull,
+    Calendar,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Flame,
+    Target,
+    TrendingUp,
+    Zap,
 } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
+    ActivityIndicator,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 const TimeRanges = ["day", "week", "month", "year"] as const;
@@ -91,8 +91,7 @@ const MetricItemWithDelta = ({
 };
 
 export default function PerformanceScreen() {
-  const colorScheme = useColorScheme();
-  const activeColors = colorScheme === "dark" ? darkColors : lightColors;
+  const activeColors = useThemeColor();
 
   const { sessions, isLoading } = useTimerStore();
   const [timeRange, setTimeRange] = useState<TimeRange>("week");

@@ -1,18 +1,12 @@
-import { darkColors, lightColors } from "@/constants/colors";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import React, { useState } from "react";
-import {
-    LayoutChangeEvent,
-    StyleSheet,
-    Text,
-    useColorScheme,
-    View,
-} from "react-native";
+import { LayoutChangeEvent, StyleSheet, Text, View } from "react-native";
 import Svg, {
-    Defs,
-    LinearGradient,
-    Rect,
-    Stop,
-    Text as SvgText,
+  Defs,
+  LinearGradient,
+  Rect,
+  Stop,
+  Text as SvgText,
 } from "react-native-svg";
 
 interface AdaptiveBarChartProps {
@@ -35,8 +29,7 @@ export default function AdaptiveBarChart({
   height = CHART_HEIGHT,
   barColor,
 }: AdaptiveBarChartProps) {
-  const colorScheme = useColorScheme();
-  const Colors = colorScheme === "dark" ? darkColors : lightColors;
+  const Colors = useThemeColor();
   const activeBarColor = barColor || Colors.primary;
 
   const [width, setWidth] = useState(0);

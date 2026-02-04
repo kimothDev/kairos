@@ -1,41 +1,44 @@
 import SessionHistoryItem from "@/components/SessionHistoryItem";
-import Colors, { darkColors, lightColors } from "@/constants/colors";
+import Colors from "@/constants/colors";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { History } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   SafeAreaView,
-  SectionList,
   StyleSheet,
   Text,
   TouchableOpacity,
-  useColorScheme,
   View,
 } from "react-native";
 
-type FilterPeriod = "all" | "today" | "week" | "month";
+type FilterPeriod = "day" | "week" | "month" | "year";
 
 export default function HistoryScreen() {
-  const colorScheme = useColorScheme();
-  const activeColors = colorScheme === "dark" ? darkColors : lightColors;
+  const activeColors = useThemeColor();
 
   const { sessions, isLoading, loadSessions } = useTimerStore();
-  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("all");
+  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("week");
 
   //refresh sessions when the screen is focused
   useEffect(() => {
     loadSessions();
   }, []);
 
-  const sections = useMemo(() => {
-    // 1. Filter
+  const filteredSessions = useMemo(() => {
     const now = new Date();
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+
     let filtered = sessions;
 
-    if (filterPeriod === "today") {
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      filtered = sessions.filter((s) => new Date(s.createdAt) >= today);
+    if (filterPeriod === "day") {
+      filtered = sessions.filter((s) => new Date(s.createdAt) >= todayStart);
     } else if (filterPeriod === "week") {
       const oneWeekAgo = new Date(now);
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -44,49 +47,17 @@ export default function HistoryScreen() {
       const oneMonthAgo = new Date(now);
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
       filtered = sessions.filter((s) => new Date(s.createdAt) >= oneMonthAgo);
+    } else if (filterPeriod === "year") {
+      const oneYearAgo = new Date(now);
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      filtered = sessions.filter((s) => new Date(s.createdAt) >= oneYearAgo);
     }
 
-    // 2. Sort Descending
-    filtered.sort(
+    // Sort Descending
+    return filtered.sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
-
-    // 3. Group
-    const groups: { [key: string]: typeof sessions } = {};
-
-    const todayStr = now.toDateString();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toDateString();
-
-    const result: { title: string; data: typeof sessions }[] = [];
-    let currentSection: { title: string; data: typeof sessions } | null = null;
-
-    filtered.forEach((session) => {
-      const date = new Date(session.createdAt);
-      const dateStr = date.toDateString();
-      let title = dateStr;
-      if (dateStr === todayStr) title = "Today";
-      else if (dateStr === yesterdayStr) title = "Yesterday";
-      else {
-        title = date.toLocaleDateString(undefined, {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-        });
-      }
-
-      if (!currentSection || currentSection.title !== title) {
-        if (currentSection) result.push(currentSection);
-        currentSection = { title, data: [session] };
-      } else {
-        currentSection.data.push(session);
-      }
-    });
-    if (currentSection) result.push(currentSection);
-
-    return result;
   }, [sessions, filterPeriod]);
 
   return (
@@ -99,7 +70,7 @@ export default function HistoryScreen() {
         </Text>
 
         <View style={styles.filterContainer}>
-          {["all", "today", "week", "month"].map((p) => (
+          {(["day", "week", "month", "year"] as FilterPeriod[]).map((p) => (
             <TouchableOpacity
               key={p}
               style={[
@@ -107,7 +78,7 @@ export default function HistoryScreen() {
                 { backgroundColor: activeColors.background },
                 filterPeriod === p && { backgroundColor: activeColors.primary },
               ]}
-              onPress={() => setFilterPeriod(p as FilterPeriod)}
+              onPress={() => setFilterPeriod(p)}
             >
               <Text
                 style={[
@@ -139,24 +110,13 @@ export default function HistoryScreen() {
               Loading sessions...
             </Text>
           </View>
-        ) : sections.length > 0 ? (
-          <SectionList
-            sections={sections}
+        ) : filteredSessions.length > 0 ? (
+          <FlatList
+            data={filteredSessions}
             keyExtractor={(item) => String(item.id)}
             renderItem={({ item }) => <SessionHistoryItem session={item} />}
-            renderSectionHeader={({ section: { title } }) => (
-              <Text
-                style={[
-                  styles.sectionHeader,
-                  { color: activeColors.text.secondary },
-                ]}
-              >
-                {title}
-              </Text>
-            )}
             contentContainerStyle={{ paddingBottom: 20 }}
             showsVerticalScrollIndicator={false}
-            stickySectionHeadersEnabled={false}
           />
         ) : (
           <View
