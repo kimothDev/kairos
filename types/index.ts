@@ -21,6 +21,7 @@ export interface Session {
   date: string;
   createdAt: string;
   skipReason?: "skippedFocus" | "skippedBreak" | "none";
+  note?: string;
 }
 
 export interface TimerState {
@@ -90,4 +91,5 @@ export interface TimerState {
   skipFocusSession: (isSkippingBreak?: boolean) => Promise<void>;
   setHasSavedSession: (val: boolean) => void;
   getLiveTime: () => number;
+  updateSessionNote: (id: number, note: string) => Promise<void>;
 }
