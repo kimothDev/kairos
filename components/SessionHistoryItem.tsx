@@ -1,24 +1,36 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { EnergyLevel, Session } from "@/types";
 import {
-    BatteryFull,
-    BatteryLow,
-    BatteryMedium,
-    CheckCircle,
-    Clock,
-    XCircle,
+  BatteryFull,
+  BatteryLow,
+  BatteryMedium,
+  CheckCircle,
+  Clock,
+  SquarePen,
+  StickyNote,
+  XCircle,
 } from "lucide-react-native";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface SessionHistoryItemProps {
   session: Session;
 }
 
+import useTimerStore from "@/store/timerStore";
+import NoteEditModal from "./NoteEditModal";
+
 export default function SessionHistoryItem({
   session,
 }: SessionHistoryItemProps) {
   const colors = useThemeColor();
+  const { updateSessionNote } = useTimerStore();
+  const [showNoteModal, setShowNoteModal] = React.useState(false);
+
+  const handleSaveNote = async (note: string) => {
+    if (session.id === undefined) return;
+    await updateSessionNote(session.id, note);
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -125,8 +137,42 @@ export default function SessionHistoryItem({
             {icon}
             <Text style={[styles.detailText, { color }]}>{status}</Text>
           </View>
+
+          <TouchableOpacity
+            style={styles.noteButton}
+            onPress={() => setShowNoteModal(true)}
+          >
+            {session.note ? (
+              <View style={styles.noteContent}>
+                <Text style={[styles.noteText, { color: colors.primary }]}>
+                  Note
+                </Text>
+                <StickyNote size={16} color={colors.primary} />
+              </View>
+            ) : (
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text
+                  style={{
+                    color: colors.text.secondary,
+                    fontSize: 12,
+                    marginRight: 4,
+                  }}
+                >
+                  Add Note
+                </Text>
+                <SquarePen size={16} color={colors.text.secondary} />
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
       </View>
+
+      <NoteEditModal
+        visible={showNoteModal}
+        initialNote={session.note}
+        onClose={() => setShowNoteModal(false)}
+        onSave={handleSaveNote}
+      />
     </View>
   );
 }
@@ -172,5 +218,19 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 14,
     marginLeft: 4,
+  },
+  noteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  noteContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    maxWidth: 150,
+  },
+  noteText: {
+    fontSize: 12,
+    fontStyle: "italic",
+    marginRight: 4,
   },
 });

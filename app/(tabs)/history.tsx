@@ -1,8 +1,10 @@
+import HistoryFilterModal from "@/components/HistoryFilterModal";
 import SessionHistoryItem from "@/components/SessionHistoryItem";
 import Colors from "@/constants/colors";
+import { DEFAULT_TASKS } from "@/constants/timer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
-import { History } from "lucide-react-native";
+import { Filter, History } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,8 +21,23 @@ type FilterPeriod = "day" | "week" | "month" | "year";
 export default function HistoryScreen() {
   const activeColors = useThemeColor();
 
-  const { sessions, isLoading, loadSessions } = useTimerStore();
+  const { sessions, isLoading, loadSessions, previousTasks } = useTimerStore();
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("week");
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [selectedTaskTypes, setSelectedTaskTypes] = useState<string[]>([]);
+  const [selectedEnergyLevels, setSelectedEnergyLevels] = useState<string[]>(
+    [],
+  );
+
+  // Calculate available task types from history + defaults
+  const availableTaskTypes = useMemo(() => {
+    const historicalTasks = Array.from(
+      new Set(sessions.map((s) => s.taskType)),
+    );
+    return Array.from(
+      new Set([...DEFAULT_TASKS, ...historicalTasks, ...previousTasks]),
+    ).sort();
+  }, [sessions, previousTasks]);
 
   //refresh sessions when the screen is focused
   useEffect(() => {
@@ -53,12 +70,27 @@ export default function HistoryScreen() {
       filtered = sessions.filter((s) => new Date(s.createdAt) >= oneYearAgo);
     }
 
+    if (selectedTaskTypes.length > 0) {
+      filtered = filtered.filter((s) => selectedTaskTypes.includes(s.taskType));
+    }
+
+    if (selectedEnergyLevels.length > 0) {
+      filtered = filtered.filter((s) =>
+        selectedEnergyLevels.includes(s.energyLevel),
+      );
+    }
+
     // Sort Descending
     return filtered.sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
-  }, [sessions, filterPeriod]);
+  }, [sessions, filterPeriod, selectedTaskTypes, selectedEnergyLevels]);
+
+  const handleApplyFilters = (taskTypes: string[], energyLevels: string[]) => {
+    setSelectedTaskTypes(taskTypes);
+    setSelectedEnergyLevels(energyLevels);
+  };
 
   return (
     <SafeAreaView
@@ -68,7 +100,23 @@ export default function HistoryScreen() {
         <Text style={[styles.title, { color: activeColors.text.primary }]}>
           Session History
         </Text>
-
+        <TouchableOpacity onPress={() => setShowFilterModal(true)}>
+          <Filter
+            size={24}
+            color={
+              selectedTaskTypes.length > 0 || selectedEnergyLevels.length > 0
+                ? activeColors.primary
+                : activeColors.text.primary
+            }
+          />
+        </TouchableOpacity>
+      </View>
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: activeColors.card, paddingTop: 0 },
+        ]}
+      >
         <View style={styles.filterContainer}>
           {(["day", "week", "month", "year"] as FilterPeriod[]).map((p) => (
             <TouchableOpacity
@@ -142,6 +190,15 @@ export default function HistoryScreen() {
           </View>
         )}
       </View>
+
+      <HistoryFilterModal
+        visible={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        availableTaskTypes={availableTaskTypes}
+        selectedTaskTypes={selectedTaskTypes}
+        selectedEnergyLevels={selectedEnergyLevels}
+        onApply={handleApplyFilters}
+      />
     </SafeAreaView>
   );
 }
@@ -157,12 +214,14 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     backgroundColor: Colors.card,
     zIndex: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     color: Colors.text.primary,
-    marginBottom: 15,
   },
   filterContainer: {
     flexDirection: "row",
@@ -183,15 +242,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 10,
-  },
-  sectionHeader: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: Colors.text.secondary,
-    marginTop: 20,
-    marginBottom: 10,
-    textTransform: "uppercase",
-    letterSpacing: 1,
   },
   loadingContainer: {
     alignItems: "center",

@@ -12,6 +12,7 @@ import { getSessionRecommendation } from "@/services/sessionPlanner";
 import {
   clearAllSessionsFromDB,
   loadSessionsFromDB,
+  updateSessionNoteInDB,
 } from "@/services/sessionService";
 import { EnergyLevel, Session, TimerState } from "@/types";
 import {
@@ -589,6 +590,19 @@ const useTimerStore = create<TimerStoreState>()(
             hasMigratedTasks: true,
           };
         });
+      },
+
+      updateSessionNote: async (id, note) => {
+        try {
+          await updateSessionNoteInDB(id, note);
+          set((state) => ({
+            sessions: state.sessions.map((s) =>
+              s.id === id ? { ...s, note } : s,
+            ),
+          }));
+        } catch (error) {
+          console.error("Failed to update session note:", error);
+        }
       },
     }),
     {
