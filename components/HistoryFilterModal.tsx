@@ -133,11 +133,13 @@ export default function HistoryFilterModal({
                   Task Type
                 </Text>
                 <View style={styles.chipContainer}>
-                  {availableTaskTypes.map((type) =>
-                    renderChip(type, taskTypes.includes(type), () =>
-                      toggleTaskType(type),
-                    ),
-                  )}
+                  {availableTaskTypes.map((type) => (
+                    <React.Fragment key={type}>
+                      {renderChip(type, taskTypes.includes(type), () =>
+                        toggleTaskType(type),
+                      )}
+                    </React.Fragment>
+                  ))}
                 </View>
 
                 {/* Energy Levels */}
@@ -150,13 +152,15 @@ export default function HistoryFilterModal({
                   Energy Level
                 </Text>
                 <View style={styles.chipContainer}>
-                  {["high", "mid", "low"].map((level) =>
-                    renderChip(
-                      level.charAt(0).toUpperCase() + level.slice(1),
-                      energyLevels.includes(level),
-                      () => toggleEnergyLevel(level),
-                    ),
-                  )}
+                  {["high", "mid", "low"].map((level) => (
+                    <React.Fragment key={level}>
+                      {renderChip(
+                        level.charAt(0).toUpperCase() + level.slice(1),
+                        energyLevels.includes(level),
+                        () => toggleEnergyLevel(level),
+                      )}
+                    </React.Fragment>
+                  ))}
                 </View>
               </ScrollView>
 
