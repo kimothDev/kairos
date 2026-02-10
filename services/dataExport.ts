@@ -1,10 +1,10 @@
-import { exportRLState, importRLState } from "@/services/contextualBandits";
 import {
-  DBSession,
-  deleteAllSessions,
-  getAllSessions,
-  insertSession,
+    DBSession,
+    deleteAllSessions,
+    getAllSessions,
+    insertSession,
 } from "@/services/database";
+import { exportRLState, importRLState } from "@/services/rl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";

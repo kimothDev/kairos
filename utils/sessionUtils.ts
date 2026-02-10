@@ -1,11 +1,6 @@
-import {
-  Context,
-  debugModel,
-  loadModel,
-  updateModel,
-} from "@/services/contextualBandits";
 import { insertSession } from "@/services/database";
 import { calculateReward } from "@/services/recommendations";
+import { Context, debugModel, loadModel, updateModel } from "@/services/rl";
 import { getSessionRecommendation } from "@/services/sessionPlanner";
 import { EnergyLevel } from "@/types";
 import { createContextKey } from "@/utils/contextKey";

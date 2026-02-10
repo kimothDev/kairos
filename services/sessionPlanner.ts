@@ -1,6 +1,10 @@
-import { EnergyLevel } from '@/types';
-import { Context, getSmartBreakRecommendation, getSmartRecommendation } from './contextualBandits';
-import { FocusRecommendation, getRecommendations } from './recommendations';
+import { EnergyLevel } from "@/types";
+import { FocusRecommendation, getRecommendations } from "./recommendations";
+import {
+  Context,
+  getSmartBreakRecommendation,
+  getSmartRecommendation,
+} from "./rl";
 
 /**
  * Get a complete session recommendation, combining
@@ -14,12 +18,12 @@ import { FocusRecommendation, getRecommendations } from './recommendations';
 export async function getSessionRecommendation(
   energyLevel: EnergyLevel,
   taskType: string,
-  dynamicFocusArms: number[] = []
+  dynamicFocusArms: number[] = [],
 ): Promise<FocusRecommendation> {
   // Create context for bandits (simplified - no timeOfDay)
   const context: Context = {
     energyLevel,
-    taskType: taskType || 'default'
+    taskType: taskType || "default",
   };
 
   // Get base recommendation from rule-based system
@@ -29,18 +33,18 @@ export async function getSessionRecommendation(
   const smartFocus = await getSmartRecommendation(
     context,
     baseRecommendation.focusDuration,
-    dynamicFocusArms
+    dynamicFocusArms,
   );
 
   // Get smart break - scaled to focus duration
   const smartBreak = await getSmartBreakRecommendation(
     context,
     baseRecommendation.breakDuration,
-    smartFocus.value  // Pass focus duration to scale break options
+    smartFocus.value, // Pass focus duration to scale break options
   );
 
   return {
     focusDuration: smartFocus.value,
-    breakDuration: smartBreak.value
+    breakDuration: smartBreak.value,
   };
 }

@@ -1,9 +1,9 @@
-import { Context } from '@/services/contextualBandits';
+import { Context } from "@/services/rl";
 
 /**
  * Create a context key from a Context object.
  * Format: "taskType|energyLevel"
- * 
+ *
  * Note: timeOfDay was removed as it's redundant with user-reported energy level
  * and was causing 4x context fragmentation, slowing learning.
  */
@@ -18,18 +18,22 @@ export function createContextKey(context: Context): string {
 export function createContextKeyFromParts(
   taskType: string | undefined,
   energyLevel: string,
-  isBreak: boolean = false
+  isBreak: boolean = false,
 ): string {
-  const baseKey = `${taskType?.toLowerCase() || 'default'}|${energyLevel}`;
+  const baseKey = `${taskType?.toLowerCase() || "default"}|${energyLevel}`;
   return isBreak ? `${baseKey}-break` : baseKey;
 }
 
 /**
  * Parse a context key back into components.
  */
-export function parseContextKey(key: string): { taskType: string; energyLevel: string; isBreak: boolean } {
-  const isBreak = key.endsWith('-break');
-  const cleanKey = isBreak ? key.replace(/-break$/, '') : key;
-  const [taskType, energyLevel] = cleanKey.split('|');
+export function parseContextKey(key: string): {
+  taskType: string;
+  energyLevel: string;
+  isBreak: boolean;
+} {
+  const isBreak = key.endsWith("-break");
+  const cleanKey = isBreak ? key.replace(/-break$/, "") : key;
+  const [taskType, energyLevel] = cleanKey.split("|");
   return { taskType, energyLevel, isBreak };
 }

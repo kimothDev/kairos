@@ -1,10 +1,10 @@
 import { MIN_SESSION_FOR_SAVE } from "@/constants/timer";
+import { calculateReward } from "@/services/recommendations";
 import {
     updateCapacityStats,
     updateModel,
     updateZoneData,
-} from "@/services/contextualBandits";
-import { calculateReward } from "@/services/recommendations";
+} from "@/services/rl";
 import {
     createAndSaveSession,
     loadSessionsFromDB,

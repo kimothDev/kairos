@@ -46,7 +46,7 @@ jest.mock("@/services/sessionPlanner", () => ({
   ),
 }));
 
-jest.mock("@/services/contextualBandits", () => ({
+jest.mock("@/services/rl", () => ({
   updateModel: jest.fn(() => Promise.resolve()),
   updateCapacityStats: jest.fn(() => Promise.resolve()),
   updateZoneData: jest.fn(() => Promise.resolve()),
