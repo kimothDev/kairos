@@ -1,3 +1,5 @@
 export function normalizeTask(task: string | undefined): string {
-  return (task || "").trim();
+  const trimmed = (task || "").trim();
+  if (!trimmed) return "";
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }

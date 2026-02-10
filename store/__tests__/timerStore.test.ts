@@ -277,13 +277,13 @@ describe("Timer Store", () => {
   });
 
   describe("Custom Tasks", () => {
-    it("should add custom task (normalized to lowercase)", () => {
+    it("should add custom task (normalized to capitalize first letter)", () => {
       useTimerStore.setState({ previousTasks: ["Coding", "Writing"] });
       useTimerStore.getState().addCustomTask("NewTask");
 
-      // Tasks are normalized to lowercase
-      expect(useTimerStore.getState().previousTasks).toContain("newtask");
-      expect(useTimerStore.getState().taskType).toBe("newtask");
+      // Tasks are normalized to Title Case (first letter capital)
+      expect(useTimerStore.getState().previousTasks).toContain("Newtask");
+      expect(useTimerStore.getState().taskType).toBe("Newtask");
     });
 
     it("should remove custom task", () => {
