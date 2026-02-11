@@ -10,7 +10,7 @@
 // ============================================================================
 
 type EnergyLevel = "low" | "mid" | "high";
-type FocusZone = "short" | "long";
+type FocusZone = "short" | "long" | "extended";
 
 interface ZoneData {
   zone: FocusZone;
@@ -46,6 +46,7 @@ function sampleBeta(alpha: number, beta: number): number {
  */
 function detectZone(selection: number, energyLevel: EnergyLevel): FocusZone {
   if (selection <= 25) return "short";
+  if (selection >= 50) return "extended";
   if (selection >= 35) return "long";
   // 26-34 range: use energy level as tiebreaker
   return energyLevel === "low" ? "short" : "long";
@@ -55,9 +56,9 @@ function detectZone(selection: number, energyLevel: EnergyLevel): FocusZone {
  * Get available actions for a zone
  */
 function getZoneActions(zone: FocusZone): number[] {
-  return zone === "short"
-    ? [10, 15, 20, 25, 30]
-    : [25, 30, 35, 40, 45, 50, 55, 60];
+  if (zone === "short") return [10, 15, 20, 25, 30];
+  if (zone === "long") return [25, 30, 35, 40, 45, 50, 55, 60];
+  return [50, 60, 70, 80, 90, 105, 120];
 }
 
 /**
@@ -75,6 +76,10 @@ function checkZoneTransition(zoneData: ZoneData): FocusZone {
   if (zone === "short" && avgRecent >= 25) return "long";
   // Long → Short: user is at floor of long zone
   if (zone === "long" && avgRecent <= 30) return "short";
+  // Long → Extended: user consistent > 55
+  if (zone === "long" && avgRecent >= 55) return "extended";
+  // Extended → Long: user consistent < 55
+  if (zone === "extended" && avgRecent <= 55) return "long";
 
   return zone;
 }
@@ -177,11 +182,17 @@ describe("Zone Detection", () => {
       expect(detectZone(25, "high")).toBe("short");
     });
 
-    it('should return "long" for durations >= 35', () => {
+    it('should return "long" for durations >= 35 and < 50', () => {
       expect(detectZone(35, "low")).toBe("long");
       expect(detectZone(40, "mid")).toBe("long");
       expect(detectZone(45, "high")).toBe("long");
-      expect(detectZone(60, "low")).toBe("long");
+    });
+
+    it('should return "extended" for durations >= 50', () => {
+      expect(detectZone(50, "low")).toBe("extended");
+      expect(detectZone(60, "mid")).toBe("extended");
+      expect(detectZone(90, "high")).toBe("extended");
+      expect(detectZone(120, "high")).toBe("extended");
     });
 
     it("should use energy level as tiebreaker for 26-34 range", () => {
@@ -221,6 +232,11 @@ describe("Zone Actions", () => {
       expect(longActions).toContain(25);
       expect(longActions).toContain(30);
     });
+
+    it("should return extended zone actions", () => {
+      const actions = getZoneActions("extended");
+      expect(actions).toEqual([50, 60, 70, 80, 90, 105, 120]);
+    });
   });
 });
 
@@ -231,6 +247,28 @@ describe("Zone Transitions", () => {
         zone: "short",
         confidence: 0.8,
         selections: [25, 28, 30],
+        transitionReady: false,
+      };
+
+      expect(checkZoneTransition(zoneData)).toBe("long");
+    });
+
+    it("should transition long → extended when avg selection >= 55", () => {
+      const zoneData: ZoneData = {
+        zone: "long",
+        confidence: 0.8,
+        selections: [50, 55, 60, 55, 60], // Avg = 56
+        transitionReady: false,
+      };
+
+      expect(checkZoneTransition(zoneData)).toBe("extended");
+    });
+
+    it("should transition extended → long when avg selection <= 55", () => {
+      const zoneData: ZoneData = {
+        zone: "extended",
+        confidence: 0.8,
+        selections: [50, 55, 50, 55, 50], // Avg = 52
         transitionReady: false,
       };
 
@@ -423,7 +461,7 @@ describe("Context Key", () => {
 // BREAK SCALING TESTS
 // ============================================================================
 
-const BREAK_ACTIONS = [5, 10, 15, 20];
+const BREAK_ACTIONS = [5, 10, 15, 20, 25, 30];
 
 /**
  * Get available break actions based on focus duration.
@@ -431,7 +469,8 @@ const BREAK_ACTIONS = [5, 10, 15, 20];
  */
 function getBreakActionsForFocus(focusDuration: number): number[] {
   const maxBreak = Math.max(5, Math.floor(focusDuration / 3));
-  return BREAK_ACTIONS.filter((action) => action <= maxBreak);
+  // Cap at 30 min break
+  return BREAK_ACTIONS.filter((action) => action <= Math.min(30, maxBreak));
 }
 
 describe("Break Scaling", () => {
@@ -458,9 +497,139 @@ describe("Break Scaling", () => {
       expect(getBreakActionsForFocus(60)).toEqual([5, 10, 15, 20]);
     });
 
+    it("should offer larger breaks for 90 min focus (90/3 = 30)", () => {
+      expect(getBreakActionsForFocus(90)).toEqual([5, 10, 15, 20, 25, 30]);
+    });
+
+    it("should offer max breaks for 120 min focus (30 min max)", () => {
+      expect(getBreakActionsForFocus(120)).toEqual([5, 10, 15, 20, 25, 30]);
+    });
+
     it("should never offer less than 5 min break", () => {
       expect(getBreakActionsForFocus(1)).toEqual([5]);
       expect(getBreakActionsForFocus(3)).toEqual([5]);
     });
+  });
+});
+
+// ============================================================================
+// CAPACITY SCALING TESTS
+// ============================================================================
+
+/**
+ * Capacity scaling constants (mirrored from recommendations.ts)
+ */
+const CAPACITY_CONSTANTS = {
+  COMFORT_THRESHOLD: 0.7,
+  STRETCH_THRESHOLD: 1.15,
+  COMFORT_PENALTY: 0.85,
+  STRETCH_BONUS: 1.1,
+};
+
+/**
+ * Scale reward based on session duration vs user's average capacity.
+ * Mirrors applyCapacityScaling from recommendations.ts.
+ */
+function applyCapacityScaling(
+  baseReward: number,
+  completedDuration: number,
+  averageCapacity: number,
+): number {
+  if (averageCapacity <= 0) return baseReward;
+
+  const ratio = completedDuration / averageCapacity;
+
+  if (ratio <= CAPACITY_CONSTANTS.COMFORT_THRESHOLD) {
+    return Math.max(0, baseReward * CAPACITY_CONSTANTS.COMFORT_PENALTY);
+  }
+
+  if (ratio >= CAPACITY_CONSTANTS.STRETCH_THRESHOLD) {
+    return Math.min(1, baseReward * CAPACITY_CONSTANTS.STRETCH_BONUS);
+  }
+
+  return baseReward;
+}
+
+describe("Capacity Scaling", () => {
+  describe("applyCapacityScaling", () => {
+    it("should penalize sessions well below capacity (≤70%)", () => {
+      // 15 min with 25 min capacity = 60% ratio → comfort penalty
+      const scaled = applyCapacityScaling(0.92, 15, 25);
+      expect(scaled).toBeCloseTo(0.92 * 0.85, 2); // ~0.782
+      expect(scaled).toBeLessThan(0.92);
+    });
+
+    it("should not change reward for sessions at capacity (70-115%)", () => {
+      // 25 min with 25 min capacity = 100% ratio → no change
+      expect(applyCapacityScaling(0.92, 25, 25)).toBe(0.92);
+
+      // 20 min with 25 min capacity = 80% ratio → no change (within range)
+      expect(applyCapacityScaling(0.92, 20, 25)).toBe(0.92);
+
+      // 28 min with 25 min capacity = 112% ratio → no change (within range)
+      expect(applyCapacityScaling(0.92, 28, 25)).toBe(0.92);
+    });
+
+    it("should bonus sessions above capacity (≥115%)", () => {
+      // 30 min with 25 min capacity = 120% ratio → stretch bonus
+      const scaled = applyCapacityScaling(0.92, 30, 25);
+      // 0.92 * 1.1 = 1.012 → capped at 1.0
+      expect(scaled).toBe(1.0);
+      expect(scaled).toBeGreaterThanOrEqual(0.92);
+    });
+
+    it("should not change reward when no capacity data exists", () => {
+      expect(applyCapacityScaling(0.92, 25, 0)).toBe(0.92);
+      expect(applyCapacityScaling(0.85, 30, -1)).toBe(0.85);
+    });
+
+    it("should cap scaled reward at 1.0 maximum", () => {
+      // Very high base reward + stretch bonus
+      const scaled = applyCapacityScaling(0.98, 40, 25);
+      expect(scaled).toBeLessThanOrEqual(1.0);
+    });
+  });
+});
+
+describe("Reward Progression Scenarios", () => {
+  it("should reward stretch sessions more than comfort sessions", () => {
+    const capacity = 25;
+
+    // Comfort: 15 min (60% of capacity)
+    const comfortReward = applyCapacityScaling(0.92, 15, capacity);
+
+    // At capacity: 25 min (100%)
+    const neutralReward = applyCapacityScaling(0.92, 25, capacity);
+
+    // Stretch: 30 min (120%)
+    const stretchReward = applyCapacityScaling(0.92, 30, capacity);
+
+    expect(comfortReward).toBeLessThan(neutralReward);
+    expect(stretchReward).toBeGreaterThanOrEqual(neutralReward);
+    // This ordering teaches the model to prefer 30 > 25 > 15
+  });
+
+  it("should create a natural progression ladder", () => {
+    // Simulate: user capacity grows from 20 to 30
+    // At capacity=20: completing 25 is a stretch
+    const stretch20 = applyCapacityScaling(0.92, 25, 20);
+    expect(stretch20).toBeGreaterThan(0.92);
+
+    // At capacity=25: completing 25 is neutral, 30 is a stretch
+    const neutral25 = applyCapacityScaling(0.92, 25, 25);
+    const stretch25 = applyCapacityScaling(0.92, 30, 25);
+    expect(neutral25).toBe(0.92);
+    expect(stretch25).toBeGreaterThan(neutral25);
+
+    // At capacity=30: completing 20 is comfort (penalized)
+    // 20/30 = 0.667 → below 0.70 threshold
+    const comfort30 = applyCapacityScaling(0.92, 20, 30);
+    expect(comfort30).toBeLessThan(0.92);
+  });
+
+  it("should not penalize borderline sessions", () => {
+    // 18 min with 25 capacity = 72% → just above comfort threshold
+    const borderline = applyCapacityScaling(0.92, 18, 25);
+    expect(borderline).toBe(0.92); // No penalty
   });
 });

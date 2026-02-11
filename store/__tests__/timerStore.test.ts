@@ -185,10 +185,10 @@ describe("Timer Store", () => {
       expect(useTimerStore.getState().time).toBe(5 * 60);
     });
 
-    it("should not go above maximum (70 min in normal mode)", () => {
-      useTimerStore.setState({ time: 70 * 60 });
+    it("should not go above maximum (120 min in normal mode)", () => {
+      useTimerStore.setState({ time: 120 * 60 });
       useTimerStore.getState().adjustTime("up");
-      expect(useTimerStore.getState().time).toBe(70 * 60);
+      expect(useTimerStore.getState().time).toBe(120 * 60);
     });
   });
 
