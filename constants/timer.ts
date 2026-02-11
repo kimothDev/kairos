@@ -3,7 +3,7 @@ export const TIMER_CONSTANTS = {
   DEFAULT: {
     FOCUS_TIME: 25 * 60,
     MIN_FOCUS: 5 * 60,
-    MAX_FOCUS: 70 * 60,
+    MAX_FOCUS: 120 * 60,
   },
   ADHD: {
     MIN_FOCUS: 10 * 60,
@@ -24,6 +24,8 @@ export const BREAK_OPTIONS = [
   { label: "10 minutes", duration: 10 * 60 },
   { label: "15 minutes", duration: 15 * 60 },
   { label: "20 minutes", duration: 20 * 60 },
+  { label: "25 minutes", duration: 25 * 60 },
+  { label: "30 minutes", duration: 30 * 60 },
 ];
 
 //break options for ADHD mode
@@ -43,6 +45,13 @@ export const FOCUS_OPTIONS = [
   { label: "50 minutes", duration: 50 * 60 },
   { label: "55 minutes", duration: 55 * 60 },
   { label: "60 minutes", duration: 60 * 60 },
+  { label: "65 minutes", duration: 65 * 60 },
+  { label: "70 minutes", duration: 70 * 60 },
+  { label: "75 minutes", duration: 75 * 60 },
+  { label: "80 minutes", duration: 80 * 60 },
+  { label: "90 minutes", duration: 90 * 60 },
+  { label: "105 minutes", duration: 105 * 60 },
+  { label: "120 minutes", duration: 120 * 60 },
 ];
 
 //focus duration options for ADHD mode

@@ -39,8 +39,13 @@ export const REWARD_CONSTANTS = {
   SKIPPED_BREAK_MULTIPLIER: 0.3,
   COMPLETED_BASE: 0.7,
   COMPLETED_MULTIPLIER: 0.3,
-  IDEAL_MAX_DURATION: 60,
+  IDEAL_MAX_DURATION: 90, // Raised from 60 to support extended zones
   EXCESS_PENALTY_MULTIPLIER: 0.1,
+  // Capacity scaling: reward based on session challenge level
+  CAPACITY_COMFORT_THRESHOLD: 0.7, // Below 70% of capacity → comfort penalty
+  CAPACITY_STRETCH_THRESHOLD: 1.15, // Above 115% of capacity → stretch bonus
+  CAPACITY_COMFORT_PENALTY: 0.85, // Multiply reward by 0.85
+  CAPACITY_STRETCH_BONUS: 1.1, // Multiply reward by 1.10
 } as const;
 
 /**
@@ -95,7 +100,7 @@ export async function getRecommendations(
 
   // Clamp and round the final focus duration
   recommendation.focusDuration = Math.min(
-    60,
+    120, // Raised from 60
     Math.max(5, roundToNearest5(recommendation.focusDuration)),
   );
 
@@ -171,4 +176,39 @@ export function calculateReward(
   }
 
   return Math.min(1, Math.max(0, reward));
+}
+
+/**
+ * Scale reward based on how the session duration compares to user's capacity.
+ * - Below capacity (≤70%): slight penalty → discourages "too easy" sessions
+ * - At capacity (70-115%): neutral → no change
+ * - Above capacity (≥115%): bonus → rewards growth/stretch sessions
+ *
+ * @param baseReward - The reward from calculateReward()
+ * @param completedDuration - How long the user actually focused (minutes)
+ * @param averageCapacity - User's average focus capacity (minutes)
+ * @returns Scaled reward, clamped to [0, 1]
+ */
+export function applyCapacityScaling(
+  baseReward: number,
+  completedDuration: number,
+  averageCapacity: number,
+): number {
+  // No capacity data yet — don't scale
+  if (averageCapacity <= 0) return baseReward;
+
+  const ratio = completedDuration / averageCapacity;
+
+  if (ratio <= REWARD_CONSTANTS.CAPACITY_COMFORT_THRESHOLD) {
+    // Too easy for this user
+    return Math.max(0, baseReward * REWARD_CONSTANTS.CAPACITY_COMFORT_PENALTY);
+  }
+
+  if (ratio >= REWARD_CONSTANTS.CAPACITY_STRETCH_THRESHOLD) {
+    // User stretched beyond their norm — reward growth!
+    return Math.min(1, baseReward * REWARD_CONSTANTS.CAPACITY_STRETCH_BONUS);
+  }
+
+  // Within normal range — no adjustment
+  return baseReward;
 }

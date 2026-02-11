@@ -18,7 +18,7 @@ export interface Context {
 }
 
 export type Action = number;
-export type FocusZone = "short" | "long";
+export type FocusZone = "short" | "long" | "extended";
 
 /**
  * Zone data tracks which zone a user prefers for a given context
@@ -92,6 +92,10 @@ export const DEFAULT_BETA = 1.5;
 export const EARLY_EXPLORATION_THRESHOLD = 3;
 export const CAPACITY_HISTORY_LIMIT = 10;
 
+// Spillover: when a session succeeds, give partial credit to the next higher arm
+export const SPILLOVER_THRESHOLD = 0.7; // Minimum reward to trigger spillover
+export const SPILLOVER_FACTOR = 0.25; // Fraction of reward given to next arm
+
 /**
  * Zone action sets - overlap at 25-30 for smooth transitions.
  * Minimum focus is 10 minutes (5 min removed as too short for meaningful work).
@@ -99,6 +103,7 @@ export const CAPACITY_HISTORY_LIMIT = 10;
 export const ZONE_ACTIONS: Record<FocusZone, number[]> = {
   short: [10, 15, 20, 25, 30],
   long: [25, 30, 35, 40, 45, 50, 55, 60],
+  extended: [50, 60, 70, 80, 90, 105, 120],
 };
 
-export const BREAK_ACTIONS: number[] = [5, 10, 15, 20];
+export const BREAK_ACTIONS: number[] = [5, 10, 15, 20, 25, 30];

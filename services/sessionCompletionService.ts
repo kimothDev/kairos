@@ -1,20 +1,28 @@
 import { MIN_SESSION_FOR_SAVE } from "@/constants/timer";
-import { calculateReward } from "@/services/recommendations";
 import {
-    updateCapacityStats,
-    updateModel,
-    updateZoneData,
+  applyCapacityScaling,
+  calculateReward,
+} from "@/services/recommendations";
+import {
+  getCapacityStats,
+  getZoneActions,
+  getZoneData,
+  SPILLOVER_FACTOR,
+  SPILLOVER_THRESHOLD,
+  updateCapacityStats,
+  updateModel,
+  updateZoneData,
 } from "@/services/rl";
 import {
-    createAndSaveSession,
-    loadSessionsFromDB,
+  createAndSaveSession,
+  loadSessionsFromDB,
 } from "@/services/sessionService";
 import { EnergyLevel } from "@/types";
 import {
-    createBreakContext,
-    createFocusContext,
-    detectTimeOfDay,
-    secondsToMinutes,
+  createBreakContext,
+  createFocusContext,
+  detectTimeOfDay,
+  secondsToMinutes,
 } from "@/utils/sessionUtils";
 
 /**
@@ -77,17 +85,36 @@ export async function completeSession(
         ? "skippedBreak"
         : undefined;
 
-  // Calculate reward based on completion type
-  const reward = sessionCompleted
-    ? 1.0
-    : calculateReward(
-        false,
-        userAcceptedRecommendation,
-        focusTimeInMinutes,
-        totalFocusDuration,
-        recommendedFocusDuration,
-        skipReason as "skippedFocus" | "skippedBreak",
+  // Calculate base reward using the reward function for ALL session types
+  const baseReward = calculateReward(
+    sessionCompleted,
+    userAcceptedRecommendation,
+    focusTimeInMinutes,
+    totalFocusDuration,
+    recommendedFocusDuration,
+    (skipReason as "skippedFocus" | "skippedBreak" | "none") ?? "none",
+  );
+
+  // Apply capacity scaling for completed sessions only
+  // (don't double-penalize failed sessions)
+  const contextKey = `${taskType}|${energyLevel}`;
+  let reward = baseReward;
+
+  if (sessionCompleted) {
+    const capacityStats = await getCapacityStats(contextKey);
+    reward = applyCapacityScaling(
+      baseReward,
+      focusTimeInMinutes,
+      capacityStats.averageCapacity,
+    );
+
+    if (reward !== baseReward) {
+      console.log(
+        `[RL] Capacity scaling: ${baseReward.toFixed(3)} → ${reward.toFixed(3)}`,
+        `(${focusTimeInMinutes}min vs avg ${capacityStats.averageCapacity.toFixed(1)}min)`,
       );
+    }
+  }
 
   // Create and save session to DB
   const newSession = await createAndSaveSession({
@@ -119,18 +146,40 @@ export async function completeSession(
 
     // Update capacity stats
     await updateCapacityStats(
-      `${taskType}|${energyLevel}`,
+      contextKey,
       focusTimeInMinutes,
       focusTimeInMinutes,
       true,
     );
 
     // Update zone data
-    await updateZoneData(`${taskType}|${energyLevel}`, focusTimeInMinutes);
+    await updateZoneData(contextKey, focusTimeInMinutes);
+
+    // Upward spillover: warm up the next higher arm in the zone
+    if (reward >= SPILLOVER_THRESHOLD) {
+      const zoneData = await getZoneData(
+        contextKey,
+        energyLevel,
+        focusTimeInMinutes,
+      );
+      const zoneActions = getZoneActions(zoneData.zone);
+
+      // Find the next arm above the completed duration
+      const nextArm = zoneActions.find((a) => a > focusTimeInMinutes);
+
+      if (nextArm) {
+        const spilloverReward = reward * SPILLOVER_FACTOR;
+        await updateModel(focusContext, nextArm, spilloverReward);
+        console.log(
+          `[RL] Spillover: ${focusTimeInMinutes}min → ${nextArm}min`,
+          `(reward ${spilloverReward.toFixed(3)})`,
+        );
+      }
+    }
   } else if (type === "skippedFocus") {
     // Skipped focus: update capacity with actual focus time
     await updateCapacityStats(
-      `${taskType}|${energyLevel}`,
+      contextKey,
       totalFocusDuration,
       focusTimeInMinutes,
       false,

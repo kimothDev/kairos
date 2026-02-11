@@ -15,6 +15,7 @@ export function detectZone(
   energyLevel: EnergyLevel,
 ): FocusZone {
   if (selection <= 25) return "short";
+  if (selection >= 50) return "extended";
   if (selection >= 35) return "long";
   // 26-34 range: use energy level as tiebreaker
   return energyLevel === "low" ? "short" : "long";
@@ -56,7 +57,7 @@ export function checkZoneTransition(zoneData: ZoneData): FocusZone {
     return "long";
   }
 
-  // Long → Short: user consistently choosing 25 or less (was 30 - too close to short→long threshold)
+  // Long → Short: user consistently choosing 25 or less
   if (zone === "long" && avgRecent <= 25) {
     console.log(
       "[RL] Zone transition: long → short (avg:",
@@ -65,6 +66,28 @@ export function checkZoneTransition(zoneData: ZoneData): FocusZone {
     );
     return "short";
   }
+
+  // Long → Extended: user consistently choosing 55+
+  if (zone === "long" && avgRecent >= 55) {
+    console.log(
+      "[RL] Zone transition: long → extended (avg:",
+      avgRecent.toFixed(1),
+      ")",
+    );
+    return "extended";
+  }
+
+  // Extended → Long: user consistently choosing 55 or less
+  if (zone === "extended" && avgRecent <= 55) {
+    console.log(
+      "[RL] Zone transition: extended → long (avg:",
+      avgRecent.toFixed(1),
+      ")",
+    );
+    return "long";
+  }
+
+  return zone;
 
   return zone;
 }
@@ -106,7 +129,12 @@ export async function updateZoneData(
 
   if (!zones[contextKey]) {
     zones[contextKey] = {
-      zone: selectedDuration <= 30 ? "short" : "long",
+      zone:
+        selectedDuration <= 30
+          ? "short"
+          : selectedDuration >= 50
+            ? "extended"
+            : "long",
       confidence: 0,
       selections: [],
       transitionReady: false,
