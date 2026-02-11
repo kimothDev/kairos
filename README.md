@@ -76,7 +76,7 @@ These tradeoffs shaped both the ML logic and the app UX.
 - **Frontend:** React Native (Expo Bare Workflow)
 - **Persistence:** SQLite (offline-first)
 - **Learning:** Thompson Sampling with zone-based action spaces
-- **Testing:** Jest with 31 unit tests for RL logic
+- **Testing:** Jest with 57 unit tests (RL logic + store)
 
 ---
 
