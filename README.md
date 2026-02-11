@@ -42,15 +42,15 @@ The model updates locally and improves incrementally as more sessions are logged
 
 ### Adaptive Recommendations
 
-- **Zone-based learning:** Short zone (10-30 min) for low energy, long zone (25-60 min) for high energy
+- **Zone-based learning:** Short (10-30m), Long (25-60m), and **Extended (50-120m)** zones
 - **Energy-aware:** Low energy users aren't pushed to do longer sessions
 - **Break scaling:** Break duration scales with focus (max break = focus ÷ 3)
 
 ### Smart Learning
 
 - **4x faster learning** than before (simplified context)
-- **Pessimistic priors** prevent random exploration from overriding proven winners
-- **Capacity tracking** adjusts recommendations based on your actual focus ability
+- **Upward Spillover** warms up longer durations when you succeed
+- **Capacity tracking** rewards you for stretching your focus limits
 
 ### Offline-First
 
@@ -65,6 +65,7 @@ The model updates locally and improves incrementally as more sessions are logged
 - The model was tracking time of day, but users already report their energy level → removed it, got 4x faster learning
 - Unexplored durations would randomly beat proven favorites because of optimistic priors → switched to pessimistic priors, problem gone
 - Users who consistently quit early were still getting ambitious recommendations → added capacity tracking to stay realistic
+- **Users got stuck at 25 min because the model didn't know 30 min was similar** → added upward spillover to "warm up" next level
 - Low-energy users kept getting pushed to do longer sessions → made capacity adjustment respect energy level
 
 These tradeoffs shaped both the ML logic and the app UX.
