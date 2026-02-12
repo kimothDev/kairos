@@ -15,8 +15,11 @@ export default function BreakModal() {
 
   if (!showBreakModal) return null;
 
-  //use utility for break options
-  const breakOptions = getBreakOptions(includeShortSessions);
+  // use utility for break options, filtered by focus duration
+  const focusMinutes = Math.round(
+    useTimerStore.getState().focusSessionDuration / 60,
+  );
+  const breakOptions = getBreakOptions(includeShortSessions, focusMinutes);
 
   return (
     <View style={styles.modalOverlay}>
