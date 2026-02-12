@@ -5,6 +5,7 @@
 jest.mock("react-native", () => ({
   Platform: { OS: "android" },
   alert: jest.fn(),
+  Vibration: { vibrate: jest.fn() },
 }));
 
 // Mock expo-notifications
@@ -13,12 +14,6 @@ jest.mock("expo-notifications", () => ({
     Promise.resolve("mock-notification-id"),
   ),
   cancelScheduledNotificationAsync: jest.fn(() => Promise.resolve()),
-}));
-
-// Mock expo-haptics
-jest.mock("expo-haptics", () => ({
-  notificationAsync: jest.fn(),
-  NotificationFeedbackType: { Success: "success" },
 }));
 
 // Mock AsyncStorage
