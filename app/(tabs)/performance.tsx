@@ -28,13 +28,13 @@ import {
 import React, { useMemo, useState } from "react";
 import {
     ActivityIndicator,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const TimeRanges = ["day", "week", "month", "year"] as const;
 type TimeRange = (typeof TimeRanges)[number];
@@ -170,6 +170,7 @@ export default function PerformanceScreen() {
     return (
       <SafeAreaView
         style={[styles.container, { backgroundColor: activeColors.background }]}
+        edges={["top", "left", "right"]}
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={activeColors.primary} />
@@ -186,6 +187,7 @@ export default function PerformanceScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: activeColors.background }]}
+      edges={["top", "left", "right"]}
     >
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
         {/* Header & Controls */}
