@@ -29,7 +29,7 @@ const fetchAndApplyRecommendation = async (
       recommendedBreakDuration: DEFAULT_RECOMMENDATION.breakDuration,
       time: DEFAULT_RECOMMENDATION.focusDuration * 60,
       initialTime: DEFAULT_RECOMMENDATION.focusDuration * 60,
-      userAcceptedRecommendation: true,
+      userAcceptedRecommendation: false,
     });
     return;
   }
@@ -46,7 +46,7 @@ const fetchAndApplyRecommendation = async (
       recommendedBreakDuration: breakDuration,
       time: focusDuration * 60,
       initialTime: focusDuration * 60,
-      userAcceptedRecommendation: true,
+      userAcceptedRecommendation: false,
       hasDismissedRecommendationCard: false,
     });
   } catch (error) {
@@ -67,7 +67,7 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
   energyLevel: "",
   recommendedFocusDuration: DEFAULT_RECOMMENDATION.focusDuration,
   recommendedBreakDuration: DEFAULT_RECOMMENDATION.breakDuration,
-  userAcceptedRecommendation: true,
+  userAcceptedRecommendation: false,
 
   // Actions
   setTaskType: (task) => {
@@ -105,7 +105,7 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
           recommendedBreakDuration: DEFAULT_RECOMMENDATION.breakDuration,
           time: DEFAULT_RECOMMENDATION.focusDuration * 60,
           initialTime: DEFAULT_RECOMMENDATION.focusDuration * 60,
-          userAcceptedRecommendation: true,
+          userAcceptedRecommendation: false,
         });
       }
     }
@@ -173,7 +173,7 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
       showTaskModal: false,
       showBreakModal: false,
       showSkipConfirm: false,
-      userAcceptedRecommendation: true, // Also set by helper, but ensuring strict compliance
+      userAcceptedRecommendation: false, // Also set by helper, but ensuring strict compliance
       originalFocusDuration: 0,
       hasSavedSession: false,
     });

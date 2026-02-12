@@ -25,6 +25,7 @@ export interface TimerSlice {
   skipFocusSession: (isSkippingBreak?: boolean) => Promise<void>;
   startBreak: (duration: number) => void;
   adjustTime: (direction: "up" | "down") => void;
+  setTime: (duration: number) => void;
   getLiveTime: () => number;
   restoreTimerState: () => void;
 }

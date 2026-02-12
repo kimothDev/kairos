@@ -36,6 +36,8 @@ export const ADHD_BREAK_OPTIONS = [
 
 //focus duration options for normal mode
 export const FOCUS_OPTIONS = [
+  { label: "10 minutes", duration: 10 * 60 },
+  { label: "15 minutes", duration: 15 * 60 },
   { label: "20 minutes", duration: 20 * 60 },
   { label: "25 minutes", duration: 25 * 60 },
   { label: "30 minutes", duration: 30 * 60 },
@@ -76,3 +78,10 @@ export const DEFAULT_TASKS = [
 
 export const CANCEL_TIMEOUT = 10000; //10 seconds before showing skip button
 export const MIN_SESSION_FOR_SAVE = 60; //minimum seconds of focus before saving session
+
+export const formatTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  if (isNaN(mins) || isNaN(secs)) return "00:00";
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+};
