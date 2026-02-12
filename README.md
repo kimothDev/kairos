@@ -52,6 +52,11 @@ The model updates locally and improves incrementally as more sessions are logged
 - **Upward Spillover** warms up longer durations when you succeed
 - **Capacity tracking** rewards you for stretching your focus limits
 
+### UX Improvements
+
+- **Inline Scroll Picker:** Smoothly adjust time from 10m to 120m with a single swipe
+- **Haptic & Audio Feedback:** Satisfying interactions for timer adjustments
+
 ### Offline-First
 
 - All learning happens locally using SQLite

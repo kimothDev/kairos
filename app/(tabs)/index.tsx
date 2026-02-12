@@ -34,6 +34,7 @@ export default function TimerScreen() {
     taskType,
     hasInteractedWithTimer,
     userAcceptedRecommendation,
+
     hasDismissedRecommendationCard,
   } = useTimerStore();
 
