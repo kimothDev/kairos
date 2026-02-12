@@ -17,7 +17,7 @@ import {
 import { Vibration } from "react-native";
 import { SliceCreator, TimerSlice } from "./sliceTypes";
 
-const SPEED_FACTOR = 100;
+const SPEED_FACTOR = 1;
 
 /**
  * Internal helper to save a session and update state.
