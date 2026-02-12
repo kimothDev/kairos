@@ -12,3 +12,14 @@ export function useThemeColor(): Colors {
 
   return themeMode === "dark" ? darkColors : lightColors;
 }
+
+export function useIsDark(): boolean {
+  const themeMode = useThemeStore((state) => state.themeMode);
+  const systemScheme = useColorScheme();
+
+  if (themeMode === "system") {
+    return systemScheme === "dark";
+  }
+
+  return themeMode === "dark";
+}
