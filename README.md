@@ -2,7 +2,7 @@
 
 **Kairos is an adaptive focus coach that learns your optimal session lengths and protects you from burnout.**
 
-Instead of fixed Chronos-style timers (25/5), Kairos uses **Thompson Sampling** to find the _opportune moment_ for focus based on your energy levels and actual behavior.
+Instead of fixed Pomodoro-style timers (25/5), Kairos uses **Thompson Sampling** to find the _opportune moment_ for focus based on your energy levels and actual behavior.
 
 > The goal: fewer abandoned sessions, intentional stretching of focus limits, and a system that adapts to you, not the other way around.
 
@@ -30,7 +30,7 @@ The system balances **exploration** (trying new durations) with **exploitation**
 
 ## 📈 Why This Is Different From a Normal Pomodoro App
 
-- **Chronos vs. Kairos**: Fixed timers assume all users focus the same way. Kairos finds the _right_ time for the _right_ duration.
+- **Pomodoro vs. Kairos**: Fixed timers assume all users focus the same way. Kairos finds the _right_ time for the _right_ duration.
 - **Capacity Shields**: The system detects burnout and prevents you from setting targets you're likely to fail.
 - **Stretch Bonus**: When you're in the "zone," the coach nudges you to expand your limits.
 
