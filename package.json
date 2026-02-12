@@ -1,5 +1,6 @@
 {
   "name": "kairos",
+  "description": "An adaptive focus coach that learns from your habits to find your perfect focus rhythm and protect you from burnout.",
   "version": "1.4.0",
   "main": "expo-router/entry",
   "private": true,

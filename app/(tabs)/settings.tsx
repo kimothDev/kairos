@@ -371,6 +371,29 @@ export default function SettingsScreen() {
             About
           </Text>
 
+          <View style={styles.aboutContent}>
+            <Text style={[styles.aboutText, { color: colors.text.secondary }]}>
+              Kairos is an adaptive focus coach that learns from your habits to
+              find your perfect focus rhythm and protect you from burnout.
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.settingItem, { borderBottomColor: colors.border }]}
+            onPress={() =>
+              Linking.openURL("https://github.com/kimothDev/kairos")
+            }
+          >
+            <View style={styles.settingInfo}>
+              <Github size={20} color={colors.text.primary} />
+              <Text
+                style={[styles.settingText, { color: colors.text.primary }]}
+              >
+                View on GitHub
+              </Text>
+            </View>
+          </TouchableOpacity>
+
           <View
             style={[
               styles.settingItem,
@@ -378,7 +401,7 @@ export default function SettingsScreen() {
             ]}
           >
             <View style={styles.settingInfo}>
-              <Github size={20} color={colors.text.primary} />
+              <Info size={20} color={colors.text.primary} />
               <Text
                 style={[styles.settingText, { color: colors.text.primary }]}
               >
@@ -462,5 +485,13 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontSize: 12,
     fontWeight: "500",
+  },
+  aboutContent: {
+    marginBottom: 10,
+  },
+  aboutText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: "italic",
   },
 });
