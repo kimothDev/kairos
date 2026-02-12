@@ -1,4 +1,4 @@
-package app.smartfocustimer
+package app.kairos
 
 import android.app.Application
 import android.content.res.Configuration

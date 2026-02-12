@@ -142,9 +142,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'app.smartfocustimer'
+    namespace 'app.kairos'
     defaultConfig {
-        applicationId 'app.smartfocustimer'
+        applicationId 'app.kairos'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 6

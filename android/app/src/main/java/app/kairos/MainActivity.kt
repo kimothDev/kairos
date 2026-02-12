@@ -1,4 +1,4 @@
-package app.smartfocustimer
+package app.kairos
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

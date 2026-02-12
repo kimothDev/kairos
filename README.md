@@ -1,10 +1,10 @@
-# 📱 SmartFocusTimer
+# 📱 Kairos
 
-**SmartFocusTimer is a Pomodoro-style focus app that learns your optimal session lengths and adapts to reduce abandoned focus sessions.**
+**Kairos is an adaptive focus coach that learns your optimal session lengths and protects you from burnout.**
 
-Instead of fixed 25/5 timers, the app uses **Thompson Sampling** to continuously learn what works best for you based on your actual behavior.
+Instead of fixed Chronos-style timers (25/5), Kairos uses **Thompson Sampling** to find the _opportune moment_ for focus based on your energy levels and actual behavior.
 
-> The goal: fewer abandoned sessions, longer sustained focus, and better adherence over time.
+> The goal: fewer abandoned sessions, intentional stretching of focus limits, and a system that adapts to you, not the other way around.
 
 ---
 
@@ -17,30 +17,28 @@ Instead of fixed 25/5 timers, the app uses **Thompson Sampling** to continuously
 
 ## 🧠 How It Works
 
-Each focus session is a learning opportunity:
+Each focus session is a coaching opportunity:
 
-1. **You tell the app** your current energy level (low/mid/high) and task type
-2. **The app recommends** a focus duration based on what's worked for you before
+1. **You tell Kairos** your current energy level (low/mid/high) and task type
+2. **The app negotiates** a focus duration based on your "Slope" and capacity
 3. **You complete (or skip) the session**
 4. **The model learns** and improves future recommendations
 
-The system balances **exploration** (trying new durations) with **exploitation** (reusing what worked). After 5-7 sessions per context, recommendations converge on your actual preference.
+The system balances **exploration** (trying new durations) with **exploitation** (reusing what worked).
 
 ---
 
 ## 📈 Why This Is Different From a Normal Pomodoro App
 
-- Fixed timers assume all users focus the same way (they don't).
-- Rule-based systems don't adapt well to changing behavior.
-- This system **learns from mistakes**, including failed sessions.
-
-The model updates locally and improves incrementally as more sessions are logged.
+- **Chronos vs. Kairos**: Fixed timers assume all users focus the same way. Kairos finds the _right_ time for the _right_ duration.
+- **Capacity Shields**: The system detects burnout and prevents you from setting targets you're likely to fail.
+- **Stretch Bonus**: When you're in the "zone," the coach nudges you to expand your limits.
 
 ---
 
 ## 🔑 Key Features
 
-### Adaptive Recommendations
+### Adaptive Coaching
 
 - **Zone-based learning:** Short (10-30m), Long (25-60m), and **Extended (50-120m)** zones
 - **Energy-aware:** Low energy users aren't pushed to do longer sessions
@@ -48,9 +46,9 @@ The model updates locally and improves incrementally as more sessions are logged
 
 ### Smart Learning
 
-- **4x faster learning** than before (simplified context)
-- **Upward Spillover** warms up longer durations when you succeed
-- **Capacity tracking** rewards you for stretching your focus limits
+- **Intent Multipliers:** Manual overrides are rewarded 1.5x more than accepted recommendations.
+- **Upward Spillover:** Successes "warm up" longer durations.
+- **Capacity tracking:** Personalized rewards for stretching your focus limits.
 
 ### UX Improvements
 
@@ -67,13 +65,9 @@ The model updates locally and improves incrementally as more sessions are logged
 
 ## 🧪 What Didn't Work (and What I Learned)
 
-- The model was tracking time of day, but users already report their energy level → removed it, got 4x faster learning
-- Unexplored durations would randomly beat proven favorites because of optimistic priors → switched to pessimistic priors, problem gone
-- Users who consistently quit early were still getting ambitious recommendations → added capacity tracking to stay realistic
-- **Users got stuck at 25 min because the model didn't know 30 min was similar** → added upward spillover to "warm up" next level
-- Low-energy users kept getting pushed to do longer sessions → made capacity adjustment respect energy level
-
-These tradeoffs shaped both the ML logic and the app UX.
+- Tracking time of day (too much noise) -> switched to energy levels.
+- Optimistic priors (random winners) -> switched to pessimistic priors.
+- Ignoring failed sessions -> added capacity tracking to stay realistic.
 
 ---
 
@@ -82,7 +76,7 @@ These tradeoffs shaped both the ML logic and the app UX.
 - **Frontend:** React Native (Expo Bare Workflow)
 - **Persistence:** SQLite (offline-first)
 - **Learning:** Thompson Sampling with zone-based action spaces
-- **Testing:** Jest with 57 unit tests (RL logic + store)
+- **Testing:** Jest with 70+ unit tests
 
 ---
 
@@ -90,8 +84,8 @@ These tradeoffs shaped both the ML logic and the app UX.
 
 ```bash
 # Clone the repository
-git clone https://github.com/kimothDev/smart-focus-timer.git
-cd smart-focus-timer
+git clone https://github.com/kimothDev/kairos.git
+cd kairos
 
 # Install dependencies
 npm install
@@ -99,8 +93,6 @@ npm install
 # Run on Android
 npx expo run:android
 ```
-
-Make sure you have Android Studio and an emulator or device connected.
 
 ---
 

@@ -89,7 +89,7 @@ export const CAPACITY_STORAGE_KEY = "contextual_bandits_capacity";
 // This prevents random high samples from beating proven winners
 export const DEFAULT_ALPHA = 1.0;
 export const DEFAULT_BETA = 1.5;
-export const EARLY_EXPLORATION_THRESHOLD = 3;
+export const EARLY_EXPLORATION_THRESHOLD = 2;
 export const CAPACITY_HISTORY_LIMIT = 10;
 
 // Spillover: when a session succeeds, give partial credit to the next higher arm

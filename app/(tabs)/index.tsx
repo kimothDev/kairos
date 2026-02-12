@@ -100,7 +100,7 @@ export default function TimerScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={[styles.title, { color: colors.text.primary }]}>
-          Smart Focus Timer
+          Kairos
         </Text>
 
         <View style={styles.slotsContainer}>

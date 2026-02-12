@@ -34,8 +34,8 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
-        <data android:scheme="app.smartfocustimer"/>
-        <data android:scheme="exp+smartfocustimer"/>
+        <data android:scheme="app.kairos"/>
+        <data android:scheme="exp+kairos"/>
       </intent-filter>
     </activity>
   </application>

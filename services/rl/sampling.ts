@@ -138,8 +138,13 @@ export async function updateModel(
   const successWeight = Math.max(0, Math.min(1, reward));
   const failureWeight = Math.max(0, 1 - successWeight);
 
-  model[contextKey][action].alpha += successWeight;
-  model[contextKey][action].beta += failureWeight;
+  // Intent Bonus: If it was a successful manual choice, we trust it more
+  // (Assuming reward > COMPLETED_BASE implies successful completion)
+  const isSuccessfulManual = reward > 0.7;
+  const multiplier = isSuccessfulManual ? 1.5 : 1.0;
+
+  model[contextKey][action].alpha += successWeight * multiplier;
+  model[contextKey][action].beta += failureWeight * multiplier;
 
   const newMean =
     model[contextKey][action].alpha /

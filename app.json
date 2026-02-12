@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "SmartFocusTimer",
-    "slug": "smartfocustimer",
+    "name": "Kairos",
+    "slug": "kairos",
     "owner": "kimoth",
     "version": "1.4.0",
     "orientation": "portrait",
@@ -16,10 +16,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.smartfocustimer"
+      "bundleIdentifier": "app.kairos"
     },
     "android": {
-      "package": "app.smartfocustimer",
+      "package": "app.kairos",
       "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
