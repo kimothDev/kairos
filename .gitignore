@@ -32,25 +32,16 @@ build/
 # -------------------------------
 # Native App (Android/iOS)
 # -------------------------------
+android/
+ios/
+
 *.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
-
-# Android build cache and outputs
-android/app/build/
-android/.gradle/
-android/app/.cxx/
-android/app/src/main/assets/index.android.bundle
-android/app/src/main/assets/index.android.bundle.meta
 local.properties
-android/*.iml
-
-# APK and AAB outputs (don't track built files)
-android/app/build/outputs/apk/
-android/app/build/outputs/bundle/
 
 
 # -------------------------------
