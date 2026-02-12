@@ -46,6 +46,7 @@
       "expo-router",
       "expo-document-picker",
       "expo-media-library",
+      "./plugins/withAndroid16KBAlignment",
       [
         "expo-splash-screen",
         {

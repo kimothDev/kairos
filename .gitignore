@@ -3,12 +3,12 @@
 # ============================================
 
 # -------------------------------
-# Documentation and Scripts (Local Only)
+# Documentation (Local Only)
 # -------------------------------
 mdFiles/
 AGENTS.md
-scripts/
 RELEASE_NOTES.md
+scripts/create-release.sh
 
 
 # -------------------------------
