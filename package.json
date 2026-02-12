@@ -14,9 +14,11 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@quidone/react-native-wheel-picker": "^1.6.1",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-navigation/native": "^7.1.8",
     "expo": "~52.0.46",
+    "expo-av": "~15.0.2",
     "expo-constants": "~17.0.8",
     "expo-document-picker": "~13.0.3",
     "expo-font": "~13.0.4",
