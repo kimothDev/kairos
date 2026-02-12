@@ -64,18 +64,33 @@ export async function completeSession(
     focusedTime,
   } = params;
 
+  const focusTimeInMinutes = secondsToMinutes(focusedTime);
+  const totalFocusDuration = secondsToMinutes(originalFocusDuration);
+  const breakTimeInMinutes = secondsToMinutes(selectedBreakDuration);
+
+  // LOG SUMMARY: Explanatory view of the session choices
+  const choiceStatus = userAcceptedRecommendation
+    ? "TRUSTED: User followed the Smart Recommendation."
+    : "CUSTOMIZED: User picked their own duration.";
+
+  console.log(`\n--- 📊 Session Summary ---`);
+  console.log(
+    `Type: ${type.toUpperCase()} | Task: ${taskType} | Energy: ${energyLevel}`,
+  );
+  console.log(
+    `Duration: ${totalFocusDuration}min (Target was ${recommendedFocusDuration}min)`,
+  );
+  console.log(`Status: ${choiceStatus}`);
+  console.log(`--------------------------\n`);
+
   // Skip saving sessions that are too short (likely accidental starts)
   // Only applies to skipped sessions - completed sessions always get saved
   if (type !== "completed" && focusedTime < MIN_SESSION_FOR_SAVE) {
     console.log(
-      `[Session] Skipping save: session too short (${focusedTime}s < ${MIN_SESSION_FOR_SAVE}s minimum)`,
+      `[RL] Skipping save: Session was only ${focusedTime}s. Too short to be useful for learning.`,
     );
     return;
   }
-
-  const focusTimeInMinutes = secondsToMinutes(focusedTime);
-  const totalFocusDuration = secondsToMinutes(originalFocusDuration);
-  const breakTimeInMinutes = secondsToMinutes(selectedBreakDuration);
 
   const sessionCompleted = type === "completed";
   const skipReason =
@@ -108,10 +123,15 @@ export async function completeSession(
       capacityStats.averageCapacity,
     );
 
-    if (reward !== baseReward) {
+    if (reward < baseReward) {
       console.log(
-        `[RL] Capacity scaling: ${baseReward.toFixed(3)} → ${reward.toFixed(3)}`,
-        `(${focusTimeInMinutes}min vs avg ${capacityStats.averageCapacity.toFixed(1)}min)`,
+        `[RL] ⚖️ Capacity Penalty: Reward reduced (${baseReward.toFixed(2)} → ${reward.toFixed(2)}).`,
+        `Reason: ${focusTimeInMinutes}min is too easy compared to your average of ${capacityStats.averageCapacity.toFixed(1)}min.`,
+      );
+    } else if (reward > baseReward) {
+      console.log(
+        `[RL] ⭐ Capacity Bonus: Reward increased (${baseReward.toFixed(2)} → ${reward.toFixed(2)}).`,
+        `Reason: Great job stretching your focus beyond your usual ${capacityStats.averageCapacity.toFixed(1)}min!`,
       );
     }
   }
@@ -171,8 +191,8 @@ export async function completeSession(
         const spilloverReward = reward * SPILLOVER_FACTOR;
         await updateModel(focusContext, nextArm, spilloverReward);
         console.log(
-          `[RL] Spillover: ${focusTimeInMinutes}min → ${nextArm}min`,
-          `(reward ${spilloverReward.toFixed(3)})`,
+          `[RL] 📈 Spillover Learning: "Warming up" the ${nextArm}min option.`,
+          `Success at ${focusTimeInMinutes}min suggest you might be ready for more!`,
         );
       }
     }

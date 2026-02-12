@@ -1,22 +1,23 @@
 import {
-    MIN_SESSION_FOR_SAVE,
-    TIME_ADJUSTMENT_STEP,
-    TIMER_CONSTANTS,
+  MIN_SESSION_FOR_SAVE,
+  TIME_ADJUSTMENT_STEP,
+  TIMER_CONSTANTS,
 } from "@/constants/timer";
+import { getSmartBreakRecommendation } from "@/services/rl";
 import {
-    completeSession,
-    CompletionType,
+  completeSession,
+  CompletionType,
 } from "@/services/sessionCompletionService";
 import { EnergyLevel } from "@/types";
 import {
-    cancelScheduledNotification,
-    resetTimerState,
-    scheduleTimerNotification,
+  cancelScheduledNotification,
+  resetTimerState,
+  scheduleTimerNotification,
 } from "@/utils/sessionUtils";
-import * as Haptics from "expo-haptics";
+import { Vibration } from "react-native";
 import { SliceCreator, TimerSlice } from "./sliceTypes";
 
-const SPEED_FACTOR = 1;
+const SPEED_FACTOR = 100;
 
 /**
  * Internal helper to save a session and update state.
@@ -106,7 +107,18 @@ export const createTimerSlice: SliceCreator<TimerSlice> = (set, get) => ({
     }
 
     if (!isBreakTime) {
-      set({ originalFocusDuration: time });
+      // Re-calculate smart break based on ACTUAL selected time
+      // This ensures that if the user customized focus (e.g. 10m),
+      // the break recommendation respects the scaled options.
+      const breakRec = await getSmartBreakRecommendation(
+        { taskType: taskType!, energyLevel: energyLevel! },
+        state.recommendedBreakDuration,
+        Math.round(time / 60),
+      );
+      set({
+        originalFocusDuration: time,
+        recommendedBreakDuration: breakRec.value,
+      });
     }
 
     set({
@@ -118,7 +130,7 @@ export const createTimerSlice: SliceCreator<TimerSlice> = (set, get) => ({
       focusSessionDuration: time,
       hasSavedSession: false,
       userAcceptedRecommendation:
-        userAcceptedRecommendation || time === recommendedFocusDuration * 60,
+        userAcceptedRecommendation && time === recommendedFocusDuration * 60,
       sessionJustCompleted: false,
       scheduledNotificationId: newNotificationId,
     });
@@ -247,7 +259,15 @@ export const createTimerSlice: SliceCreator<TimerSlice> = (set, get) => ({
     set({
       time: newMinutes * 60,
       initialTime: newMinutes * 60,
-      userAcceptedRecommendation: true,
+      userAcceptedRecommendation: false,
+    });
+  },
+
+  setTime: (duration) => {
+    set({
+      time: duration,
+      initialTime: duration,
+      userAcceptedRecommendation: false,
     });
   },
 
@@ -271,7 +291,8 @@ export const createTimerSlice: SliceCreator<TimerSlice> = (set, get) => ({
     const remaining = state.initialTime - elapsed;
 
     if (remaining <= 0) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // Long vibrate for completion: 1s ON, 0.2s OFF, 1s ON
+      Vibration.vibrate([0, 1000, 200, 1000]);
       set({ scheduledNotificationId: null });
 
       if (!state.isBreakTime) {
