@@ -51,6 +51,12 @@ local.properties
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
+*.tmp
+*.temp
+*.bak
+*.apk
+*.aab
 
 
 # -------------------------------
@@ -58,6 +64,12 @@ yarn-error.*
 # -------------------------------
 .DS_Store
 *.pem
+Thumbs.db
+desktop.ini
+ehthumbs.db
+ehthumbs_vista.db
+*.lnk
+*.URL
 
 
 # -------------------------------
