@@ -7,19 +7,22 @@ import useTimerStore from "@/store/timerStore";
 import { Filter, History } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  useSafeAreaInsets
+} from "react-native-safe-area-context";
 
 type FilterPeriod = "day" | "week" | "month" | "year";
 
 export default function HistoryScreen() {
   const activeColors = useThemeColor();
+  const insets = useSafeAreaInsets();
 
   const { sessions, isLoading, loadSessions, previousTasks } = useTimerStore();
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("week");
@@ -93,11 +96,15 @@ export default function HistoryScreen() {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, { backgroundColor: activeColors.background }]}
-      edges={["top", "left", "right"]}
     >
-      <View style={[styles.header, { backgroundColor: activeColors.card }]}>
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: activeColors.card, paddingTop: insets.top + 10 },
+        ]}
+      >
         <Text style={[styles.title, { color: activeColors.text.primary }]}>
           Session History
         </Text>
@@ -135,7 +142,7 @@ export default function HistoryScreen() {
                   { color: activeColors.text.secondary },
                   filterPeriod === p && {
                     color: activeColors.card,
-                    fontWeight: "600",
+                    fontFamily: "Outfit_600SemiBold",
                   },
                 ]}
               >
@@ -164,7 +171,7 @@ export default function HistoryScreen() {
             data={filteredSessions}
             keyExtractor={(item) => String(item.id)}
             renderItem={({ item }) => <SessionHistoryItem session={item} />}
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={{ paddingBottom: 70 }}
             showsVerticalScrollIndicator={false}
           />
         ) : (
@@ -200,7 +207,7 @@ export default function HistoryScreen() {
         selectedEnergyLevels={selectedEnergyLevels}
         onApply={handleApplyFilters}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -221,7 +228,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
   },
   filterContainer: {
@@ -237,6 +244,7 @@ const styles = StyleSheet.create({
   },
   filterText: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
   },
   historyContainer: {
@@ -252,6 +260,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
+    fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
   },
   emptyState: {
@@ -264,13 +273,14 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyStateSubtext: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
     textAlign: "center",
     paddingHorizontal: 20,

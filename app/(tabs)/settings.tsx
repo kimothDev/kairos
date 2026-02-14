@@ -1,47 +1,54 @@
 import ImportModal from "@/components/ImportModal";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import {
-    exportAllDataAsZip,
-    ImportSelection,
-    ParsedImportData,
-    performImport,
-    pickAndParseZip,
+  exportAllDataAsZip,
+  ImportSelection,
+  ParsedImportData,
+  performImport,
+  pickAndParseZip,
 } from "@/services/dataExport";
 import { useThemeStore } from "@/store/themeStore";
 import useTimerStore from "@/store/timerStore";
 import {
-    Battery,
-    Bell,
-    Brain,
-    Download,
-    Github,
-    Info,
-    Monitor,
-    Moon,
-    Sun,
-    Trash2,
-    Upload,
+  Battery,
+  Bell,
+  Brain,
+  Download,
+  Github,
+  Info,
+  Monitor,
+  Moon,
+  Sun,
+  Trash2,
+  Upload,
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Linking,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Linking,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  useSafeAreaInsets
+} from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
   const colors = useThemeColor();
+  const insets = useSafeAreaInsets();
   const { themeMode, setThemeMode } = useThemeStore();
-  const { sessions, isLoading, clearAllSessions, loadSessions } =
-    useTimerStore();
+  const {
+    sessions,
+    isLoading,
+    clearAllSessions,
+    loadSessions,
+    showThemedAlert,
+  } = useTimerStore();
   const includeShortSessions = useTimerStore((s) => s.includeShortSessions);
   const toggleShort = useTimerStore((s) => s.toggleIncludeShortSessions);
   const notificationsEnabled = useTimerStore((s) => s.notificationsEnabled);
@@ -59,7 +66,7 @@ export default function SettingsScreen() {
   const openBatterySettings = async () => {
     if (Platform.OS === "android") {
       // Show alert with instructions, then open app settings
-      Alert.alert(
+      showThemedAlert(
         "Disable Battery Optimization",
         'To ensure notifications work when the app is in background:\n\n1. Tap "Open Settings" below\n2. Select "Battery"\n3. Choose "Unrestricted"',
         [
@@ -74,7 +81,7 @@ export default function SettingsScreen() {
   };
 
   const clearAllData = () => {
-    Alert.alert(
+    showThemedAlert(
       "Clear All Data",
       "Are you sure you want to clear all your session history? This action cannot be undone.",
       [
@@ -98,7 +105,7 @@ export default function SettingsScreen() {
       // No alert needed as share sheet handles feedback
     } catch (error) {
       console.error(error);
-      Alert.alert("Export Failed", "Could not create backup file.");
+      showThemedAlert("Export Failed", "Could not create backup file.");
     } finally {
       setIsExporting(false);
     }
@@ -115,7 +122,8 @@ export default function SettingsScreen() {
       }
     } catch (error) {
       console.error(error);
-      Alert.alert(
+      const { showThemedAlert } = useTimerStore.getState();
+      showThemedAlert(
         "Import Failed",
         error instanceof Error ? error.message : "Failed to read backup file.",
       );
@@ -136,13 +144,18 @@ export default function SettingsScreen() {
       // Refresh state
       await loadSessions();
 
-      Alert.alert(
+      const { showThemedAlert } = useTimerStore.getState();
+      showThemedAlert(
         "Import Complete",
         "Your data has been successfully restored.",
       );
     } catch (error) {
       console.error(error);
-      Alert.alert("Import Failed", "An error occurred while restoring data.");
+      const { showThemedAlert } = useTimerStore.getState();
+      showThemedAlert(
+        "Import Failed",
+        "An error occurred while restoring data.",
+      );
     } finally {
       setIsImporting(false);
       setImportData(null);
@@ -186,10 +199,7 @@ export default function SettingsScreen() {
   );
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      edges={["top", "left", "right"]}
-    >
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Import Modal */}
       <ImportModal
         visible={importModalVisible}
@@ -198,8 +208,8 @@ export default function SettingsScreen() {
         data={importData}
       />
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
-        <View style={styles.header}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 70 }}>
+        <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
           <Text style={[styles.title, { color: colors.text.primary }]}>
             Settings
           </Text>
@@ -373,6 +383,21 @@ export default function SettingsScreen() {
           </Text>
 
           <View style={styles.aboutContent}>
+            <View style={styles.brandedHeader}>
+              <Text
+                style={[styles.brandedTitle, { color: colors.text.primary }]}
+              >
+                Kairos
+              </Text>
+              <Text
+                style={[
+                  styles.brandedTagline,
+                  { color: colors.text.secondary },
+                ]}
+              >
+                Master your focus rhythm
+              </Text>
+            </View>
             <Text style={[styles.aboutText, { color: colors.text.secondary }]}>
               Kairos is an adaptive focus coach that learns from your habits to
               find your perfect focus rhythm and protect you from burnout.
@@ -417,7 +442,7 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -432,7 +457,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     marginBottom: 10,
   },
   section: {
@@ -443,7 +468,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
     marginBottom: 15,
   },
   settingItem: {
@@ -459,13 +484,16 @@ const styles = StyleSheet.create({
   },
   settingText: {
     fontSize: 16,
+    fontFamily: "Outfit_400Regular",
     marginLeft: 12,
   },
   settingValue: {
     fontSize: 16,
+    fontFamily: "Outfit_400Regular",
   },
   settingHint: {
     fontSize: 12,
+    fontFamily: "Outfit_400Regular",
     marginTop: 2,
   },
   themeSelector: {
@@ -485,7 +513,7 @@ const styles = StyleSheet.create({
   themeOptionLabel: {
     marginTop: 5,
     fontSize: 12,
-    fontWeight: "500",
+    fontFamily: "Outfit_500Medium", // We loaded 600, 700, 900. Let's use 600 or 400.
   },
   aboutContent: {
     marginBottom: 10,
@@ -494,5 +522,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     fontStyle: "italic",
+    marginTop: 10,
+  },
+  brandedHeader: {
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  brandedTitle: {
+    fontSize: 32,
+    fontFamily: "Outfit_900Black",
+    letterSpacing: -1.5,
+  },
+  brandedTagline: {
+    fontSize: 12,
+    fontFamily: "Outfit_400Regular",
+    opacity: 0.6,
+    marginTop: -4,
   },
 });

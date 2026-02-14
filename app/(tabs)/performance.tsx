@@ -5,36 +5,38 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { generateInsights } from "@/utils/insightEngine";
 import {
-    calculatePeriodDelta,
-    calculatePeriodMetrics,
-    formatMinutes,
-    getAdaptiveChartData,
-    getPeriodDates,
+  calculatePeriodDelta,
+  calculatePeriodMetrics,
+  formatMinutes,
+  getAdaptiveChartData,
+  getPeriodDates,
 } from "@/utils/performanceUtils";
 import {
-    ArrowDownRight,
-    ArrowRight,
-    ArrowUpRight,
-    BatteryFull,
-    Calendar,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    Flame,
-    Target,
-    TrendingUp,
-    Zap,
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Flame,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Zap,
 } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  useSafeAreaInsets
+} from "react-native-safe-area-context";
 
 const TimeRanges = ["day", "week", "month", "year"] as const;
 type TimeRange = (typeof TimeRanges)[number];
@@ -92,6 +94,7 @@ const MetricItemWithDelta = ({
 
 export default function PerformanceScreen() {
   const activeColors = useThemeColor();
+  const insets = useSafeAreaInsets();
 
   const { sessions, isLoading } = useTimerStore();
   const [timeRange, setTimeRange] = useState<TimeRange>("week");
@@ -168,11 +171,10 @@ export default function PerformanceScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView
+      <View
         style={[styles.container, { backgroundColor: activeColors.background }]}
-        edges={["top", "left", "right"]}
       >
-        <View style={styles.loadingContainer}>
+        <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
           <ActivityIndicator size="large" color={activeColors.primary} />
           <Text
             style={[styles.loadingText, { color: activeColors.text.secondary }]}
@@ -180,19 +182,24 @@ export default function PerformanceScreen() {
             Loading performance data...
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, { backgroundColor: activeColors.background }]}
-      edges={["top", "left", "right"]}
     >
-      <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 70 }}>
         {/* Header & Controls */}
         <View
-          style={[styles.header, { backgroundColor: activeColors.background }]}
+          style={[
+            styles.header,
+            {
+              backgroundColor: activeColors.background,
+              paddingTop: insets.top + 20,
+            },
+          ]}
         >
           <Text style={[styles.title, { color: activeColors.text.primary }]}>
             Overview
@@ -222,7 +229,7 @@ export default function PerformanceScreen() {
                     { color: activeColors.text.secondary },
                     timeRange === range && {
                       color: activeColors.card,
-                      fontWeight: "700",
+                      fontFamily: "Outfit_700Bold",
                     },
                   ]}
                 >
@@ -337,7 +344,7 @@ export default function PerformanceScreen() {
                 { backgroundColor: activeColors.warning },
               ]}
             >
-              <BatteryFull size={20} color={activeColors.card} />
+              <Sparkles size={20} color={activeColors.card} />
             </View>
             <View style={styles.insightContent}>
               <Text
@@ -346,7 +353,7 @@ export default function PerformanceScreen() {
                   { color: activeColors.text.secondary },
                 ]}
               >
-                Energy Impact
+                Mood Impact
               </Text>
               <Text
                 style={[
@@ -355,8 +362,8 @@ export default function PerformanceScreen() {
                 ]}
               >
                 {insights.energyCorrelation.isSignificant
-                  ? `High energy sessions are ${insights.energyCorrelation.diffPercent}% longer`
-                  : "Energy level hasn't significantly impacted duration yet."}
+                  ? `Intense sessions are ${insights.energyCorrelation.diffPercent}% longer`
+                  : "Mood hasn't significantly impacted duration yet."}
               </Text>
             </View>
           </View>
@@ -453,7 +460,7 @@ export default function PerformanceScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -470,6 +477,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
+    fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
   },
   header: {
@@ -480,7 +488,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
     marginBottom: 15,
   },
@@ -498,8 +506,8 @@ const styles = StyleSheet.create({
   },
   timeRangeText: {
     fontSize: 13,
+    fontFamily: "Outfit_600SemiBold",
     color: Colors.text.secondary,
-    fontWeight: "500",
   },
   dateNavRow: {
     flexDirection: "row",
@@ -510,7 +518,7 @@ const styles = StyleSheet.create({
   },
   dateRangeText: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
     color: Colors.text.primary,
   },
   navButton: {
@@ -538,11 +546,12 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
   },
   summarySubtitle: {
     fontSize: 12,
+    fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
   },
   metricsRow: {
@@ -555,13 +564,14 @@ const styles = StyleSheet.create({
   },
   metricValue: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
     marginTop: 8,
     marginBottom: 4,
   },
   metricLabel: {
     fontSize: 12,
+    fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
   },
   deltaContainer: {
@@ -575,7 +585,7 @@ const styles = StyleSheet.create({
   },
   deltaText: {
     fontSize: 10,
-    fontWeight: "700",
+    fontFamily: "Outfit_700Bold",
     marginLeft: 2,
   },
   insightsCard: {
@@ -592,7 +602,7 @@ const styles = StyleSheet.create({
   },
   insightsTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
     marginBottom: 16,
   },
@@ -614,12 +624,13 @@ const styles = StyleSheet.create({
   },
   insightLabel: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
     marginBottom: 2,
   },
   insightValue: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
     color: Colors.text.primary,
     lineHeight: 20,
   },
@@ -634,13 +645,14 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
     textAlign: "center",
   },

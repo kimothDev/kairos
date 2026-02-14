@@ -6,18 +6,18 @@ import SkipConfirmModal from "@/components/SkipConfirmModal";
 import TaskSelector from "@/components/TaskSelector";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore, { loadDynamicFocusArms } from "@/store/timerStore";
+import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import React, { useEffect, useRef } from "react";
 import {
-    AppState,
-    AppStateStatus,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  AppState,
+  AppStateStatus,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -29,6 +29,7 @@ Notifications.setNotificationHandler({
 
 export default function TimerScreen() {
   const colors = useThemeColor();
+  const insets = useSafeAreaInsets();
   const {
     energyLevel,
     taskType,
@@ -46,7 +47,11 @@ export default function TimerScreen() {
     (async () => {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== "granted") {
-        alert("Please enable notifications in system settings.");
+        const { showThemedAlert } = useTimerStore.getState();
+        showThemedAlert(
+          "Notifications",
+          "Please enable notifications in system settings to get focus reminders.",
+        );
       }
 
       if (Platform.OS === "android") {
@@ -94,17 +99,13 @@ export default function TimerScreen() {
 
   const confirmSkip = () => handleSkipConfirm(true);
   const cancelSkip = () => handleSkipConfirm(false);
-  return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      edges={["top", "left", "right"]}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={[styles.title, { color: colors.text.primary }]}>
-          Kairos
-        </Text>
 
-        <View style={styles.slotsContainer}>
+  const topInset = insets.top > 0 ? insets.top : Constants.statusBarHeight;
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={[styles.slotsContainer, { paddingTop: topInset + 20 }]}>
           <TaskSelector />
           <EnergyLevelSelector />
         </View>
@@ -120,7 +121,7 @@ export default function TimerScreen() {
         <BreakModal />
         <SkipConfirmModal onConfirmSkip={confirmSkip} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -130,16 +131,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginTop: 20,
-    marginBottom: 20,
+    paddingBottom: 100,
   },
   slotsContainer: {
     paddingHorizontal: 20,
-    marginBottom: -60,
+    marginBottom: 20,
   },
 });
