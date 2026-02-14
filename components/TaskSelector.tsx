@@ -4,15 +4,14 @@ import { ChevronRight } from "lucide-react-native";
 import React, { useState } from "react";
 
 import {
-  Alert,
-  Dimensions,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export default function TaskSelector() {
@@ -31,6 +30,7 @@ export default function TaskSelector() {
     removeCustomTask,
     hasMigratedTasks,
     migrateTasks,
+    showThemedAlert,
   } = useTimerStore();
 
   React.useEffect(() => {
@@ -46,14 +46,18 @@ export default function TaskSelector() {
   const isTimerRunning = isActive || isBreakTime;
 
   const handleDeleteTask = (task: string) => {
-    Alert.alert("Delete Task", `Are you sure you want to delete "${task}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => removeCustomTask(task),
-      },
-    ]);
+    showThemedAlert(
+      "Delete Task",
+      `Are you sure you want to delete "${task}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => removeCustomTask(task),
+        },
+      ],
+    );
   };
 
   return (
@@ -191,10 +195,11 @@ const styles = StyleSheet.create({
   },
   slotLabel: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
   },
   slotValue: {
     fontSize: 15,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
   modalOverlay: {
     flex: 1,
@@ -216,7 +221,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     marginBottom: 12,
     textAlign: "center",
   },
@@ -235,6 +240,7 @@ const styles = StyleSheet.create({
   },
   taskItemText: {
     fontSize: 16,
+    fontFamily: "Outfit_400Regular",
   },
   addTaskContainer: {
     flexDirection: "row",
@@ -248,6 +254,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     marginRight: 8,
+    fontFamily: "Outfit_400Regular",
   },
   addButton: {
     borderRadius: 20,
@@ -268,7 +275,7 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
   taskItemRow: {
     flexDirection: "row",

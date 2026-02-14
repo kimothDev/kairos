@@ -218,6 +218,13 @@ export default function CircularTimer() {
                   <TouchableOpacity
                     onPress={() => {
                       const store = useTimerStore.getState();
+                      if (!store.taskType || !store.energyLevel) {
+                        store.showThemedAlert(
+                          "Customise Timer",
+                          "Please select both a task type and focus mood before customizing the timer.",
+                        );
+                        return;
+                      }
                       if (
                         !store.hasInteractedWithTimer &&
                         !store.userAcceptedRecommendation &&
@@ -357,7 +364,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 64,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     marginBottom: 10,
   },
   startPauseButton: {
@@ -400,7 +407,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   staticLabel: {
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
     marginLeft: 0,
   },
 });

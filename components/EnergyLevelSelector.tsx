@@ -1,17 +1,30 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { EnergyLevel } from "@/types";
-import { BatteryFull, BatteryLow, BatteryMedium } from "lucide-react-native";
+import { Activity, Feather, Zap } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function EnergyLevelSelector() {
   const colors = useThemeColor();
-  const { energyLevel, setEnergyLevel, isActive, isBreakTime } =
-    useTimerStore();
+  const {
+    energyLevel,
+    setEnergyLevel,
+    isActive,
+    isBreakTime,
+    showThemedAlert,
+  } = useTimerStore();
   const isTimerRunning = isActive || isBreakTime;
 
   const handleSelect = (level: EnergyLevel) => {
+    const { taskType } = useTimerStore.getState();
+    if (!taskType) {
+      showThemedAlert(
+        "Setting Mood",
+        "Please select a task type before setting your focus mood.",
+      );
+      return;
+    }
     setEnergyLevel(level);
   };
 
@@ -19,7 +32,7 @@ export default function EnergyLevelSelector() {
     <View style={[styles.slotButton, { backgroundColor: colors.card }]}>
       <View>
         <Text style={[styles.slotLabel, { color: colors.text.secondary }]}>
-          Energy Level
+          Focus Mood
         </Text>
         <View style={styles.energySelector}>
           <View style={styles.energyButtons}>
@@ -35,7 +48,7 @@ export default function EnergyLevelSelector() {
               ]}
               onPress={() => !isTimerRunning && handleSelect("low")}
             >
-              <BatteryLow
+              <Feather
                 size={20}
                 color={
                   energyLevel === "low" ? colors.primary : colors.text.secondary
@@ -47,11 +60,11 @@ export default function EnergyLevelSelector() {
                   { color: colors.text.secondary },
                   energyLevel === "low" && {
                     color: colors.text.primary,
-                    fontWeight: "600",
+                    fontFamily: "Outfit_600SemiBold",
                   },
                 ]}
               >
-                Low
+                Relaxed
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -65,7 +78,7 @@ export default function EnergyLevelSelector() {
               ]}
               onPress={() => !isTimerRunning && handleSelect("mid")}
             >
-              <BatteryMedium
+              <Activity
                 size={20}
                 color={
                   energyLevel === "mid" ? colors.primary : colors.text.secondary
@@ -81,7 +94,7 @@ export default function EnergyLevelSelector() {
                   },
                 ]}
               >
-                Mid
+                Steady
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -95,7 +108,7 @@ export default function EnergyLevelSelector() {
               ]}
               onPress={() => !isTimerRunning && handleSelect("high")}
             >
-              <BatteryFull
+              <Zap
                 size={20}
                 color={
                   energyLevel === "high"
@@ -113,7 +126,7 @@ export default function EnergyLevelSelector() {
                   },
                 ]}
               >
-                High
+                Intense
               </Text>
             </TouchableOpacity>
           </View>
@@ -131,7 +144,7 @@ const styles = StyleSheet.create({
   },
   slotLabel: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
     marginBottom: 8,
   },
   energySelector: {
@@ -156,5 +169,6 @@ const styles = StyleSheet.create({
   energyText: {
     marginLeft: 5,
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
   },
 });

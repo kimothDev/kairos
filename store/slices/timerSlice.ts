@@ -86,12 +86,18 @@ export const createTimerSlice: SliceCreator<TimerSlice> = (set, get) => ({
     } = state;
 
     if (!taskType && !sessionJustCompleted) {
-      alert("Please select a task type before starting the timer.");
+      get().showThemedAlert(
+        "Missing Task",
+        "Please select a task type before starting the timer.",
+      );
       return;
     }
 
     if (!energyLevel && !sessionJustCompleted) {
-      alert("Please select your energy level before starting the timer.");
+      get().showThemedAlert(
+        "Missing Mood",
+        "Please select your focus mood before starting the timer.",
+      );
       return;
     }
 

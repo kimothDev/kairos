@@ -63,6 +63,12 @@ export interface TaskSlice {
   setSelectedBreakDuration: (duration: number) => void;
 }
 
+export interface AlertButton {
+  text: string;
+  style?: "cancel" | "destructive" | "default";
+  onPress?: () => void;
+}
+
 export interface UISlice {
   // State
   showTimeAdjust: boolean;
@@ -79,6 +85,12 @@ export interface UISlice {
   dynamicFocusArms: number[];
   notificationsEnabled: boolean;
 
+  themedAlert: {
+    title?: string;
+    message: string;
+    buttons?: AlertButton[];
+  } | null;
+
   // Actions
   toggleTimeAdjust: () => void;
   toggleTaskModal: (show: boolean) => void;
@@ -91,6 +103,12 @@ export interface UISlice {
   toggleNotificationsEnabled: () => void;
   addDynamicFocusArm: (arm: number) => void;
   migrateTasks: () => void;
+  showThemedAlert: (
+    title: string,
+    message?: string,
+    buttons?: AlertButton[],
+  ) => void;
+  hideThemedAlert: () => void;
 }
 
 // Combined store state

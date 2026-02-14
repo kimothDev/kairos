@@ -19,6 +19,7 @@ export const createUISlice: SliceCreator<UISlice> = (set, get) => ({
   includeShortSessions: false,
   dynamicFocusArms: [],
   notificationsEnabled: false,
+  themedAlert: null,
 
   // Actions
   toggleTimeAdjust: () => {
@@ -69,4 +70,14 @@ export const createUISlice: SliceCreator<UISlice> = (set, get) => ({
       };
     });
   },
+
+  showThemedAlert: (title, message, buttons) => {
+    if (message) {
+      set({ themedAlert: { title, message, buttons } });
+    } else {
+      set({ themedAlert: { message: title, buttons } });
+    }
+  },
+
+  hideThemedAlert: () => set({ themedAlert: null }),
 });
