@@ -5,7 +5,7 @@ import {
 } from "@/constants/timer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
-import { Check, Play, SkipForward, X } from "lucide-react-native";
+import { Play, SkipForward, X } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef } from "react";
 import {
   Animated,
@@ -148,7 +148,6 @@ export default function CircularTimer() {
                       width: RADIUS * 2,
                       alignItems: "center",
                       justifyContent: "center",
-                      marginRight: 15, // Shift everything left slightly as requested
                     }}
                   >
                     <View style={styles.pickerWithLabel}>
@@ -156,6 +155,9 @@ export default function CircularTimer() {
                         options={pickerOptions}
                         selectedValue={time}
                         onValueChange={(val) => setTime(val)}
+                        onConfirm={() =>
+                          useTimerStore.setState({ showTimeAdjust: false })
+                        }
                         width={PICKER_WIDTH}
                         height={PICKER_HEIGHT}
                         fontSize={PICKER_FONT_SIZE}
@@ -164,55 +166,19 @@ export default function CircularTimer() {
                         style={[
                           styles.staticLabel,
                           {
-                            position: "absolute", // Removed absolute positioning
+                            position: "absolute",
                             left: "60%",
-                            marginLeft: 10, // Add some spacing
+                            marginLeft: 10,
                             color: colors.text.secondary,
                             fontSize: UNIT_FONT_SIZE,
                             fontWeight: "500",
                             opacity: 0.8,
-                            marginBottom: RADIUS * 0, // Align with text baseline roughly
                           },
                         ]}
                       >
                         min
                       </Text>
                     </View>
-
-                    {/* CONFIRM BUTTON (Check) */}
-                    <TouchableOpacity
-                      onPress={() => {
-                        useTimerStore.setState({ showTimeAdjust: false });
-                      }}
-                      activeOpacity={0.7}
-                      style={{
-                        position: "absolute",
-                        left: RADIUS * 0.2, // Position on the left side
-                        top: "50%", // Center vertically
-                        marginTop: -25, // Half of height (56/2) to perfect center
-                        // bottom: -RADIUS * 0.25, // Removed bottom positioning
-                        width: 50,
-                        height: 50,
-                        borderRadius: 28,
-                        backgroundColor: colors.card,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        // Subtle shadow/elevation for depth
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 4.65,
-                        elevation: 8,
-                        borderWidth: 1,
-                        borderColor: colors.border,
-                      }}
-                    >
-                      <Check
-                        size={28}
-                        color={colors.primary}
-                        strokeWidth={2.5}
-                      />
-                    </TouchableOpacity>
                   </View>
                 ) : (
                   <TouchableOpacity
