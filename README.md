@@ -78,7 +78,7 @@ The system uses a hybrid **EWMA Bootstrap → Thompson Sampling** pipeline: your
 - **Frontend:** React Native (Expo Bare Workflow)
 - **Persistence:** SQLite (offline-first)
 - **Learning:** EWMA Bootstrap + Thompson Sampling with zone-based action spaces
-- **Testing:** Jest with 70+ unit tests
+- **Testing:** Jest with 80 unit tests
 
 ---
 
