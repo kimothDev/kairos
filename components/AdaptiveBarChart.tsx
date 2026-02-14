@@ -2,11 +2,11 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import React, { useState } from "react";
 import { LayoutChangeEvent, StyleSheet, Text, View } from "react-native";
 import Svg, {
-  Defs,
-  LinearGradient,
-  Rect,
-  Stop,
-  Text as SvgText,
+    Defs,
+    LinearGradient,
+    Rect,
+    Stop,
+    Text as SvgText,
 } from "react-native-svg";
 
 interface AdaptiveBarChartProps {
@@ -120,6 +120,7 @@ export default function AdaptiveBarChart({
                   x={Y_AXIS_WIDTH - 6} // Right-align in gutter with some padding
                   y={line.y + 10 + 3} // Center vertically relative to line
                   fontSize="10"
+                  fontFamily="Outfit_400Regular"
                   fill={Colors.text.secondary}
                   textAnchor="end"
                   opacity="0.8"
@@ -161,6 +162,7 @@ export default function AdaptiveBarChart({
                       x={barX + barWidth / 2}
                       y={GRAPH_HEIGHT + 25}
                       fontSize="9"
+                      fontFamily="Outfit_400Regular"
                       fill={Colors.text.secondary}
                       textAnchor="middle"
                     >
@@ -185,7 +187,12 @@ export default function AdaptiveBarChart({
               },
             ]}
           >
-            <Text style={[styles.noDataText, { color: Colors.text.light }]}>
+            <Text
+              style={[
+                styles.noDataText,
+                { color: Colors.text.light, fontFamily: "Outfit_400Regular" },
+              ]}
+            >
               No data
             </Text>
           </View>
@@ -217,7 +224,7 @@ const styles = StyleSheet.create({
   },
   chartTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
   },
   selectedData: {
     fontSize: 12,

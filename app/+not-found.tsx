@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
   link: {
     marginTop: 15,
@@ -41,5 +41,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
   },
 });

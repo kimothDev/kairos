@@ -83,10 +83,12 @@ const styles = StyleSheet.create({
   },
   barLabel: {
     fontSize: 12,
+    fontFamily: "Outfit_400Regular",
     marginTop: 8,
   },
   barValue: {
     fontSize: 10,
+    fontFamily: "Outfit_400Regular",
     marginTop: 2,
   },
 });

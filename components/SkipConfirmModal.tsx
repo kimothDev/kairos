@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
   },
   confirmText: {
     fontSize: 18,
+    fontFamily: "Outfit_600SemiBold",
     marginBottom: 20,
     textAlign: "center",
   },
@@ -106,10 +107,10 @@ const styles = StyleSheet.create({
   },
   confirmNoText: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
   confirmYesText: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
 });

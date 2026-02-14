@@ -56,10 +56,11 @@ const styles = StyleSheet.create({
   },
   insightLabel: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
     marginBottom: 2,
   },
   insightValue: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
   },
 });

@@ -1,14 +1,14 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { EnergyLevel, Session } from "@/types";
 import {
-  BatteryFull,
-  BatteryLow,
-  BatteryMedium,
-  CheckCircle,
-  Clock,
-  SquarePen,
-  StickyNote,
-  XCircle,
+    Activity,
+    CheckCircle,
+    Clock,
+    Feather,
+    SquarePen,
+    StickyNote,
+    XCircle,
+    Zap,
 } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -61,11 +61,11 @@ export default function SessionHistoryItem({
   const renderEnergyIcon = (level: EnergyLevel) => {
     switch (level) {
       case "low":
-        return <BatteryLow size={16} color={colors.text.secondary} />;
+        return <Feather size={16} color={colors.text.secondary} />;
       case "mid":
-        return <BatteryMedium size={16} color={colors.text.secondary} />;
+        return <Activity size={16} color={colors.text.secondary} />;
       case "high":
-        return <BatteryFull size={16} color={colors.text.secondary} />;
+        return <Zap size={16} color={colors.text.secondary} />;
       default:
         return null;
     }
@@ -127,7 +127,13 @@ export default function SessionHistoryItem({
           <View style={styles.detailItem}>
             {renderEnergyIcon(session.energyLevel as EnergyLevel)}
             <Text style={[styles.detailText, { color: colors.text.secondary }]}>
-              {session.energyLevel || "Not set"}
+              {session.energyLevel === "high"
+                ? "Intense"
+                : session.energyLevel === "mid"
+                  ? "Steady"
+                  : session.energyLevel === "low"
+                    ? "Relaxed"
+                    : "Not set"}
             </Text>
           </View>
         </View>
@@ -156,6 +162,7 @@ export default function SessionHistoryItem({
                     color: colors.text.secondary,
                     fontSize: 12,
                     marginRight: 4,
+                    fontFamily: "Outfit_400Regular",
                   }}
                 >
                   Add Note
@@ -199,10 +206,11 @@ const styles = StyleSheet.create({
   },
   taskType: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
   date: {
     fontSize: 12,
+    fontFamily: "Outfit_400Regular",
   },
   details: {
     gap: 8,
@@ -217,6 +225,7 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
     marginLeft: 4,
   },
   noteButton: {
@@ -230,6 +239,7 @@ const styles = StyleSheet.create({
   },
   noteText: {
     fontSize: 12,
+    fontFamily: "Outfit_400Regular",
     fontStyle: "italic",
     marginRight: 4,
   },

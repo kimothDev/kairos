@@ -1,16 +1,16 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
 import React, { useEffect, useState } from "react";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 
 interface NoteEditModalProps {
@@ -124,7 +124,13 @@ export default function NoteEditModal({
                       { backgroundColor: colors.background },
                     ]}
                   >
-                    <Text style={{ color: colors.text.primary, fontSize: 16 }}>
+                    <Text
+                      style={{
+                        color: colors.text.primary,
+                        fontSize: 16,
+                        fontFamily: "Outfit_400Regular",
+                      }}
+                    >
                       {note}
                     </Text>
                   </View>
@@ -184,7 +190,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     marginBottom: 16,
   },
   input: {
@@ -192,6 +198,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     fontSize: 16,
+    fontFamily: "Outfit_400Regular",
     minHeight: 100,
     textAlignVertical: "top",
     marginBottom: 20,
@@ -216,7 +223,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   buttonText: {
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
     fontSize: 16,
   },
 });

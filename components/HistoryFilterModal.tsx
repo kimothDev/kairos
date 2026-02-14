@@ -85,7 +85,7 @@ export default function HistoryFilterModal({
           styles.chipText,
           {
             color: selected ? colors.card : colors.text.primary,
-            fontWeight: selected ? "600" : "400",
+            fontFamily: selected ? "Outfit_600SemiBold" : "Outfit_400Regular",
           },
         ]}
       >
@@ -149,13 +149,17 @@ export default function HistoryFilterModal({
                     { color: colors.text.secondary, marginTop: 20 },
                   ]}
                 >
-                  Energy Level
+                  Focus Mood
                 </Text>
                 <View style={styles.chipContainer}>
                   {["high", "mid", "low"].map((level) => (
                     <React.Fragment key={level}>
                       {renderChip(
-                        level.charAt(0).toUpperCase() + level.slice(1),
+                        level === "high"
+                          ? "Intense"
+                          : level === "mid"
+                            ? "Steady"
+                            : "Relaxed",
                         energyLevels.includes(level),
                         () => toggleEnergyLevel(level),
                       )}
@@ -221,14 +225,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
   scrollContent: {
     marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
     marginBottom: 12,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -246,6 +250,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
   },
   footer: {
     flexDirection: "row",
@@ -260,7 +265,7 @@ const styles = StyleSheet.create({
   },
   resetText: {
     fontSize: 16,
-    fontWeight: "500",
+    fontFamily: "Outfit_600SemiBold",
   },
   applyButton: {
     paddingVertical: 12,
@@ -269,6 +274,6 @@ const styles = StyleSheet.create({
   },
   applyText: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
 });

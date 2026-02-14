@@ -90,12 +90,13 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     marginBottom: 10,
     textAlign: "center",
   },
   modalText: {
     fontSize: 16,
+    fontFamily: "Outfit_400Regular",
     textAlign: "center",
     marginTop: 10,
     marginBottom: 20,
@@ -113,6 +114,6 @@ const styles = StyleSheet.create({
   },
   breakOptionText: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
   },
 });

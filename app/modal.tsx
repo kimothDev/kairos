@@ -9,7 +9,12 @@ export default function ModalScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title, { color: colors.text.primary }]}>Modal</Text>
       <View style={[styles.separator, { backgroundColor: colors.border }]} />
-      <Text style={{ color: colors.text.secondary }}>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontFamily: "Outfit_400Regular",
+        }}
+      >
         This is an example modal. You can edit it in app/modal.tsx.
       </Text>
 
@@ -27,7 +32,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
   separator: {
     marginVertical: 30,

@@ -147,16 +147,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     textAlign: "center",
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
     marginBottom: 12,
     textAlign: "center",
   },
   description: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
     textAlign: "center",
     marginTop: 8,
   },

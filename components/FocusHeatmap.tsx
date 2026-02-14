@@ -215,8 +215,8 @@ export default function FocusHeatmap({
                 x={l.x}
                 y={l.y}
                 fontSize="10"
+                fontFamily="Outfit_600SemiBold"
                 fill={colors.text.secondary}
-                fontWeight="600"
               >
                 {l.text}
               </SvgText>
@@ -274,11 +274,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
   stats: {
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
   },
   chartLayout: {
     flexDirection: "row",
@@ -291,6 +291,7 @@ const styles = StyleSheet.create({
   dayLabel: {
     position: "absolute",
     fontSize: 10,
+    fontFamily: "Outfit_400Regular",
     lineHeight: SQUARE_SIZE,
     width: "100%",
   },

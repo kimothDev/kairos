@@ -31,12 +31,12 @@ export default function TabLayout() {
         },
         headerTitleStyle: {
           color: colors.text.primary,
-          fontWeight: "bold",
+          fontFamily: "Outfit_700Bold",
         },
         headerShown: false, //hide the header for all screens
         tabBarLabelStyle: {
           fontSize: 11.5,
-          fontWeight: "400",
+          fontFamily: "Outfit_500Medium",
         },
       }}
     >

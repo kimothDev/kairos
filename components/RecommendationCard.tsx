@@ -64,7 +64,12 @@ export default function RecommendationModal() {
           task and
           <Text style={[styles.highlight, { color: colors.primary }]}>
             {" "}
-            {energyLevel} energy
+            {energyLevel === "high"
+              ? "Intense"
+              : energyLevel === "mid"
+                ? "Steady"
+                : "Relaxed"}{" "}
+            mood
           </Text>
           :
         </Text>
@@ -186,16 +191,17 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
     marginLeft: 8,
   },
   description: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
     marginBottom: 20,
     lineHeight: 20,
   },
   highlight: {
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
   },
   recommendationRow: {
     flexDirection: "row",
@@ -207,11 +213,12 @@ const styles = StyleSheet.create({
   },
   recommendationLabel: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
     marginBottom: 4,
   },
   recommendationValue: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
   actionButtons: {
     flexDirection: "row",
@@ -234,12 +241,12 @@ const styles = StyleSheet.create({
   },
   acceptButtonText: {
     color: "#FFFFFF",
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
     marginLeft: 5,
     fontSize: 13,
   },
   rejectButtonText: {
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
     marginLeft: 5,
     fontSize: 13,
   },

@@ -51,7 +51,7 @@ export default function InlineTimePicker({
         itemTextStyle={{
           color: colors.text.primary,
           fontSize: fontSize, // Dynamic font size
-          fontWeight: "500", // Lighter weight for elegance
+          fontFamily: "Outfit_500Medium",
           fontVariant: ["tabular-nums"], // fixed width numbers
           textAlign: "right",
         }}

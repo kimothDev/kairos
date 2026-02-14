@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "Outfit_700Bold",
   },
   closeButton: {
     padding: 4,
@@ -280,6 +280,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
+    fontFamily: "Outfit_400Regular",
     marginBottom: 15,
   },
   optionRow: {
@@ -298,11 +299,12 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
     marginBottom: 4,
   },
   optionDetail: {
     fontSize: 14,
+    fontFamily: "Outfit_400Regular",
   },
   warningContainer: {
     flexDirection: "row",
@@ -321,6 +323,7 @@ const styles = StyleSheet.create({
   warningText: {
     flex: 1,
     fontSize: 13,
+    fontFamily: "Outfit_400Regular",
     lineHeight: 18,
   },
   footer: {
@@ -338,7 +341,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
   },
   importButton: {
     flex: 1,
@@ -360,7 +363,7 @@ const styles = StyleSheet.create({
   },
   importButtonText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "Outfit_600SemiBold",
     color: "#FFFFFF",
   },
 });
