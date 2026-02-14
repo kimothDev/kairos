@@ -15,6 +15,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@expo-google-fonts/outfit": "^0.4.3",
     "@quidone/react-native-wheel-picker": "^1.6.1",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-navigation/native": "^7.0.14",
@@ -42,7 +43,7 @@
     "react-dom": "18.3.1",
     "react-native": "^0.76.9",
     "react-native-gesture-handler": "~2.20.2",
-    "react-native-safe-area-context": "4.12.0",
+    "react-native-safe-area-context": "^4.12.0",
     "react-native-screens": "~4.4.0",
     "react-native-svg": "15.8.0",
     "react-native-web": "^0.19.13",

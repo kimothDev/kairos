@@ -48,6 +48,7 @@ const fetchAndApplyRecommendation = async (
       initialTime: focusDuration * 60,
       userAcceptedRecommendation: false,
       hasDismissedRecommendationCard: false,
+      hasInteractedWithTimer: false,
     });
   } catch (error) {
     console.error("Error getting session recommendation:", error);
@@ -71,7 +72,11 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
 
   // Actions
   setTaskType: (task) => {
-    set({ taskType: task, showTaskModal: false });
+    set({
+      taskType: task,
+      showTaskModal: false,
+      hasInteractedWithTimer: false,
+    });
     const { energyLevel, dynamicFocusArms } = get();
 
     // Using existing util for simple update (legacy pattern) or consolidate?
@@ -106,6 +111,7 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
           time: DEFAULT_RECOMMENDATION.focusDuration * 60,
           initialTime: DEFAULT_RECOMMENDATION.focusDuration * 60,
           userAcceptedRecommendation: false,
+          hasInteractedWithTimer: false,
         });
       }
     }

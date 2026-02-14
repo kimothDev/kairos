@@ -241,6 +241,7 @@ export async function updateRecommendations(
       initialTime: focusDuration * 60,
       userAcceptedRecommendation: false,
       hasDismissedRecommendationCard: false,
+      hasInteractedWithTimer: false,
     });
   } catch (error) {
     console.error("Error getting session recommendation:", error);

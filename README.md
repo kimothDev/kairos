@@ -20,11 +20,11 @@ Instead of fixed Pomodoro-style timers (25/5), Kairos uses **Thompson Sampling**
 Each focus session is a coaching opportunity:
 
 1. **You tell Kairos** your current energy level (low/mid/high) and task type
-2. **The app negotiates** a focus duration based on your "Slope" and capacity
+2. **The app recommends** a focus duration based on your history (EWMA in early sessions, Thompson Sampling after 5+ sessions)
 3. **You complete (or skip) the session**
 4. **The model learns** and improves future recommendations
 
-The system balances **exploration** (trying new durations) with **exploitation** (reusing what worked).
+The system uses a hybrid **EWMA Bootstrap → Thompson Sampling** pipeline: your own average is the recommendation during early sessions, then Thompson Sampling takes over once it has enough evidence.
 
 ---
 
@@ -40,7 +40,9 @@ The system balances **exploration** (trying new durations) with **exploitation**
 
 ### Adaptive Coaching
 
-- **Zone-based learning:** Short (10-30m), Long (25-60m), and **Extended (50-120m)** zones
+- **EWMA Bootstrap:** Mirrors your actual behavior from session 2 — no random exploration
+- **Zone-based learning:** Short (10-30m), Long (25-60m), and Extended (50-120m) zones
+- **Cross-energy floor:** Higher energy contexts never recommend less than what lower energy has proven
 - **Energy-aware:** Low energy users aren't pushed to do longer sessions
 - **Break scaling:** Break duration scales with focus (max break = focus ÷ 3)
 
@@ -75,7 +77,7 @@ The system balances **exploration** (trying new durations) with **exploitation**
 
 - **Frontend:** React Native (Expo Bare Workflow)
 - **Persistence:** SQLite (offline-first)
-- **Learning:** Thompson Sampling with zone-based action spaces
+- **Learning:** EWMA Bootstrap + Thompson Sampling with zone-based action spaces
 - **Testing:** Jest with 70+ unit tests
 
 ---

@@ -1,3 +1,7 @@
+/**
+ * User's focus capacity/state. Displayed as "Focus Mood" in the UI.
+ * Internal levels: low -> Relaxed, mid -> Steady, high -> Intense.
+ */
 export type EnergyLevel = "low" | "mid" | "high" | "";
 export type TimeRange = "week" | "month" | "year";
 
