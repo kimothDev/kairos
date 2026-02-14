@@ -19,21 +19,21 @@ import { createContextKey } from "@/utils/contextKey";
 import { adjustForCapacity, getCapacityStats } from "./capacity";
 import { getBestAction, getTotalObservations } from "./sampling";
 import {
-    loadCapacity,
-    loadModel,
-    loadZones,
-    saveCapacity,
-    saveModel,
-    saveZones,
+  loadCapacity,
+  loadModel,
+  loadZones,
+  saveCapacity,
+  saveModel,
+  saveZones,
 } from "./storage";
 import {
-    BREAK_ACTIONS,
-    CapacityState,
-    Context,
-    DEFAULT_ALPHA,
-    DEFAULT_BETA,
-    ModelState,
-    ZoneState,
+  BREAK_ACTIONS,
+  CapacityState,
+  Context,
+  DEFAULT_ALPHA,
+  DEFAULT_BETA,
+  ModelState,
+  ZoneState,
 } from "./types";
 import { getZoneActions, getZoneData } from "./zones";
 
@@ -42,50 +42,50 @@ import { getZoneActions, getZoneData } from "./zones";
 // ============================================================================
 
 export {
-    adjustForCapacity,
-    getCapacityStats,
-    updateCapacityStats
+  adjustForCapacity,
+  getCapacityStats,
+  updateCapacityStats
 } from "./capacity";
 export {
-    getBestAction,
-    getTotalObservations,
-    penalizeRejection,
-    sampleBeta,
-    updateModel
+  getBestAction,
+  getTotalObservations,
+  penalizeRejection,
+  sampleBeta,
+  updateModel
 } from "./sampling";
 export {
-    loadCapacity,
-    loadModel,
-    loadZones,
-    saveCapacity,
-    saveModel,
-    saveZones
+  loadCapacity,
+  loadModel,
+  loadZones,
+  saveCapacity,
+  saveModel,
+  saveZones
 } from "./storage";
 export {
-    BREAK_ACTIONS,
-    DEFAULT_ALPHA,
-    DEFAULT_BETA,
-    SPILLOVER_FACTOR,
-    SPILLOVER_THRESHOLD,
-    ZONE_ACTIONS
+  BREAK_ACTIONS,
+  DEFAULT_ALPHA,
+  DEFAULT_BETA,
+  SPILLOVER_FACTOR,
+  SPILLOVER_THRESHOLD,
+  ZONE_ACTIONS
 } from "./types";
 export type {
-    Action,
-    CapacityState,
-    CapacityStats,
-    Context,
-    FocusZone,
-    ModelParameters,
-    ModelState,
-    ZoneData,
-    ZoneState
+  Action,
+  CapacityState,
+  CapacityStats,
+  Context,
+  FocusZone,
+  ModelParameters,
+  ModelState,
+  ZoneData,
+  ZoneState
 } from "./types";
 export {
-    checkZoneTransition,
-    detectZone,
-    getZoneActions,
-    getZoneData,
-    updateZoneData
+  checkZoneTransition,
+  detectZone,
+  getZoneActions,
+  getZoneData,
+  updateZoneData
 } from "./zones";
 
 // ============================================================================
@@ -144,10 +144,50 @@ export async function getSmartRecommendation(
       context.energyLevel,
     );
 
+    // Cross-energy floor: if lower energy levels have learned,
+    // high energy should be at least as capable. (high ≥ mid ≥ low)
+    let floored = capacityAdjusted;
+    const energyHierarchy: Array<"low" | "mid" | "high"> = [
+      "low",
+      "mid",
+      "high",
+    ];
+    const currentIdx = energyHierarchy.indexOf(
+      context.energyLevel as "low" | "mid" | "high",
+    );
+
+    if (currentIdx > 0) {
+      for (let i = currentIdx - 1; i >= 0; i--) {
+        const lowerKey = `${context.taskType}|${energyHierarchy[i]}`;
+        const lowerModel = model[lowerKey];
+        if (lowerModel) {
+          // Find the best proven arm in the lower energy context (by mean)
+          const lowerArms = Object.keys(lowerModel).map(Number);
+          if (lowerArms.length > 0) {
+            const bestLowerArm = lowerArms.reduce((best, arm) => {
+              const meanBest =
+                lowerModel[best].alpha /
+                (lowerModel[best].alpha + lowerModel[best].beta);
+              const meanArm =
+                lowerModel[arm].alpha /
+                (lowerModel[arm].alpha + lowerModel[arm].beta);
+              return meanArm > meanBest ? arm : best;
+            });
+            if (bestLowerArm > floored) {
+              console.log(
+                `[RL] Cross-energy floor: ${floored}m → ${bestLowerArm}m (proven at ${energyHierarchy[i]} energy)`,
+              );
+              floored = bestLowerArm;
+            }
+          }
+        }
+      }
+    }
+
     // Clamp to zone actions
     const finalValue = Math.max(
       Math.min(...actions),
-      Math.min(capacityAdjusted, Math.max(...actions)),
+      Math.min(floored, Math.max(...actions)),
     );
 
     let source: "learned" | "blended" | "capacity";

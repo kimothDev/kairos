@@ -9,6 +9,7 @@ mdFiles/
 AGENTS.md
 RELEASE_NOTES.md
 scripts/create-release.sh
+sample/
 
 
 # -------------------------------
@@ -108,3 +109,6 @@ LPT9
 # -------------------------------
 .idea/
 .vscode/
+analyze_samples.py
+analyze_decay.py
+analyze_transitions.py
