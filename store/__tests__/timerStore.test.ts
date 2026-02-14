@@ -46,6 +46,9 @@ jest.mock("@/services/rl", () => ({
   updateModel: jest.fn(() => Promise.resolve()),
   updateCapacityStats: jest.fn(() => Promise.resolve()),
   updateZoneData: jest.fn(() => Promise.resolve()),
+  getSmartBreakRecommendation: jest.fn(() =>
+    Promise.resolve({ value: 5, source: "heuristic" }),
+  ),
 }));
 
 // Import after mocks

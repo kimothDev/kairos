@@ -15,9 +15,9 @@ export function detectZone(
   energyLevel: EnergyLevel,
 ): FocusZone {
   if (selection <= 25) return "short";
-  if (selection >= 50) return "extended";
-  if (selection >= 35) return "long";
-  // 26-34 range: use energy level as tiebreaker
+  if (selection >= 70) return "extended";
+  if (selection >= 30) return "long";
+  // 26-29 range: use energy level as tiebreaker
   return energyLevel === "low" ? "short" : "long";
 }
 
@@ -86,8 +86,6 @@ export function checkZoneTransition(zoneData: ZoneData): FocusZone {
     );
     return "long";
   }
-
-  return zone;
 
   return zone;
 }

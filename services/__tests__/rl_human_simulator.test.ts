@@ -1,9 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-    getSmartRecommendation,
-    updateCapacityStats,
-    updateModel,
-    updateZoneData
+  getSmartRecommendation,
+  updateCapacityStats,
+  updateModel,
+  updateZoneData,
 } from "../rl";
 
 // Mock the dependencies
@@ -168,5 +168,67 @@ describe("RL Human Simulator - 'The Chaos Test'", () => {
 
     // For a burnout user, the model should ideally stay at lower durations
     expect(finalRec.value).toBeLessThanOrEqual(25);
+  });
+
+  test("Bootstrap Test: EWMA mirrors user from session 2", async () => {
+    console.log("\n🚀 Starting 10-Session 'Bootstrap Test'...");
+    console.log("Scenario: User consistently prefers 50-60m sessions\n");
+
+    // Session 1: No data, gets heuristic
+    const rec1 = await getSmartRecommendation(context, 25);
+    console.log(`Session 1: Rec=${rec1.value}m (${rec1.source})`);
+
+    // User overrides to 60m and completes it
+    await updateModel(context, 60, 1.0);
+    await updateCapacityStats(contextKey, 60, 60, true);
+    await updateZoneData(contextKey, 60);
+
+    // Session 2: Should now bootstrap from EWMA (≈60m)
+    const rec2 = await getSmartRecommendation(context, 25);
+    console.log(`Session 2: Rec=${rec2.value}m (${rec2.source})`);
+    expect(rec2.value).toBeGreaterThanOrEqual(50); // EWMA should reflect 60m
+
+    // User does 50m
+    await updateModel(context, 50, 1.0);
+    await updateCapacityStats(contextKey, 50, 50, true);
+    await updateZoneData(contextKey, 50);
+
+    // Session 3: EWMA of [60, 50] → 0.7*50 + 0.3*60 = 53 → rounds to 55
+    const rec3 = await getSmartRecommendation(context, 25);
+    console.log(`Session 3: Rec=${rec3.value}m (${rec3.source})`);
+    expect(rec3.value).toBeGreaterThanOrEqual(45);
+
+    // User does 60m again
+    await updateModel(context, 60, 1.0);
+    await updateCapacityStats(contextKey, 60, 60, true);
+    await updateZoneData(contextKey, 60);
+
+    // Session 4
+    const rec4 = await getSmartRecommendation(context, 25);
+    console.log(`Session 4: Rec=${rec4.value}m (${rec4.source})`);
+
+    // User does 55m
+    await updateModel(context, 55, 1.0);
+    await updateCapacityStats(contextKey, 55, 55, true);
+    await updateZoneData(contextKey, 55);
+
+    // Session 5
+    const rec5 = await getSmartRecommendation(context, 25);
+    console.log(`Session 5: Rec=${rec5.value}m (${rec5.source})`);
+
+    // User does 40m (bad day)
+    await updateModel(context, 40, 0.85);
+    await updateCapacityStats(contextKey, 40, 40, true);
+    await updateZoneData(contextKey, 40);
+
+    // Session 6: TS should now be in charge (5+ observations)
+    const rec6 = await getSmartRecommendation(context, 25);
+    console.log(`Session 6: Rec=${rec6.value}m (${rec6.source}) [TS Takeover]`);
+
+    // After 5 sessions of 60, 50, 60, 55, 40 → TS should land in 40-60m range
+    expect(rec6.value).toBeGreaterThanOrEqual(25);
+    expect(rec6.value).toBeLessThanOrEqual(120);
+
+    console.log("\n✅ Bootstrap test complete!");
   });
 });

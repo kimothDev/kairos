@@ -90,6 +90,8 @@ export const CAPACITY_STORAGE_KEY = "contextual_bandits_capacity";
 export const DEFAULT_ALPHA = 1.0;
 export const DEFAULT_BETA = 1.5;
 export const EARLY_EXPLORATION_THRESHOLD = 2;
+export const BOOTSTRAP_THRESHOLD = 5;
+export const EWMA_ALPHA = 0.7; // Weight for recent selections in EWMA bootstrap
 export const CAPACITY_HISTORY_LIMIT = 10;
 
 // Spillover: when a session succeeds, give partial credit to the next higher arm

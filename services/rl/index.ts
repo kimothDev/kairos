@@ -27,15 +27,17 @@ import {
   saveZones,
 } from "./storage";
 import {
+  BOOTSTRAP_THRESHOLD,
   BREAK_ACTIONS,
   CapacityState,
   Context,
   DEFAULT_ALPHA,
   DEFAULT_BETA,
+  EWMA_ALPHA,
   ModelState,
   ZoneState,
 } from "./types";
-import { getZoneActions, getZoneData } from "./zones";
+import { detectZone, getZoneActions, getZoneData } from "./zones";
 
 // ============================================================================
 // Re-exports (preserves public API)
@@ -117,7 +119,7 @@ export async function getSmartRecommendation(
       heuristicRecommendation,
     );
     const capacityStats = await getCapacityStats(contextKey);
-    const actions = getZoneActions(zoneData.zone, dynamicArms);
+    let actions = getZoneActions(zoneData.zone, dynamicArms);
 
     console.log("Zone:", zoneData.zone, "| Actions:", actions.join(", "));
 
@@ -125,17 +127,48 @@ export async function getSmartRecommendation(
     const model = await loadModel();
     const totalObs = getTotalObservations(model, contextKey);
 
-    if (totalObs < 1) {
-      // Not enough data, use heuristic
-      const clamped = Math.max(
-        Math.min(...actions),
-        Math.min(heuristicRecommendation, Math.max(...actions)),
-      );
-      console.log("=== Returning", clamped, "(heuristic - low data) ===\n");
-      return { value: clamped, source: "heuristic" };
-    }
+    let modelRec: number;
+    let isBootstrap = false;
 
-    const modelRec = await getBestAction(context, actions, dynamicArms);
+    if (totalObs < 1 && capacityStats.recentSessions.length === 0) {
+      // Truly no data, use heuristic
+      modelRec = heuristicRecommendation;
+      console.log("=== Using heuristic (no data) ===");
+    } else if (totalObs < BOOTSTRAP_THRESHOLD) {
+      // Bootstrap phase: Mirror the user's average selection immediately
+      isBootstrap = true;
+      const sessions = capacityStats.recentSessions;
+      if (sessions.length > 0) {
+        let ewma = sessions[0].selectedDuration;
+        for (let i = 1; i < sessions.length; i++) {
+          ewma =
+            EWMA_ALPHA * sessions[i].selectedDuration + (1 - EWMA_ALPHA) * ewma;
+        }
+        modelRec = Math.round(ewma / 5) * 5;
+        console.log(
+          `=== Bootstrap Phase (EWMA): ${modelRec}m (based on ${sessions.length} sessions) ===`,
+        );
+      } else {
+        modelRec = heuristicRecommendation;
+      }
+    } else {
+      // TS Takeover — ensure zone matches user's proven capacity
+      if (capacityStats.averageCapacity > 0) {
+        const correctZone = detectZone(
+          Math.round(capacityStats.averageCapacity),
+          context.energyLevel as "low" | "mid" | "high",
+        );
+        if (correctZone !== zoneData.zone) {
+          console.log(
+            `[RL] Automatic zone switch for ${contextKey}: ${zoneData.zone} -> ${correctZone} (avg: ${capacityStats.averageCapacity.toFixed(1)})`,
+          );
+          zoneData.zone = correctZone;
+          actions = getZoneActions(correctZone, dynamicArms);
+          console.log("Zone:", correctZone, "| Actions:", actions.join(", "));
+        }
+      }
+      modelRec = await getBestAction(context, actions, dynamicArms);
+    }
 
     // Apply capacity adjustment (respects energy level - no stretch for low energy)
     const capacityAdjusted = adjustForCapacity(
@@ -184,11 +217,17 @@ export async function getSmartRecommendation(
       }
     }
 
-    // Clamp to zone actions
-    const finalValue = Math.max(
-      Math.min(...actions),
-      Math.min(floored, Math.max(...actions)),
-    );
+    // Clamp: during bootstrap, use global bounds (10-120m)
+    // After bootstrap, clamp to zone actions
+    let finalValue: number;
+    if (isBootstrap) {
+      finalValue = Math.max(10, Math.min(floored, 120));
+    } else {
+      finalValue = Math.max(
+        Math.min(...actions),
+        Math.min(floored, Math.max(...actions)),
+      );
+    }
 
     let source: "learned" | "blended" | "capacity";
     if (capacityAdjusted !== modelRec) {
