@@ -10,12 +10,12 @@ import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import React, { useEffect, useRef } from "react";
 import {
-  AppState,
-  AppStateStatus,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
+    AppState,
+    AppStateStatus,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -131,10 +131,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 100,
+    paddingBottom: "25%",
   },
   slotsContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: "5%",
+    marginBottom: "5%",
   },
 });

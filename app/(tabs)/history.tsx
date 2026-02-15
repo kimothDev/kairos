@@ -7,16 +7,14 @@ import useTimerStore from "@/store/timerStore";
 import { Filter, History } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import {
-  useSafeAreaInsets
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type FilterPeriod = "day" | "week" | "month" | "year";
 
@@ -217,9 +215,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    paddingHorizontal: "5%",
+    paddingTop: "5%",
+    paddingBottom: "2%",
     backgroundColor: Colors.card,
     zIndex: 10,
     flexDirection: "row",
@@ -233,7 +231,7 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     flexDirection: "row",
-    marginBottom: 10,
+    marginBottom: "2%",
   },
   filterButton: {
     paddingVertical: 6,
@@ -249,8 +247,8 @@ const styles = StyleSheet.create({
   },
   historyContainer: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingHorizontal: "5%",
+    paddingTop: "2%",
   },
   loadingContainer: {
     alignItems: "center",
@@ -266,8 +264,8 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 60,
-    paddingVertical: 40,
+    marginTop: "15%",
+    paddingVertical: "10%",
     backgroundColor: Colors.card,
     borderRadius: 12,
   },
@@ -283,6 +281,6 @@ const styles = StyleSheet.create({
     fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
     textAlign: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: "5%",
   },
 });

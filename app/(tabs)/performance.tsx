@@ -5,38 +5,36 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { generateInsights } from "@/utils/insightEngine";
 import {
-  calculatePeriodDelta,
-  calculatePeriodMetrics,
-  formatMinutes,
-  getAdaptiveChartData,
-  getPeriodDates,
+    calculatePeriodDelta,
+    calculatePeriodMetrics,
+    formatMinutes,
+    getAdaptiveChartData,
+    getPeriodDates,
 } from "@/utils/performanceUtils";
 import {
-  ArrowDownRight,
-  ArrowRight,
-  ArrowUpRight,
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Flame,
-  Sparkles,
-  Target,
-  TrendingUp,
-  Zap,
+    ArrowDownRight,
+    ArrowRight,
+    ArrowUpRight,
+    Calendar,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Flame,
+    Sparkles,
+    Target,
+    TrendingUp,
+    Zap,
 } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import {
-  useSafeAreaInsets
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TimeRanges = ["day", "week", "month", "year"] as const;
 type TimeRange = (typeof TimeRanges)[number];
@@ -481,9 +479,9 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    paddingHorizontal: "5%",
+    paddingTop: "5%",
+    paddingBottom: "2%",
     backgroundColor: Colors.background,
   },
   title: {
@@ -513,8 +511,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    paddingHorizontal: "5%",
+    marginBottom: "2%",
   },
   dateRangeText: {
     fontSize: 16,
@@ -530,8 +528,8 @@ const styles = StyleSheet.create({
   summaryCard: {
     backgroundColor: Colors.card,
     borderRadius: 16,
-    margin: 16,
-    padding: 16,
+    margin: "4%",
+    padding: "4%",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -591,9 +589,9 @@ const styles = StyleSheet.create({
   insightsCard: {
     backgroundColor: Colors.card,
     borderRadius: 16,
-    margin: 16,
+    margin: "4%",
     marginTop: 0,
-    padding: 16,
+    padding: "4%",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
