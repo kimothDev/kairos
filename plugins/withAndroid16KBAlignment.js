@@ -44,11 +44,26 @@ const withAndroid16KBAlignment = (config) => {
 };
 
 function add16KBAlignmentToGradle(buildGradle) {
-  if (buildGradle.includes("def align16KBNativeLibs")) {
-    return buildGradle;
+  // 1. Add Architecture Splits
+  if (!buildGradle.includes("splits {")) {
+    const splitsBlock = `
+    splits {
+        abi {
+            reset()
+            enable true
+            universalApk false
+            include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
+        }
+    }`;
+    buildGradle = buildGradle.replace(
+      /android\s*\{/,
+      "android {" + splitsBlock,
+    );
   }
 
-  const helperFunction = `
+  // 2. Add 16KB Alignment Helper Function
+  if (!buildGradle.includes("def align16KBNativeLibs")) {
+    const helperFunction = `
 /**
  * Helper function to align native libraries to 16KB page size for Android 15+ compatibility  
  */
@@ -77,9 +92,10 @@ def align16KBNativeLibs(String buildVariant) {
     }
 }
 `;
+    buildGradle = helperFunction + "\n" + buildGradle;
+  }
 
-  buildGradle = helperFunction + "\n" + buildGradle;
-
+  // 3. Add CMake Flags and NDK filters
   const cmakeFlags = `
         externalNativeBuild {
             cmake {
@@ -89,20 +105,36 @@ def align16KBNativeLibs(String buildVariant) {
             }
         }`;
 
+  const ndkFilters = `
+        ndk {
+            abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
+        }`;
+
   if (!buildGradle.includes("DCMAKE_SHARED_LINKER_FLAGS")) {
     buildGradle = buildGradle.replace(
       /defaultConfig\s*\{/,
-      "defaultConfig {" + cmakeFlags,
+      "defaultConfig {" + cmakeFlags + ndkFilters,
+    );
+  } else if (!buildGradle.includes("abiFilters")) {
+    buildGradle = buildGradle.replace(
+      /defaultConfig\s*\{/,
+      "defaultConfig {" + ndkFilters,
     );
   }
 
-  // Improved regex for useLegacyPackaging
+  // 4. Set useLegacyPackaging
   buildGradle = buildGradle.replace(
     /useLegacyPackaging\s*[=(].*?\)?\n/g,
     "useLegacyPackaging = false\n",
   );
 
-  const footerHook = `
+  // 5. Add afterEvaluate hook
+  if (
+    !buildGradle.includes(
+      "Post-process native libraries for 16KB page alignment",
+    )
+  ) {
+    const footerHook = `
 /**
  * Post-process native libraries for 16KB page alignment
  */
@@ -119,7 +151,8 @@ afterEvaluate {
     }
 }
 `;
-  buildGradle += footerHook;
+    buildGradle += footerHook;
+  }
 
   return buildGradle;
 }
