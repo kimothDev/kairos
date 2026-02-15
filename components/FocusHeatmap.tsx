@@ -258,9 +258,9 @@ export default function FocusHeatmap({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: "4%",
     borderRadius: 16,
-    margin: 16,
+    margin: "4%",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,

@@ -2,11 +2,11 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import React, { useState } from "react";
 import { LayoutChangeEvent, StyleSheet, Text, View } from "react-native";
 import Svg, {
-    Defs,
-    LinearGradient,
-    Rect,
-    Stop,
-    Text as SvgText,
+  Defs,
+  LinearGradient,
+  Rect,
+  Stop,
+  Text as SvgText,
 } from "react-native-svg";
 
 interface AdaptiveBarChartProps {
@@ -20,13 +20,12 @@ interface AdaptiveBarChartProps {
   barColor?: string;
 }
 
-const CHART_HEIGHT = 150;
-const BOTTOM_LABEL_HEIGHT = 20;
-const GRAPH_HEIGHT = CHART_HEIGHT - BOTTOM_LABEL_HEIGHT - 20; // -20 for top padding
+const DEFAULT_CHART_HEIGHT = 180;
+const BOTTOM_LABEL_HEIGHT = 25;
 
 export default function AdaptiveBarChart({
   data,
-  height = CHART_HEIGHT,
+  height = DEFAULT_CHART_HEIGHT,
   barColor,
 }: AdaptiveBarChartProps) {
   const Colors = useThemeColor();
@@ -62,6 +61,9 @@ export default function AdaptiveBarChart({
   const totalBarWidth = chartDrawingWidth / barCount;
   const barWidth = totalBarWidth * (1 - gapPercent);
   const gapWidth = totalBarWidth * gapPercent;
+
+  // Calculate graph height relative to container height (approx 75% for graph area)
+  const GRAPH_HEIGHT = height * 0.7;
 
   // Generate Y-axis grid lines (0, 25%, 50%, 75%, 100% of chartMax)
   const gridLines = [0, 1, 2, 3, 4].map((i) => {
@@ -206,8 +208,8 @@ const styles = StyleSheet.create({
   container: {
     // Dynamic background handled in specific style prop or parent
     borderRadius: 16,
-    padding: 16,
-    marginVertical: 10,
+    padding: "4%",
+    marginVertical: "2%",
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
