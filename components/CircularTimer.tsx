@@ -31,7 +31,7 @@ export default function CircularTimer() {
   const CIRCUMFERENCE = 2 * Math.PI * INNER_RADIUS;
 
   // Font sizes & Dimensions scaled to circle
-  const TIME_FONT_SIZE = RADIUS * 0.35;
+  const TIME_FONT_SIZE = RADIUS * 0.4;
   const PICKER_FONT_SIZE = RADIUS * 0.5; // Larger font
   const UNIT_FONT_SIZE = RADIUS * 0.2;
   const PICKER_ITEM_HEIGHT = PICKER_FONT_SIZE * 2.0; // Increased spacing
@@ -206,7 +206,13 @@ export default function CircularTimer() {
                     style={styles.timeTextContainer}
                   >
                     <Text
-                      style={[styles.timeText, { color: colors.text.primary }]}
+                      style={[
+                        styles.timeText,
+                        {
+                          color: colors.text.primary,
+                          fontSize: TIME_FONT_SIZE,
+                        },
+                      ]}
                     >
                       {display}
                     </Text>
@@ -215,7 +221,10 @@ export default function CircularTimer() {
               ) : (
                 <View style={styles.timeTextContainer}>
                   <Text
-                    style={[styles.timeText, { color: colors.text.primary }]}
+                    style={[
+                      styles.timeText,
+                      { color: colors.text.primary, fontSize: TIME_FONT_SIZE },
+                    ]}
                   >
                     {display}
                   </Text>
@@ -233,10 +242,13 @@ export default function CircularTimer() {
                     borderWidth: 1,
                     borderColor: colors.border,
                     marginTop: RADIUS * 0.15,
+                    width: RADIUS * 0.45,
+                    height: RADIUS * 0.45,
+                    borderRadius: (RADIUS * 0.45) / 2,
                   },
                 ]}
               >
-                <Play size={32} color={colors.secondary} />
+                <Play size={RADIUS * 0.2} color={colors.secondary} />
               </TouchableOpacity>
             ) : !isActive && showTimeAdjust ? null : showCancel ? (
               <TouchableOpacity
@@ -248,10 +260,13 @@ export default function CircularTimer() {
                     backgroundColor: colors.card,
                     borderColor: colors.secondary,
                     marginTop: RADIUS * 0.15,
+                    width: RADIUS * 0.35,
+                    height: RADIUS * 0.35,
+                    borderRadius: (RADIUS * 0.35) / 2,
                   },
                 ]}
               >
-                <X size={32} color={colors.secondary} />
+                <X size={RADIUS * 0.18} color={colors.secondary} />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -263,10 +278,13 @@ export default function CircularTimer() {
                     backgroundColor: colors.card,
                     borderColor: colors.primary,
                     marginTop: RADIUS * 0.15,
+                    width: RADIUS * 0.35,
+                    height: RADIUS * 0.35,
+                    borderRadius: (RADIUS * 0.35) / 2,
                   },
                 ]}
               >
-                <SkipForward size={32} color={colors.primary} />
+                <SkipForward size={RADIUS * 0.18} color={colors.primary} />
               </TouchableOpacity>
             )}
           </View>
@@ -329,14 +347,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   timeText: {
-    fontSize: 64,
     fontFamily: "Outfit_700Bold",
-    marginBottom: 10,
+    marginBottom: "2%",
   },
   startPauseButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
