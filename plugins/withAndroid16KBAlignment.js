@@ -95,7 +95,7 @@ def align16KBNativeLibs(String buildVariant) {
     buildGradle = helperFunction + "\n" + buildGradle;
   }
 
-  // 3. Add CMake Flags and NDK filters
+  // 3. Add CMake Flags
   const cmakeFlags = `
         externalNativeBuild {
             cmake {
@@ -105,20 +105,10 @@ def align16KBNativeLibs(String buildVariant) {
             }
         }`;
 
-  const ndkFilters = `
-        ndk {
-            abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
-        }`;
-
   if (!buildGradle.includes("DCMAKE_SHARED_LINKER_FLAGS")) {
     buildGradle = buildGradle.replace(
       /defaultConfig\s*\{/,
-      "defaultConfig {" + cmakeFlags + ndkFilters,
-    );
-  } else if (!buildGradle.includes("abiFilters")) {
-    buildGradle = buildGradle.replace(
-      /defaultConfig\s*\{/,
-      "defaultConfig {" + ndkFilters,
+      "defaultConfig {" + cmakeFlags,
     );
   }
 
