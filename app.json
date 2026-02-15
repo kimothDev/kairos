@@ -20,7 +20,7 @@
     },
     "android": {
       "package": "app.kairos",
-      "versionCode": 3,
+      "versionCode": 6,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/appIcon.png",
         "backgroundColor": "#121212"
