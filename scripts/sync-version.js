@@ -32,6 +32,9 @@ console.log(`✅ Updated package.json`);
 const appJsonPath = path.join(projectRoot, "app.json");
 const appJson = JSON.parse(fs.readFileSync(appJsonPath, "utf8"));
 appJson.expo.version = version;
+if (appJson.expo.android) {
+  appJson.expo.android.versionCode = versionCode;
+}
 fs.writeFileSync(appJsonPath, JSON.stringify(appJson, null, 2) + "\n");
 console.log(`✅ Updated app.json`);
 
