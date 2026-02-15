@@ -138,9 +138,9 @@ export default function EnergyLevelSelector() {
 
 const styles = StyleSheet.create({
   slotButton: {
-    padding: 16,
+    padding: "4%",
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: "4%",
   },
   slotLabel: {
     fontSize: 14,

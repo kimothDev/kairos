@@ -187,8 +187,8 @@ export default function SessionHistoryItem({
 const styles = StyleSheet.create({
   container: {
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: "4%",
+    marginBottom: "3%",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

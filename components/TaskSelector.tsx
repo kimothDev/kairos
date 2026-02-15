@@ -189,9 +189,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    padding: "4%",
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: "4%",
   },
   slotLabel: {
     fontSize: 14,
