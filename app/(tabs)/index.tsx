@@ -1,3 +1,9 @@
+/**
+ * Timer Screen
+ *
+ * The main screen of the application. Integrates the Circular Timer,
+ * Task/Energy selectors, and handles notification permissions and app state changes.
+ */
 import BreakModal from "@/components/BreakModal";
 import CircularTimer from "@/components/CircularTimer";
 import EnergyLevelSelector from "@/components/EnergyLevelSelector";

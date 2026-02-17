@@ -1,42 +1,46 @@
+/**
+ * Settings Screen
+ *
+ * Allows users to customize the app theme, toggle notifications,
+ * manage session data (export/import), and view app information.
+ */
 import ImportModal from "@/components/ImportModal";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import {
-  exportAllDataAsZip,
-  ImportSelection,
-  ParsedImportData,
-  performImport,
-  pickAndParseZip,
+    exportAllDataAsZip,
+    ImportSelection,
+    ParsedImportData,
+    performImport,
+    pickAndParseZip,
 } from "@/services/dataExport";
 import { useThemeStore } from "@/store/themeStore";
 import useTimerStore from "@/store/timerStore";
 import {
-  Battery,
-  Bell,
-  Brain,
-  Download,
-  Github,
-  Info,
-  Monitor,
-  Moon,
-  Sun,
-  Trash2,
-  Upload,
+    Battery,
+    Bell,
+    Brain,
+    Download,
+    Github,
+    Info,
+    Monitor,
+    Moon,
+    Sun,
+    Trash2,
+    Upload,
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Linking,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Linking,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import {
-  useSafeAreaInsets
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
   const colors = useThemeColor();

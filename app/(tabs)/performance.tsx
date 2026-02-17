@@ -1,3 +1,9 @@
+/**
+ * Performance Screen
+ *
+ * Provides detailed analytics and AI-driven insights into focus habits,
+ * including trends, metrics comparison, and optimal focus duration discovery.
+ */
 import AdaptiveBarChart from "@/components/AdaptiveBarChart";
 // import FocusHeatmap from "@/components/FocusHeatmap"; // Preserved for future use
 import Colors, { lightColors } from "@/constants/colors";
@@ -360,7 +366,7 @@ export default function PerformanceScreen() {
                 ]}
               >
                 {insights.energyCorrelation.isSignificant
-                  ? `Intense sessions are ${insights.energyCorrelation.diffPercent}% longer`
+                  ? `${insights.energyCorrelation.bestTask ? `For ${insights.energyCorrelation.bestTask}, intense` : "Intense"} sessions are ${insights.energyCorrelation.diffPercent}% longer`
                   : "Mood hasn't significantly impacted duration yet."}
               </Text>
             </View>
@@ -428,6 +434,38 @@ export default function PerformanceScreen() {
                   : insights.streak.best > 1
                     ? `Best streak: ${insights.streak.best} days. Start a new one!`
                     : "Focus today to start a streak!"}
+              </Text>
+            </View>
+          </View>
+
+          {/* Duration Optimization */}
+          <View style={styles.insightItem}>
+            <View
+              style={[
+                styles.insightIconContainer,
+                { backgroundColor: activeColors.success },
+              ]}
+            >
+              <Target size={20} color={activeColors.card} />
+            </View>
+            <View style={styles.insightContent}>
+              <Text
+                style={[
+                  styles.insightLabel,
+                  { color: activeColors.text.secondary },
+                ]}
+              >
+                Duration Optimization
+              </Text>
+              <Text
+                style={[
+                  styles.insightValue,
+                  { color: activeColors.text.primary },
+                ]}
+              >
+                {insights.durationOptimization.isSignificant
+                  ? `For ${insights.durationOptimization.taskType}, your sweet spot is ${insights.durationOptimization.bestDuration} min (${insights.durationOptimization.completionRate}% completion)`
+                  : "Collect more data to find your optimal session length."}
               </Text>
             </View>
           </View>

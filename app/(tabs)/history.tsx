@@ -1,3 +1,9 @@
+/**
+ * History Screen
+ *
+ * Displays a list of past focus sessions, allowing users to filter by
+ * timeframe, task type, and energy level.
+ */
 import HistoryFilterModal from "@/components/HistoryFilterModal";
 import SessionHistoryItem from "@/components/SessionHistoryItem";
 import Colors from "@/constants/colors";
@@ -5,7 +11,7 @@ import { DEFAULT_TASKS } from "@/constants/timer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { Filter, History } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -93,6 +99,11 @@ export default function HistoryScreen() {
     setSelectedEnergyLevels(energyLevels);
   };
 
+  const renderItem = useCallback(
+    ({ item }: { item: any }) => <SessionHistoryItem session={item} />,
+    [],
+  );
+
   return (
     <View
       style={[styles.container, { backgroundColor: activeColors.background }]}
@@ -168,9 +179,13 @@ export default function HistoryScreen() {
           <FlatList
             data={filteredSessions}
             keyExtractor={(item) => String(item.id)}
-            renderItem={({ item }) => <SessionHistoryItem session={item} />}
+            renderItem={renderItem}
             contentContainerStyle={{ paddingBottom: 70 }}
             showsVerticalScrollIndicator={false}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={true}
           />
         ) : (
           <View

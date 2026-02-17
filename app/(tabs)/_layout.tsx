@@ -1,3 +1,9 @@
+/**
+ * Tabs Layout
+ *
+ * Defines the main tab navigation structure for the app, including
+ * styling for the bottom tab bar and screen options.
+ */
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Tabs } from "expo-router";
 import { Clock, History, Settings, TrendingUp } from "lucide-react-native";

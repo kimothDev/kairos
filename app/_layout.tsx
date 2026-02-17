@@ -1,13 +1,19 @@
+/**
+ * Root Layout
+ *
+ * Sets up the application's foundational providers, including fonts,
+ * theme-aware background colors, and the root navigation stack.
+ */
 import ThemedAlert from "@/components/ThemedAlert";
 import { useIsDark, useThemeColor } from "@/hooks/useThemeColor";
 import {
-  Outfit_300Light,
-  Outfit_400Regular,
-  Outfit_500Medium,
-  Outfit_600SemiBold,
-  Outfit_700Bold,
-  Outfit_900Black,
-  useFonts,
+    Outfit_300Light,
+    Outfit_400Regular,
+    Outfit_500Medium,
+    Outfit_600SemiBold,
+    Outfit_700Bold,
+    Outfit_900Black,
+    useFonts,
 } from "@expo-google-fonts/outfit";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";

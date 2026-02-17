@@ -1,3 +1,9 @@
+/**
+ * Error Boundary
+ *
+ * Catches application-level crashes and displays a fallback UI
+ * while reporting the error for debugging purposes.
+ */
 import { useThemeColor } from "@/hooks/useThemeColor";
 import React from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
