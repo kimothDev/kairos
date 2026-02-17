@@ -1,3 +1,9 @@
+/**
+ * Session Slice
+ *
+ * Manages the state of focus sessions loaded from the database
+ * and provides actions to refresh or clear the session history.
+ */
 import {
     clearAllSessionsFromDB,
     loadSessionsFromDB,

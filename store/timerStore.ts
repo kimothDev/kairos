@@ -1,3 +1,9 @@
+/**
+ * Timer Store
+ *
+ * The main store for the application using Zustand.
+ * Combines focused slices (timer, session, task, ui) into a single state management hub.
+ */
 import { DEFAULT_TASKS } from "@/constants/timer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
@@ -9,16 +15,6 @@ import { createTimerSlice } from "./slices/timerSlice";
 import { createUISlice } from "./slices/uiSlice";
 
 const DYNAMIC_ARMS_KEY = "dynamic_focus_arms";
-
-/**
- * Timer Store
- *
- * Combines 4 focused slices into a single store:
- * - timerSlice: Core timer logic and lifecycle
- * - sessionSlice: Database interactions
- * - taskSlice: Recommendations and task management
- * - uiSlice: Toggles and UI state
- */
 const useTimerStore = create<TimerStoreState>()(
   persist(
     (set, get) => ({

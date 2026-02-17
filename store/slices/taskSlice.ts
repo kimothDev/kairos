@@ -1,3 +1,9 @@
+/**
+ * Task Slice
+ *
+ * Handles task selection, energy level updates, and fetching
+ * smart recommendations based on the current context.
+ */
 import { DEFAULT_TASKS } from "@/constants/timer";
 import { getSessionRecommendation } from "@/services/sessionPlanner";
 import { EnergyLevel } from "@/types";
@@ -74,46 +80,36 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
   setTaskType: (task) => {
     set({
       taskType: task,
+      energyLevel: "", // Reset energy level on task change
+      recommendedFocusDuration: DEFAULT_RECOMMENDATION.focusDuration,
+      recommendedBreakDuration: DEFAULT_RECOMMENDATION.breakDuration,
+      time: 0, // Clear the timer time
+      initialTime: 0,
       showTaskModal: false,
       hasInteractedWithTimer: false,
+      userAcceptedRecommendation: false,
     });
-    const { energyLevel, dynamicFocusArms } = get();
-
-    // Using existing util for simple update (legacy pattern) or consolidate?
-    // The original code used updateRecommendations inside setTaskType/setEnergyLevel
-    // but full getSessionRecommendation inside resetTimer/addCustomTask.
-    // Let's unify them all to use our new helper if possible,
-    // BUT updateRecommendations util has slightly different behavior
-    // (sets userAcceptedRecommendation to FALSE).
-
-    // Looking at original code:
-    // setTaskType -> updateRecommendations (sets userAcceptedRecommendation = false)
-    // setEnergyLevel -> updateRecommendations (sets userAcceptedRecommendation = false)
-    // addCustomTask -> getSessionRecommendation (sets userAcceptedRecommendation = TRUE)
-    // resetTimer -> getSessionRecommendation (sets userAcceptedRecommendation = TRUE)
-
-    // We should respect this difference.
-    if (energyLevel) {
-      updateRecommendations(energyLevel, task, set, dynamicFocusArms);
-    }
   },
 
   setEnergyLevel: (level) => {
+    const { energyLevel: currentLevel, taskType, dynamicFocusArms } = get();
+
+    // If clicking same mood for fun, don't update anything
+    if (level === currentLevel) return;
+
     set({ energyLevel: level });
-    const { taskType, dynamicFocusArms } = get();
-    if (level) {
-      if (taskType) {
-        updateRecommendations(level, taskType, set, dynamicFocusArms);
-      } else {
-        set({
-          recommendedFocusDuration: DEFAULT_RECOMMENDATION.focusDuration,
-          recommendedBreakDuration: DEFAULT_RECOMMENDATION.breakDuration,
-          time: DEFAULT_RECOMMENDATION.focusDuration * 60,
-          initialTime: DEFAULT_RECOMMENDATION.focusDuration * 60,
-          userAcceptedRecommendation: false,
-          hasInteractedWithTimer: false,
-        });
-      }
+
+    if (level && taskType) {
+      updateRecommendations(level, taskType, set, dynamicFocusArms);
+    } else if (level) {
+      set({
+        recommendedFocusDuration: DEFAULT_RECOMMENDATION.focusDuration,
+        recommendedBreakDuration: DEFAULT_RECOMMENDATION.breakDuration,
+        time: DEFAULT_RECOMMENDATION.focusDuration * 60,
+        initialTime: DEFAULT_RECOMMENDATION.focusDuration * 60,
+        userAcceptedRecommendation: false,
+        hasInteractedWithTimer: false,
+      });
     }
   },
 

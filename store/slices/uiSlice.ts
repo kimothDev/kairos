@@ -1,3 +1,9 @@
+/**
+ * UI Slice
+ *
+ * Manages UI-related state such as modal visibility, alert messages,
+ * and user preferences like notification toggles.
+ */
 import { DEFAULT_TASKS } from "@/constants/timer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SliceCreator, UISlice } from "./sliceTypes";

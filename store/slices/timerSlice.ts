@@ -1,18 +1,24 @@
+/**
+ * Timer Slice
+ *
+ * Manages the core timer logic, including starting, pausing, canceling,
+ * and completing focus and break sessions.
+ */
 import {
-  MIN_SESSION_FOR_SAVE,
-  TIME_ADJUSTMENT_STEP,
-  TIMER_CONSTANTS,
+    MIN_SESSION_FOR_SAVE,
+    TIME_ADJUSTMENT_STEP,
+    TIMER_CONSTANTS,
 } from "@/constants/timer";
 import { getSmartBreakRecommendation } from "@/services/rl";
 import {
-  completeSession,
-  CompletionType,
+    completeSession,
+    CompletionType,
 } from "@/services/sessionCompletionService";
 import { EnergyLevel } from "@/types";
 import {
-  cancelScheduledNotification,
-  resetTimerState,
-  scheduleTimerNotification,
+    cancelScheduledNotification,
+    resetTimerState,
+    scheduleTimerNotification,
 } from "@/utils/sessionUtils";
 import { Vibration } from "react-native";
 import { SliceCreator, TimerSlice } from "./sliceTypes";
