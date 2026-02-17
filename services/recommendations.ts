@@ -1,3 +1,9 @@
+/**
+ * Recommendation Service
+ *
+ * Contains logic for heuristic recommendations, reward calculations,
+ * and capacity scaling used by the Reinforcement Learning system.
+ */
 import { EnergyLevel } from "@/types";
 import { createContextKeyFromParts } from "@/utils/contextKey";
 import { normalizeTask } from "@/utils/task";

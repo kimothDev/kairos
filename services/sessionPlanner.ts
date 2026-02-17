@@ -1,9 +1,15 @@
+/**
+ * Session Planner
+ *
+ * High-level service that orchestrates session recommendations by combining
+ * heuristic (rule-based) logic with Reinforcement Learning (Thompson Sampling).
+ */
 import { EnergyLevel } from "@/types";
 import { FocusRecommendation, getRecommendations } from "./recommendations";
 import {
-  Context,
-  getSmartBreakRecommendation,
-  getSmartRecommendation,
+    Context,
+    getSmartBreakRecommendation,
+    getSmartRecommendation,
 } from "./rl";
 
 /**

@@ -1,3 +1,9 @@
+/**
+ * Data Export Service
+ *
+ * Provides functionality to export app data (sessions, RL model, settings)
+ * as a ZIP backup and import it back into the application.
+ */
 import {
     DBSession,
     deleteAllSessions,

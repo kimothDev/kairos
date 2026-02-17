@@ -130,14 +130,18 @@ export async function getSmartRecommendation(
     let modelRec: number;
     let isBootstrap = false;
 
-    if (totalObs < 1 && capacityStats.recentSessions.length === 0) {
+    if (
+      totalObs < 1 &&
+      (!capacityStats.recentSessions ||
+        capacityStats.recentSessions.length === 0)
+    ) {
       // Truly no data, use heuristic
       modelRec = heuristicRecommendation;
       console.log("=== Using heuristic (no data) ===");
     } else if (totalObs < BOOTSTRAP_THRESHOLD) {
       // Bootstrap phase: Mirror the user's average selection immediately
       isBootstrap = true;
-      const sessions = capacityStats.recentSessions;
+      const sessions = capacityStats.recentSessions || [];
       if (sessions.length > 0) {
         let ewma = sessions[0].selectedDuration;
         for (let i = 1; i < sessions.length; i++) {
@@ -195,7 +199,9 @@ export async function getSmartRecommendation(
         const lowerModel = model[lowerKey];
         if (lowerModel) {
           // Find the best proven arm in the lower energy context (by mean)
-          const lowerArms = Object.keys(lowerModel).map(Number);
+          const lowerArms = lowerModel
+            ? Object.keys(lowerModel).map(Number)
+            : [];
           if (lowerArms.length > 0) {
             const bestLowerArm = lowerArms.reduce((best, arm) => {
               const meanBest =

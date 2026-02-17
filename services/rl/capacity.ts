@@ -1,7 +1,9 @@
 /**
- * RL Capacity Tracking - Tracks user's actual focus ability vs. selections.
+ * RL Capacity Tracking
+ *
+ * Part of the Reinforcement Learning system. Tracks actual focus duration
+ * vs. selected duration to detect trends and adjust challenge levels.
  */
-
 import { EnergyLevel } from "@/types";
 import { roundToNearest5 } from "@/utils/time";
 import { loadCapacity, saveCapacity } from "./storage";
@@ -49,7 +51,10 @@ export async function getCapacityStats(
     };
   }
 
-  return capacityState[contextKey];
+  return {
+    ...capacityState[contextKey],
+    recentSessions: capacityState[contextKey].recentSessions || [],
+  };
 }
 
 /**
@@ -70,6 +75,8 @@ export async function updateCapacityStats(
       completionRate: 0,
       trend: "stable",
     };
+  } else if (!capacityState[contextKey].recentSessions) {
+    capacityState[contextKey].recentSessions = [];
   }
 
   const stats = capacityState[contextKey];
@@ -120,7 +127,7 @@ export function adjustForCapacity(
   energyLevel: EnergyLevel = "mid",
 ): number {
   // Not enough data
-  if (stats.recentSessions.length < 3) return modelRec;
+  if (!stats.recentSessions || stats.recentSessions.length < 3) return modelRec;
 
   // If user consistently quits early, recommend their actual capacity
   if (stats.completionRate < 0.5) {

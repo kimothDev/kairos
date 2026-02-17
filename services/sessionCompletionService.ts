@@ -1,36 +1,36 @@
-import { MIN_SESSION_FOR_SAVE } from "@/constants/timer";
-import {
-  applyCapacityScaling,
-  calculateReward,
-} from "@/services/recommendations";
-import {
-  getCapacityStats,
-  getZoneActions,
-  getZoneData,
-  SPILLOVER_FACTOR,
-  SPILLOVER_THRESHOLD,
-  updateCapacityStats,
-  updateModel,
-  updateZoneData,
-} from "@/services/rl";
-import {
-  createAndSaveSession,
-  loadSessionsFromDB,
-} from "@/services/sessionService";
-import { EnergyLevel } from "@/types";
-import {
-  createBreakContext,
-  createFocusContext,
-  detectTimeOfDay,
-  secondsToMinutes,
-} from "@/utils/sessionUtils";
-
 /**
  * Session Completion Service
  *
- * Consolidates the 3 duplicate session-saving flows into one unified service.
- * Handles: DB save, RL model updates, capacity stats, zone data.
+ * Orchestrates the final steps of a focus session, including saving to DB,
+ * updating RL models, and handling "spillover" learning for better recommendations.
+ * Consolidates duplicate session-saving flows into one unified service.
  */
+import { MIN_SESSION_FOR_SAVE } from "@/constants/timer";
+import {
+    applyCapacityScaling,
+    calculateReward,
+} from "@/services/recommendations";
+import {
+    getCapacityStats,
+    getZoneActions,
+    getZoneData,
+    SPILLOVER_FACTOR,
+    SPILLOVER_THRESHOLD,
+    updateCapacityStats,
+    updateModel,
+    updateZoneData,
+} from "@/services/rl";
+import {
+    createAndSaveSession,
+    loadSessionsFromDB,
+} from "@/services/sessionService";
+import { EnergyLevel } from "@/types";
+import {
+    createBreakContext,
+    createFocusContext,
+    detectTimeOfDay,
+    secondsToMinutes,
+} from "@/utils/sessionUtils";
 
 export type CompletionType = "completed" | "skippedFocus" | "skippedBreak";
 

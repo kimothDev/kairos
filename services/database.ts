@@ -1,3 +1,9 @@
+/**
+ * Database Service
+ *
+ * Handles all SQLite database operations for focus sessions, including
+ * migrations, insertions, and queries for history and analytics.
+ */
 import * as SQLite from "expo-sqlite";
 
 export interface DBSession {

@@ -38,7 +38,8 @@ export function getZoneActions(
  * Requires 5 selections and a clear trend to avoid flip-flopping.
  */
 export function checkZoneTransition(zoneData: ZoneData): FocusZone {
-  const { zone, selections } = zoneData;
+  const { zone } = zoneData;
+  const selections = zoneData.selections || [];
 
   // Need at least 5 selections to consider transition (was 3 - too sensitive)
   if (selections.length < 5) return zone;
@@ -113,7 +114,10 @@ export async function getZoneData(
     console.log("[RL] Created zone for", contextKey, ":", zone);
   }
 
-  return zones[contextKey];
+  return {
+    ...zones[contextKey],
+    selections: zones[contextKey].selections || [],
+  };
 }
 
 /**
@@ -137,6 +141,8 @@ export async function updateZoneData(
       selections: [],
       transitionReady: false,
     };
+  } else if (!zones[contextKey].selections) {
+    zones[contextKey].selections = [];
   }
 
   // Add selection and trim history

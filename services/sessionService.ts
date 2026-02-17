@@ -1,9 +1,15 @@
+/**
+ * Session Service
+ *
+ * High-level service for interacting with session data, bridging
+ * the database layer and the UI/Store layers.
+ */
 import {
-  DBSession,
-  deleteAllSessions,
-  getAllSessions,
-  insertSession,
-  updateSessionNote,
+    DBSession,
+    deleteAllSessions,
+    getAllSessions,
+    insertSession,
+    updateSessionNote,
 } from "@/services/database";
 import { EnergyLevel, Session } from "@/types";
 

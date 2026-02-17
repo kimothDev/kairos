@@ -1,7 +1,9 @@
 /**
- * RL Thompson Sampling - Core bandit algorithm for action selection and model updates.
+ * RL Thompson Sampling
+ *
+ * Part of the Reinforcement Learning system. Implements Thompson Sampling
+ * for balancing exploitation and exploration of duration recommendations.
  */
-
 import { createContextKey } from "@/utils/contextKey";
 import { loadModel, saveModel } from "./storage";
 import {
@@ -24,6 +26,12 @@ export function sampleBeta(alpha: number, beta: number): number {
   return x / (x + y);
 }
 
+/**
+ * RL Storage Service
+ *
+ * Part of the Reinforcement Learning system. Handles persistent storage
+ * of the RL models using AsyncStorage.
+ */
 /**
  * Get total observations for a context.
  */
