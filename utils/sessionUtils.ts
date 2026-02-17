@@ -1,3 +1,9 @@
+/**
+ * Session Utilities
+ *
+ * Helper functions for session lifecycle management, including context creation,
+ * notification scheduling, session object factory, and reward calculation integration.
+ */
 import { insertSession } from "@/services/database";
 import { calculateReward } from "@/services/recommendations";
 import { Context, debugModel, loadModel, updateModel } from "@/services/rl";

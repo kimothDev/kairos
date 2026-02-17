@@ -1,3 +1,9 @@
+/**
+ * Performance Utilities
+ *
+ * Provides utility functions for filtering sessions, calculating metrics
+ * (completion rate, focus time), and formatting data for charts and UI displays.
+ */
 import { EnergyLevel, Session } from "@/types";
 
 /**
