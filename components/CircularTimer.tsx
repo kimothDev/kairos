@@ -1,19 +1,25 @@
+/**
+ * Circular Timer
+ *
+ * The main timer component featuring a circular progress ring,
+ * live countdown, and interactive controls for the focus session.
+ */
 import {
-  ADHD_FOCUS_OPTIONS,
-  FOCUS_OPTIONS,
-  formatTime,
+    ADHD_FOCUS_OPTIONS,
+    FOCUS_OPTIONS,
+    formatTime,
 } from "@/constants/timer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { Play, SkipForward, X } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef } from "react";
 import {
-  Animated,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
+    Animated,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    useWindowDimensions,
 } from "react-native";
 import Svg, { Circle as SvgCircle } from "react-native-svg";
 import InlineTimePicker from "./InlineTimePicker";

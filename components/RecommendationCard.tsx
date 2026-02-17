@@ -1,3 +1,9 @@
+/**
+ * Recommendation Card
+ *
+ * A UI notification that appears when the RL system has a smart focus/break
+ * recommendation. Users can accept it or choose to customize their session.
+ */
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { ThumbsDown, ThumbsUp, Zap } from "lucide-react-native";

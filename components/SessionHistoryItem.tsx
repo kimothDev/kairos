@@ -1,3 +1,9 @@
+/**
+ * Session History Item
+ *
+ * A summary component for a single focus session. Facilitates viewing
+ * session details and adding/editing session notes.
+ */
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { EnergyLevel, Session } from "@/types";
 import {
@@ -10,7 +16,7 @@ import {
     XCircle,
     Zap,
 } from "lucide-react-native";
-import React from "react";
+import React, { memo, useCallback } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface SessionHistoryItemProps {
@@ -20,9 +26,7 @@ interface SessionHistoryItemProps {
 import useTimerStore from "@/store/timerStore";
 import NoteEditModal from "./NoteEditModal";
 
-export default function SessionHistoryItem({
-  session,
-}: SessionHistoryItemProps) {
+const SessionHistoryItem = ({ session }: SessionHistoryItemProps) => {
   const colors = useThemeColor();
   const { updateSessionNote } = useTimerStore();
   const [showNoteModal, setShowNoteModal] = React.useState(false);
@@ -32,7 +36,7 @@ export default function SessionHistoryItem({
     await updateSessionNote(session.id, note);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       month: "short",
@@ -40,7 +44,7 @@ export default function SessionHistoryItem({
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
+  }, []);
 
   // Helper to format duration with context ("X of Y min")
   const getDurationText = () => {
@@ -182,7 +186,9 @@ export default function SessionHistoryItem({
       />
     </View>
   );
-}
+};
+
+export default memo(SessionHistoryItem);
 
 const styles = StyleSheet.create({
   container: {

@@ -1,3 +1,9 @@
+/**
+ * Task Selector
+ *
+ * An interactive component that allows users to pick a task type
+ * from a list or add a new custom task before starting their session.
+ */
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { ChevronRight } from "lucide-react-native";
@@ -195,11 +201,11 @@ const styles = StyleSheet.create({
   },
   slotLabel: {
     fontSize: 14,
-    fontFamily: "Outfit_400Regular",
+    fontFamily: "Outfit_600SemiBold",
   },
   slotValue: {
-    fontSize: 15,
-    fontFamily: "Outfit_700Bold",
+    fontSize: 14,
+    fontFamily: "Outfit_400Regular",
   },
   modalOverlay: {
     flex: 1,

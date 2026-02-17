@@ -1,3 +1,9 @@
+/**
+ * Energy Level Selector
+ *
+ * Provides an interface for users to report their current focus capacity (mood).
+ * This data is used to tailor the session recommendations.
+ */
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { EnergyLevel } from "@/types";
@@ -145,10 +151,10 @@ const styles = StyleSheet.create({
   slotLabel: {
     fontSize: 14,
     fontFamily: "Outfit_600SemiBold",
-    marginBottom: 8,
+    marginBottom: 1,
   },
   energySelector: {
-    marginTop: 2,
+    marginTop: 1,
   },
   energyButtons: {
     flexDirection: "row",

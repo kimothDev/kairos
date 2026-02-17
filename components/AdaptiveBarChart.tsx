@@ -1,12 +1,18 @@
+/**
+ * Adaptive Bar Chart
+ *
+ * A responsive bar chart component that visualizes focus time across
+ * different historical views (Day, Week, Month, Year).
+ */
 import { useThemeColor } from "@/hooks/useThemeColor";
 import React, { useState } from "react";
 import { LayoutChangeEvent, StyleSheet, Text, View } from "react-native";
 import Svg, {
-  Defs,
-  LinearGradient,
-  Rect,
-  Stop,
-  Text as SvgText,
+    Defs,
+    LinearGradient,
+    Rect,
+    Stop,
+    Text as SvgText,
 } from "react-native-svg";
 
 interface AdaptiveBarChartProps {

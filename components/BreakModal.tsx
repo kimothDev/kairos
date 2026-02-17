@@ -1,3 +1,9 @@
+/**
+ * Break Modal
+ *
+ * Displayed after a successful focus session. Offers various break
+ * duration options influenced by the duration of the completed session.
+ */
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { getBreakOptions } from "@/utils/options";
