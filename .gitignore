@@ -9,7 +9,7 @@ mdFiles/
 AGENTS.md
 RELEASE_NOTES.md
 scripts/create-release.sh
-sample/
+samples/
 
 
 # -------------------------------
@@ -57,6 +57,9 @@ yarn-error.*
 *.bak
 *.apk
 *.aab
+test_results*.json
+full_test_results.json
+test_output.txt
 
 
 # -------------------------------
