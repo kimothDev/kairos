@@ -233,12 +233,14 @@ export async function updateRecommendations(
   taskType: string,
   set: any,
   dynamicFocusArms: number[],
+  includeShortSessions: boolean = false,
 ) {
   try {
     const { focusDuration, breakDuration } = await getSessionRecommendation(
       energyLevel,
       taskType,
       dynamicFocusArms,
+      includeShortSessions,
     );
     set({
       recommendedFocusDuration: focusDuration,

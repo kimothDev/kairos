@@ -63,6 +63,7 @@ export const REWARD_CONSTANTS = {
 export async function getRecommendations(
   energyLevel: EnergyLevel,
   taskType?: string,
+  includeShortSessions: boolean = false,
 ): Promise<FocusRecommendation> {
   // Get the current model state to check observations
   const modelState = await getModelState();
@@ -81,6 +82,12 @@ export async function getRecommendations(
 
   // Get base recommendation for this energy level
   const recommendation = { ...baseRecommendationsByEnergy[energyLevel] };
+
+  // Apply ADHD mode caps if enabled
+  if (includeShortSessions) {
+    recommendation.focusDuration = Math.min(30, recommendation.focusDuration);
+    recommendation.breakDuration = Math.min(5, recommendation.breakDuration);
+  }
 
   // Get number of observations for this context
   const focusParams = modelState[focusContextKey]?.[

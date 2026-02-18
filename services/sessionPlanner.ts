@@ -25,6 +25,7 @@ export async function getSessionRecommendation(
   energyLevel: EnergyLevel,
   taskType: string,
   dynamicFocusArms: number[] = [],
+  includeShortSessions: boolean = false,
 ): Promise<FocusRecommendation> {
   // Create context for bandits (simplified - no timeOfDay)
   const context: Context = {
@@ -33,13 +34,18 @@ export async function getSessionRecommendation(
   };
 
   // Get base recommendation from rule-based system
-  const baseRecommendation = await getRecommendations(energyLevel, taskType);
+  const baseRecommendation = await getRecommendations(
+    energyLevel,
+    taskType,
+    includeShortSessions,
+  );
 
   // Get smart recommendation from contextual bandits
   const smartFocus = await getSmartRecommendation(
     context,
     baseRecommendation.focusDuration,
     dynamicFocusArms,
+    includeShortSessions,
   );
 
   // Get smart break - scaled to focus duration
@@ -47,6 +53,7 @@ export async function getSessionRecommendation(
     context,
     baseRecommendation.breakDuration,
     smartFocus.value, // Pass focus duration to scale break options
+    includeShortSessions,
   );
 
   return {
