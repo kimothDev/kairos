@@ -12,34 +12,34 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { generateInsights } from "@/utils/insightEngine";
 import {
-    calculatePeriodDelta,
-    calculatePeriodMetrics,
-    formatMinutes,
-    getAdaptiveChartData,
-    getPeriodDates,
+  calculatePeriodDelta,
+  calculatePeriodMetrics,
+  formatMinutes,
+  getAdaptiveChartData,
+  getPeriodDates,
 } from "@/utils/performanceUtils";
 import {
-    ArrowDownRight,
-    ArrowRight,
-    ArrowUpRight,
-    Calendar,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    Flame,
-    Sparkles,
-    Target,
-    TrendingUp,
-    Zap,
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Flame,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Zap,
 } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -341,135 +341,170 @@ export default function PerformanceScreen() {
             Performance Insights
           </Text>
 
-          {/* Energy Correlation */}
-          <View style={styles.insightItem}>
+          {/* Coming Soon State */}
+          <View style={styles.comingSoonContainer}>
             <View
               style={[
-                styles.insightIconContainer,
-                { backgroundColor: activeColors.warning },
+                styles.comingSoonIcon,
+                { backgroundColor: activeColors.primary + "1A" },
               ]}
             >
-              <Sparkles size={20} color={activeColors.card} />
+              <Sparkles size={32} color={activeColors.primary} />
             </View>
-            <View style={styles.insightContent}>
-              <Text
-                style={[
-                  styles.insightLabel,
-                  { color: activeColors.text.secondary },
-                ]}
-              >
-                Mood Impact
-              </Text>
-              <Text
-                style={[
-                  styles.insightValue,
-                  { color: activeColors.text.primary },
-                ]}
-              >
-                {insights.energyCorrelation.isSignificant
-                  ? `${insights.energyCorrelation.bestTask ? `For ${insights.energyCorrelation.bestTask}, intense` : "Intense"} sessions are ${insights.energyCorrelation.diffPercent}% longer`
-                  : "Mood hasn't significantly impacted duration yet."}
-              </Text>
-            </View>
+            <Text
+              style={[
+                styles.comingSoonText,
+                { color: activeColors.text.primary },
+              ]}
+            >
+              Coming Soon
+            </Text>
+            <Text
+              style={[
+                styles.comingSoonSubtext,
+                { color: activeColors.text.secondary },
+              ]}
+            >
+              Stay tuned! We're building advanced analytics to help you master
+              your focus habits in a future update.
+            </Text>
           </View>
 
-          {/* Time of Day */}
-          <View style={styles.insightItem}>
-            <View
-              style={[
-                styles.insightIconContainer,
-                { backgroundColor: activeColors.primary },
-              ]}
-            >
-              <Zap size={20} color={activeColors.card} />
-            </View>
-            <View style={styles.insightContent}>
-              <Text
-                style={[
-                  styles.insightLabel,
-                  { color: activeColors.text.secondary },
-                ]}
-              >
-                Peak Performance
-              </Text>
-              <Text
-                style={[
-                  styles.insightValue,
-                  { color: activeColors.text.primary },
-                ]}
-              >
-                {insights.timeOfDay.bestPeriod !== "N/A"
-                  ? `You focus best in the ${insights.timeOfDay.bestPeriod}`
-                  : "Keep focusing to find your peak time."}
-              </Text>
-            </View>
-          </View>
+          {/* Preserved Insights Code - Set to false to hide while keeping code intact */}
+          {/* @ts-ignore */}
+          {false && (
+            <>
+              {/* Energy Correlation */}
+              <View style={styles.insightItem}>
+                <View
+                  style={[
+                    styles.insightIconContainer,
+                    { backgroundColor: activeColors.warning },
+                  ]}
+                >
+                  <Sparkles size={20} color={activeColors.card} />
+                </View>
+                <View style={styles.insightContent}>
+                  <Text
+                    style={[
+                      styles.insightLabel,
+                      { color: activeColors.text.secondary },
+                    ]}
+                  >
+                    Mood Impact
+                  </Text>
+                  <Text
+                    style={[
+                      styles.insightValue,
+                      { color: activeColors.text.primary },
+                    ]}
+                  >
+                    {insights.energyCorrelation.isSignificant
+                      ? `${insights.energyCorrelation.bestTask ? `For ${insights.energyCorrelation.bestTask}, intense` : "Intense"} sessions are ${insights.energyCorrelation.diffPercent}% longer`
+                      : "Mood hasn't significantly impacted duration yet."}
+                  </Text>
+                </View>
+              </View>
 
-          {/* Streak */}
-          <View style={styles.insightItem}>
-            <View
-              style={[
-                styles.insightIconContainer,
-                { backgroundColor: activeColors.error },
-              ]}
-            >
-              <Flame size={20} color={activeColors.card} />
-            </View>
-            <View style={styles.insightContent}>
-              <Text
-                style={[
-                  styles.insightLabel,
-                  { color: activeColors.text.secondary },
-                ]}
-              >
-                Consistency Streak
-              </Text>
-              <Text
-                style={[
-                  styles.insightValue,
-                  { color: activeColors.text.primary },
-                ]}
-              >
-                {insights.streak.current > 1
-                  ? `${insights.streak.current} day streak! (Best: ${insights.streak.best})`
-                  : insights.streak.best > 1
-                    ? `Best streak: ${insights.streak.best} days. Start a new one!`
-                    : "Focus today to start a streak!"}
-              </Text>
-            </View>
-          </View>
+              {/* Time of Day */}
+              <View style={styles.insightItem}>
+                <View
+                  style={[
+                    styles.insightIconContainer,
+                    { backgroundColor: activeColors.primary },
+                  ]}
+                >
+                  <Zap size={20} color={activeColors.card} />
+                </View>
+                <View style={styles.insightContent}>
+                  <Text
+                    style={[
+                      styles.insightLabel,
+                      { color: activeColors.text.secondary },
+                    ]}
+                  >
+                    Peak Performance
+                  </Text>
+                  <Text
+                    style={[
+                      styles.insightValue,
+                      { color: activeColors.text.primary },
+                    ]}
+                  >
+                    {insights.timeOfDay.bestPeriod !== "N/A"
+                      ? `You focus best in the ${insights.timeOfDay.bestPeriod}`
+                      : "Keep focusing to find your peak time."}
+                  </Text>
+                </View>
+              </View>
 
-          {/* Duration Optimization */}
-          <View style={styles.insightItem}>
-            <View
-              style={[
-                styles.insightIconContainer,
-                { backgroundColor: activeColors.success },
-              ]}
-            >
-              <Target size={20} color={activeColors.card} />
-            </View>
-            <View style={styles.insightContent}>
-              <Text
-                style={[
-                  styles.insightLabel,
-                  { color: activeColors.text.secondary },
-                ]}
-              >
-                Duration Optimization
-              </Text>
-              <Text
-                style={[
-                  styles.insightValue,
-                  { color: activeColors.text.primary },
-                ]}
-              >
-                {insights.durationOptimization.isSignificant
-                  ? `For ${insights.durationOptimization.taskType}, your sweet spot is ${insights.durationOptimization.bestDuration} min (${insights.durationOptimization.completionRate}% completion)`
-                  : "Collect more data to find your optimal session length."}
-              </Text>
-            </View>
-          </View>
+              {/* Streak */}
+              <View style={styles.insightItem}>
+                <View
+                  style={[
+                    styles.insightIconContainer,
+                    { backgroundColor: activeColors.error },
+                  ]}
+                >
+                  <Flame size={20} color={activeColors.card} />
+                </View>
+                <View style={styles.insightContent}>
+                  <Text
+                    style={[
+                      styles.insightLabel,
+                      { color: activeColors.text.secondary },
+                    ]}
+                  >
+                    Consistency Streak
+                  </Text>
+                  <Text
+                    style={[
+                      styles.insightValue,
+                      { color: activeColors.text.primary },
+                    ]}
+                  >
+                    {insights.streak.current > 1
+                      ? `${insights.streak.current} day streak! (Best: ${insights.streak.best})`
+                      : insights.streak.best > 1
+                        ? `Best streak: ${insights.streak.best} days. Start a new one!`
+                        : "Focus today to start a streak!"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Duration Optimization */}
+              <View style={styles.insightItem}>
+                <View
+                  style={[
+                    styles.insightIconContainer,
+                    { backgroundColor: activeColors.success },
+                  ]}
+                >
+                  <Target size={20} color={activeColors.card} />
+                </View>
+                <View style={styles.insightContent}>
+                  <Text
+                    style={[
+                      styles.insightLabel,
+                      { color: activeColors.text.secondary },
+                    ]}
+                  >
+                    Duration Optimization
+                  </Text>
+                  <Text
+                    style={[
+                      styles.insightValue,
+                      { color: activeColors.text.primary },
+                    ]}
+                  >
+                    {insights.durationOptimization.isSignificant
+                      ? `For ${insights.durationOptimization.taskType}, your sweet spot is ${insights.durationOptimization.bestDuration} min (${insights.durationOptimization.completionRate}% completion)`
+                      : "Collect more data to find your optimal session length."}
+                  </Text>
+                </View>
+              </View>
+            </>
+          )}
         </View>
 
         {/* empty state */}
@@ -669,6 +704,31 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_600SemiBold",
     color: Colors.text.primary,
+    lineHeight: 20,
+  },
+  comingSoonContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: SPACING.xl,
+  },
+  comingSoonIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: SPACING.md,
+  },
+  comingSoonText: {
+    fontSize: TYPOGRAPHY.size.xl,
+    fontFamily: "Outfit_700Bold",
+    marginBottom: SPACING.xs,
+  },
+  comingSoonSubtext: {
+    fontSize: TYPOGRAPHY.size.md,
+    fontFamily: "Outfit_400Regular",
+    textAlign: "center",
+    paddingHorizontal: SPACING.lg,
     lineHeight: 20,
   },
   emptyState: {
