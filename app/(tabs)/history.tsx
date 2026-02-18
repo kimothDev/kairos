@@ -110,48 +110,51 @@ export default function HistoryScreen() {
     >
       <View
         style={[
-          styles.header,
-          { backgroundColor: activeColors.card, paddingTop: insets.top + 10 },
+          styles.headerContainer,
+          {
+            backgroundColor: activeColors.background,
+            paddingTop: insets.top + 20,
+          },
         ]}
       >
-        <Text style={[styles.title, { color: activeColors.text.primary }]}>
-          Session History
-        </Text>
-        <TouchableOpacity onPress={() => setShowFilterModal(true)}>
-          <Filter
-            size={24}
-            color={
-              selectedTaskTypes.length > 0 || selectedEnergyLevels.length > 0
-                ? activeColors.primary
-                : activeColors.text.primary
-            }
-          />
-        </TouchableOpacity>
-      </View>
-      <View
-        style={[
-          styles.header,
-          { backgroundColor: activeColors.card, paddingTop: 0 },
-        ]}
-      >
-        <View style={styles.filterContainer}>
+        <View style={styles.headerTop}>
+          <Text style={[styles.title, { color: activeColors.text.primary }]}>
+            Session History
+          </Text>
+          <TouchableOpacity onPress={() => setShowFilterModal(true)}>
+            <Filter
+              size={24}
+              color={
+                selectedTaskTypes.length > 0 || selectedEnergyLevels.length > 0
+                  ? activeColors.primary
+                  : activeColors.text.primary
+              }
+            />
+          </TouchableOpacity>
+        </View>
+
+        <View
+          style={[
+            styles.timeRangeSelector,
+            { backgroundColor: activeColors.card },
+          ]}
+        >
           {(["day", "week", "month", "year"] as FilterPeriod[]).map((p) => (
             <TouchableOpacity
               key={p}
               style={[
-                styles.filterButton,
-                { backgroundColor: activeColors.background },
+                styles.timeRangeButton,
                 filterPeriod === p && { backgroundColor: activeColors.primary },
               ]}
               onPress={() => setFilterPeriod(p)}
             >
               <Text
                 style={[
-                  styles.filterText,
+                  styles.timeRangeText,
                   { color: activeColors.text.secondary },
                   filterPeriod === p && {
                     color: activeColors.card,
-                    fontFamily: "Outfit_600SemiBold",
+                    fontFamily: "Outfit_700Bold",
                   },
                 ]}
               >
@@ -229,35 +232,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
+  headerContainer: {
     paddingHorizontal: "5%",
-    paddingTop: "5%",
-    paddingBottom: "2%",
-    backgroundColor: Colors.card,
-    zIndex: 10,
+    paddingBottom: "5%",
+    backgroundColor: Colors.background,
+  },
+  headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 15,
   },
   title: {
     fontSize: 24,
     fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
   },
-  filterContainer: {
+  timeRangeSelector: {
     flexDirection: "row",
-    marginBottom: "2%",
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 4,
   },
-  filterButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    marginRight: 8,
-    backgroundColor: Colors.background,
+  timeRangeButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: "center",
+    borderRadius: 8,
   },
-  filterText: {
-    fontSize: 14,
-    fontFamily: "Outfit_400Regular",
+  timeRangeText: {
+    fontSize: 13,
+    fontFamily: "Outfit_600SemiBold",
     color: Colors.text.secondary,
   },
   historyContainer: {
