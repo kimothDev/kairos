@@ -5,6 +5,9 @@
  * live countdown, and interactive controls for the focus session.
  */
 import {
+    SPACING
+} from "@/constants/layout";
+import {
     ADHD_FOCUS_OPTIONS,
     FOCUS_OPTIONS,
     formatTime,
@@ -354,7 +357,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontFamily: "Outfit_700Bold",
-    marginBottom: "2%",
+    marginBottom: SPACING.p2,
   },
   startPauseButton: {
     alignItems: "center",
@@ -373,12 +376,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   timeTextContainer: {
-    paddingVertical: 4,
-    padding: 10,
+    paddingVertical: SPACING.xs,
+    padding: SPACING.sm,
     marginVertical: -5,
   },
   timeAdjustButton: {
-    padding: 4,
+    padding: SPACING.xs,
     marginVertical: -10,
   },
   cancelButton: {

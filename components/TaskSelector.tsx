@@ -4,20 +4,20 @@
  * An interactive component that allows users to pick a task type
  * from a list or add a new custom task before starting their session.
  */
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { ChevronRight } from "lucide-react-native";
 import React, { useState } from "react";
-
 import {
-    Dimensions,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function TaskSelector() {
@@ -195,16 +195,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "4%",
-    borderRadius: 12,
-    marginBottom: "4%",
+    padding: SPACING.p4,
+    borderRadius: RADIUS.lg,
+    marginBottom: SPACING.p4,
   },
   slotLabel: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_600SemiBold",
   },
   slotValue: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_400Regular",
   },
   modalOverlay: {
@@ -214,8 +214,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    padding: 20,
-    borderRadius: 16,
+    padding: SPACING.xl,
+    borderRadius: RADIUS.xl,
     width: "85%",
     maxWidth: 400,
     maxHeight: screenHeight * 0.7,
@@ -226,44 +226,44 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: TYPOGRAPHY.size.xxl,
     fontFamily: "Outfit_700Bold",
-    marginBottom: 12,
+    marginBottom: SPACING.md,
     textAlign: "center",
   },
   taskList: {
     flexGrow: 0,
     maxHeight: 260,
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   taskListContent: {
-    paddingBottom: 8,
+    paddingBottom: SPACING.sm,
   },
   taskItem: {
-    padding: 12,
-    marginVertical: 4,
-    borderRadius: 8,
+    padding: SPACING.md,
+    marginVertical: SPACING.xs,
+    borderRadius: RADIUS.md,
   },
   taskItemText: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_400Regular",
   },
   addTaskContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   taskInput: {
     flex: 1,
-    padding: 12,
+    padding: SPACING.md,
     borderWidth: 1,
-    borderRadius: 8,
-    marginRight: 8,
+    borderRadius: RADIUS.md,
+    marginRight: SPACING.sm,
     fontFamily: "Outfit_400Regular",
   },
   addButton: {
-    borderRadius: 20,
+    borderRadius: RADIUS.xl, // Approximate for circle
     width: 40,
     height: 40,
     justifyContent: "center",
@@ -271,27 +271,27 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: "white",
-    fontSize: 24,
+    fontSize: TYPOGRAPHY.size.title,
     lineHeight: 30,
   },
   closeButton: {
-    padding: 12,
-    borderRadius: 8,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
     alignItems: "center",
   },
   closeButtonText: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_700Bold",
   },
   taskItemRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginVertical: 4,
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    marginVertical: SPACING.xs,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.md,
   },
   deleteIcon: {
-    padding: 8,
+    padding: SPACING.sm,
   },
 });
