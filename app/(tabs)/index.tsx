@@ -10,6 +10,7 @@ import EnergyLevelSelector from "@/components/EnergyLevelSelector";
 import RecommendationCard from "@/components/RecommendationCard";
 import SkipConfirmModal from "@/components/SkipConfirmModal";
 import TaskSelector from "@/components/TaskSelector";
+import { SPACING } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore, { loadDynamicFocusArms } from "@/store/timerStore";
 import Constants from "expo-constants";
@@ -137,10 +138,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: "25%",
+    paddingBottom: SPACING.p25,
   },
   slotsContainer: {
-    paddingHorizontal: "5%",
-    marginBottom: "5%",
+    paddingHorizontal: SPACING.p5,
+    marginBottom: SPACING.p5,
   },
 });

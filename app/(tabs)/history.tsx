@@ -7,6 +7,7 @@
 import HistoryFilterModal from "@/components/HistoryFilterModal";
 import SessionHistoryItem from "@/components/SessionHistoryItem";
 import Colors from "@/constants/colors";
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { DEFAULT_TASKS } from "@/constants/timer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
@@ -233,42 +234,42 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   headerContainer: {
-    paddingHorizontal: "5%",
-    paddingBottom: "5%",
+    paddingHorizontal: SPACING.p5,
+    paddingBottom: SPACING.p5,
     backgroundColor: Colors.background,
   },
   headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: SPACING.lg,
   },
   title: {
-    fontSize: 24,
+    fontSize: TYPOGRAPHY.size.title,
     fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
   },
   timeRangeSelector: {
     flexDirection: "row",
     backgroundColor: Colors.card,
-    borderRadius: 12,
-    padding: 4,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.xs,
   },
   timeRangeButton: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: SPACING.sm,
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
   },
   timeRangeText: {
-    fontSize: 13,
+    fontSize: TYPOGRAPHY.size.sm,
     fontFamily: "Outfit_600SemiBold",
     color: Colors.text.secondary,
   },
   historyContainer: {
     flex: 1,
-    paddingHorizontal: "5%",
-    paddingTop: "2%",
+    paddingHorizontal: SPACING.p5,
+    paddingTop: SPACING.p2,
   },
   loadingContainer: {
     alignItems: "center",
@@ -276,31 +277,31 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: SPACING.sm,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
   },
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: "15%",
-    paddingVertical: "10%",
+    marginTop: SPACING.p15,
+    paddingVertical: SPACING.p10,
     backgroundColor: Colors.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.lg,
   },
   emptyStateText: {
-    fontSize: 18,
+    fontSize: TYPOGRAPHY.size.xl,
     fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.sm,
   },
   emptyStateSubtext: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
     textAlign: "center",
-    paddingHorizontal: "5%",
+    paddingHorizontal: SPACING.p5,
   },
 });
