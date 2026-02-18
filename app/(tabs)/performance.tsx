@@ -577,7 +577,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
   },
   timeRangeText: {
-    fontSize: TYPOGRAPHY.size.sm,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_600SemiBold",
     color: Colors.text.secondary,
   },

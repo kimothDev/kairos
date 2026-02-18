@@ -14,12 +14,12 @@ import useTimerStore from "@/store/timerStore";
 import { Filter, History } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
   },
   timeRangeText: {
-    fontSize: TYPOGRAPHY.size.sm,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_600SemiBold",
     color: Colors.text.secondary,
   },
