@@ -4,6 +4,7 @@
  * A summary component for a single focus session. Facilitates viewing
  * session details and adding/editing session notes.
  */
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { EnergyLevel, Session } from "@/types";
 import {
@@ -192,9 +193,9 @@ export default memo(SessionHistoryItem);
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 12,
-    padding: "4%",
-    marginBottom: "3%",
+    borderRadius: RADIUS.lg,
+    padding: SPACING.p4,
+    marginBottom: SPACING.p4,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -208,18 +209,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   taskType: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_700Bold",
   },
   date: {
-    fontSize: 12,
+    fontSize: TYPOGRAPHY.size.sm,
     fontFamily: "Outfit_400Regular",
   },
   details: {
-    gap: 8,
+    gap: SPACING.sm,
   },
   detailRow: {
     flexDirection: "row",
@@ -230,9 +231,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   detailText: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_400Regular",
-    marginLeft: 4,
+    marginLeft: SPACING.xs,
   },
   noteButton: {
     flexDirection: "row",
@@ -244,9 +245,9 @@ const styles = StyleSheet.create({
     maxWidth: 150,
   },
   noteText: {
-    fontSize: 12,
+    fontSize: TYPOGRAPHY.size.sm,
     fontFamily: "Outfit_400Regular",
     fontStyle: "italic",
-    marginRight: 4,
+    marginRight: SPACING.xs,
   },
 });

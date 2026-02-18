@@ -7,6 +7,7 @@
 import HistoryFilterModal from "@/components/HistoryFilterModal";
 import SessionHistoryItem from "@/components/SessionHistoryItem";
 import Colors from "@/constants/colors";
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { DEFAULT_TASKS } from "@/constants/timer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
@@ -110,48 +111,51 @@ export default function HistoryScreen() {
     >
       <View
         style={[
-          styles.header,
-          { backgroundColor: activeColors.card, paddingTop: insets.top + 10 },
+          styles.headerContainer,
+          {
+            backgroundColor: activeColors.background,
+            paddingTop: insets.top + 20,
+          },
         ]}
       >
-        <Text style={[styles.title, { color: activeColors.text.primary }]}>
-          Session History
-        </Text>
-        <TouchableOpacity onPress={() => setShowFilterModal(true)}>
-          <Filter
-            size={24}
-            color={
-              selectedTaskTypes.length > 0 || selectedEnergyLevels.length > 0
-                ? activeColors.primary
-                : activeColors.text.primary
-            }
-          />
-        </TouchableOpacity>
-      </View>
-      <View
-        style={[
-          styles.header,
-          { backgroundColor: activeColors.card, paddingTop: 0 },
-        ]}
-      >
-        <View style={styles.filterContainer}>
+        <View style={styles.headerTop}>
+          <Text style={[styles.title, { color: activeColors.text.primary }]}>
+            Session History
+          </Text>
+          <TouchableOpacity onPress={() => setShowFilterModal(true)}>
+            <Filter
+              size={24}
+              color={
+                selectedTaskTypes.length > 0 || selectedEnergyLevels.length > 0
+                  ? activeColors.primary
+                  : activeColors.text.primary
+              }
+            />
+          </TouchableOpacity>
+        </View>
+
+        <View
+          style={[
+            styles.timeRangeSelector,
+            { backgroundColor: activeColors.card },
+          ]}
+        >
           {(["day", "week", "month", "year"] as FilterPeriod[]).map((p) => (
             <TouchableOpacity
               key={p}
               style={[
-                styles.filterButton,
-                { backgroundColor: activeColors.background },
+                styles.timeRangeButton,
                 filterPeriod === p && { backgroundColor: activeColors.primary },
               ]}
               onPress={() => setFilterPeriod(p)}
             >
               <Text
                 style={[
-                  styles.filterText,
+                  styles.timeRangeText,
                   { color: activeColors.text.secondary },
                   filterPeriod === p && {
                     color: activeColors.card,
-                    fontFamily: "Outfit_600SemiBold",
+                    fontFamily: "Outfit_700Bold",
                   },
                 ]}
               >
@@ -229,41 +233,43 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
-    paddingHorizontal: "5%",
-    paddingTop: "5%",
-    paddingBottom: "2%",
-    backgroundColor: Colors.card,
-    zIndex: 10,
+  headerContainer: {
+    paddingHorizontal: SPACING.p5,
+    paddingBottom: SPACING.p5,
+    backgroundColor: Colors.background,
+  },
+  headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: SPACING.lg,
   },
   title: {
-    fontSize: 24,
+    fontSize: TYPOGRAPHY.size.title,
     fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
   },
-  filterContainer: {
+  timeRangeSelector: {
     flexDirection: "row",
-    marginBottom: "2%",
+    backgroundColor: Colors.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.xs,
   },
-  filterButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    marginRight: 8,
-    backgroundColor: Colors.background,
+  timeRangeButton: {
+    flex: 1,
+    paddingVertical: SPACING.sm,
+    alignItems: "center",
+    borderRadius: RADIUS.md,
   },
-  filterText: {
-    fontSize: 14,
-    fontFamily: "Outfit_400Regular",
+  timeRangeText: {
+    fontSize: TYPOGRAPHY.size.sm,
+    fontFamily: "Outfit_600SemiBold",
     color: Colors.text.secondary,
   },
   historyContainer: {
     flex: 1,
-    paddingHorizontal: "5%",
-    paddingTop: "2%",
+    paddingHorizontal: SPACING.p5,
+    paddingTop: SPACING.p2,
   },
   loadingContainer: {
     alignItems: "center",
@@ -271,31 +277,31 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: SPACING.sm,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
   },
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: "15%",
-    paddingVertical: "10%",
+    marginTop: SPACING.p15,
+    paddingVertical: SPACING.p10,
     backgroundColor: Colors.card,
-    borderRadius: 12,
+    borderRadius: RADIUS.lg,
   },
   emptyStateText: {
-    fontSize: 18,
+    fontSize: TYPOGRAPHY.size.xl,
     fontFamily: "Outfit_700Bold",
     color: Colors.text.primary,
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.sm,
   },
   emptyStateSubtext: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_400Regular",
     color: Colors.text.secondary,
     textAlign: "center",
-    paddingHorizontal: "5%",
+    paddingHorizontal: SPACING.p5,
   },
 });

@@ -1,3 +1,4 @@
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -41,26 +42,26 @@ const styles = StyleSheet.create({
   insightItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   insightIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: RADIUS.full,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: SPACING.md,
   },
   insightContent: {
     flex: 1,
   },
   insightLabel: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_400Regular",
     marginBottom: 2,
   },
   insightValue: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_600SemiBold",
   },
 });

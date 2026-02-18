@@ -1,3 +1,4 @@
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -65,29 +66,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    paddingTop: 20,
+    paddingTop: SPACING.xl,
   },
   barColumn: {
     flex: 1,
     alignItems: "center",
   },
   barContainer: {
-    borderRadius: 10,
+    borderRadius: RADIUS.md,
     justifyContent: "flex-end",
     overflow: "hidden",
   },
   bar: {
     width: "100%",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+    borderTopLeftRadius: RADIUS.md,
+    borderTopRightRadius: RADIUS.md,
   },
   barLabel: {
-    fontSize: 12,
+    fontSize: TYPOGRAPHY.size.sm,
     fontFamily: "Outfit_400Regular",
-    marginTop: 8,
+    marginTop: SPACING.sm,
   },
   barValue: {
-    fontSize: 10,
+    fontSize: TYPOGRAPHY.size.xs,
     fontFamily: "Outfit_400Regular",
     marginTop: 2,
   },

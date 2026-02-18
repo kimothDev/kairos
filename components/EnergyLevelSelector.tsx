@@ -4,6 +4,7 @@
  * Provides an interface for users to report their current focus capacity (mood).
  * This data is used to tailor the session recommendations.
  */
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { EnergyLevel } from "@/types";
@@ -144,37 +145,39 @@ export default function EnergyLevelSelector() {
 
 const styles = StyleSheet.create({
   slotButton: {
-    padding: "4%",
-    borderRadius: 12,
-    marginBottom: "4%",
+    padding: SPACING.p4,
+    borderRadius: RADIUS.lg,
+    marginBottom: SPACING.p4,
   },
   slotLabel: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_600SemiBold",
-    marginBottom: 1,
+    marginBottom: 2,
   },
   energySelector: {
-    marginTop: 1,
+    marginTop: 2,
   },
   energyButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
   energyButton: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
-    padding: 10,
-    borderRadius: 8,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.xs / 2,
+    borderRadius: RADIUS.md,
     flex: 1,
-    marginHorizontal: 4,
+    marginHorizontal: SPACING.xs / 2,
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "transparent",
   },
   energyText: {
-    marginLeft: 5,
-    fontSize: 14,
+    marginTop: SPACING.xs + 2,
+    fontSize: TYPOGRAPHY.size.sm,
     fontFamily: "Outfit_400Regular",
+    textAlign: "center",
   },
 });

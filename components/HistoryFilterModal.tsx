@@ -1,3 +1,4 @@
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { X } from "lucide-react-native";
 import React from "react";
@@ -205,12 +206,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
-    padding: 20,
+    padding: SPACING.xl,
   },
   modalContent: {
-    borderRadius: 16,
+    borderRadius: RADIUS.xl,
     maxHeight: "80%",
-    padding: 20,
+    padding: SPACING.xl,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -221,59 +222,59 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   title: {
-    fontSize: 20,
+    fontSize: TYPOGRAPHY.size.xxl,
     fontFamily: "Outfit_700Bold",
   },
   scrollContent: {
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_600SemiBold",
-    marginBottom: 12,
+    marginBottom: SPACING.md,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   chipContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: SPACING.sm,
   },
   chip: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: RADIUS.full,
     borderWidth: 1,
   },
   chipText: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_400Regular",
   },
   footer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: 16,
+    paddingTop: SPACING.lg,
     borderTopWidth: 1,
     borderTopColor: "rgba(0,0,0,0.05)",
   },
   resetButton: {
-    padding: 10,
+    padding: SPACING.sm + 2,
   },
   resetText: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_600SemiBold",
   },
   applyButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xxl,
+    borderRadius: RADIUS.lg,
   },
   applyText: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_700Bold",
   },
 });

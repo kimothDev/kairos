@@ -5,6 +5,7 @@
  * manage session data (export/import), and view app information.
  */
 import ImportModal from "@/components/ImportModal";
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import {
     exportAllDataAsZip,
@@ -455,31 +456,31 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.sm,
   },
   title: {
-    fontSize: 24,
+    fontSize: TYPOGRAPHY.size.title,
     fontFamily: "Outfit_700Bold",
-    marginBottom: 10,
+    marginBottom: SPACING.sm,
   },
   section: {
-    borderRadius: 12,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    padding: 15,
+    borderRadius: RADIUS.lg,
+    marginHorizontal: SPACING.xl,
+    marginBottom: SPACING.xl,
+    padding: SPACING.lg,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_600SemiBold",
-    marginBottom: 15,
+    marginBottom: SPACING.lg,
   },
   settingItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: SPACING.md,
     borderBottomWidth: 1,
   },
   settingInfo: {
@@ -487,50 +488,50 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   settingText: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_400Regular",
-    marginLeft: 12,
+    marginLeft: SPACING.md,
   },
   settingValue: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_400Regular",
   },
   settingHint: {
-    fontSize: 12,
+    fontSize: TYPOGRAPHY.size.sm,
     fontFamily: "Outfit_400Regular",
     marginTop: 2,
   },
   themeSelector: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 10,
+    gap: SPACING.sm,
   },
   themeOption: {
-    flex: 1, // Distribute space evenly
+    flex: 1,
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    padding: 10,
-    borderRadius: 10,
+    padding: SPACING.sm,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
   },
   themeOptionLabel: {
     marginTop: 5,
-    fontSize: 12,
-    fontFamily: "Outfit_500Medium", // We loaded 600, 700, 900. Let's use 600 or 400.
+    fontSize: TYPOGRAPHY.size.sm,
+    fontFamily: "Outfit_500Medium",
   },
   aboutContent: {
-    marginBottom: 10,
+    marginBottom: SPACING.sm,
   },
   aboutText: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     lineHeight: 20,
     fontStyle: "italic",
-    marginTop: 10,
+    marginTop: SPACING.sm,
   },
   brandedHeader: {
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: SPACING.sm,
   },
   brandedTitle: {
     fontSize: 32,
@@ -538,7 +539,7 @@ const styles = StyleSheet.create({
     letterSpacing: -1.5,
   },
   brandedTagline: {
-    fontSize: 12,
+    fontSize: TYPOGRAPHY.size.sm,
     fontFamily: "Outfit_400Regular",
     opacity: 0.6,
     marginTop: -4,

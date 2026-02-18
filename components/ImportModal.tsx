@@ -1,3 +1,4 @@
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { ImportSelection, ParsedImportData } from "@/services/dataExport";
 import { TriangleAlert as AlertTriangle, X } from "lucide-react-native";
@@ -250,7 +251,7 @@ const styles = StyleSheet.create({
   modalView: {
     width: "90%",
     maxHeight: "80%",
-    borderRadius: 20,
+    borderRadius: RADIUS.xxl,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -265,59 +266,59 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 20,
+    padding: SPACING.xl,
     borderBottomWidth: 1,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: TYPOGRAPHY.size.xxl,
     fontFamily: "Outfit_700Bold",
   },
   closeButton: {
-    padding: 4,
+    padding: SPACING.xs,
   },
   content: {
-    padding: 20,
+    padding: SPACING.xl,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_400Regular",
-    marginBottom: 15,
+    marginBottom: SPACING.p15,
   },
   optionRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
-    paddingVertical: 4,
+    marginBottom: SPACING.xl,
+    paddingVertical: SPACING.xs,
   },
   disabledOption: {
     opacity: 0.5,
   },
   optionInfo: {
     flex: 1,
-    marginRight: 10,
+    marginRight: SPACING.sm,
   },
   optionLabel: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_600SemiBold",
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
   optionDetail: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_400Regular",
   },
   warningContainer: {
     flexDirection: "row",
     backgroundColor: "rgba(255, 152, 0, 0.1)",
-    padding: 12,
-    borderRadius: 8,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
     marginTop: 5,
-    marginBottom: 10,
+    marginBottom: SPACING.sm,
     borderWidth: 1,
     borderColor: "rgba(255, 152, 0, 0.3)",
   },
   warningIcon: {
-    marginRight: 10,
+    marginRight: SPACING.sm,
     marginTop: 2,
   },
   warningText: {
@@ -328,25 +329,25 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: "row",
-    padding: 20,
+    padding: SPACING.xl,
     borderTopWidth: 1,
-    gap: 12,
+    gap: SPACING.md,
   },
   cancelButton: {
     flex: 1,
     height: 48,
-    borderRadius: 12,
+    borderRadius: RADIUS.lg,
     justifyContent: "center",
     alignItems: "center",
   },
   cancelButtonText: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_600SemiBold",
   },
   importButton: {
     flex: 1,
     height: 48,
-    borderRadius: 12,
+    borderRadius: RADIUS.lg,
     justifyContent: "center",
     alignItems: "center",
     shadowOffset: {
@@ -362,7 +363,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   importButtonText: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_600SemiBold",
     color: "#FFFFFF",
   },

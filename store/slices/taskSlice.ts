@@ -27,6 +27,7 @@ const fetchAndApplyRecommendation = async (
   energyLevel: EnergyLevel,
   taskType: string,
   dynamicFocusArms: number[],
+  includeShortSessions: boolean,
 ) => {
   if (!energyLevel || !taskType) {
     // Fallback if missing context
@@ -45,6 +46,7 @@ const fetchAndApplyRecommendation = async (
       energyLevel,
       taskType,
       dynamicFocusArms,
+      includeShortSessions,
     );
 
     set({
@@ -92,7 +94,12 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
   },
 
   setEnergyLevel: (level) => {
-    const { energyLevel: currentLevel, taskType, dynamicFocusArms } = get();
+    const {
+      energyLevel: currentLevel,
+      taskType,
+      dynamicFocusArms,
+      includeShortSessions,
+    } = get();
 
     // If clicking same mood for fun, don't update anything
     if (level === currentLevel) return;
@@ -100,7 +107,13 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
     set({ energyLevel: level });
 
     if (level && taskType) {
-      updateRecommendations(level, taskType, set, dynamicFocusArms);
+      updateRecommendations(
+        level,
+        taskType,
+        set,
+        dynamicFocusArms,
+        includeShortSessions,
+      );
     } else if (level) {
       set({
         recommendedFocusDuration: DEFAULT_RECOMMENDATION.focusDuration,
@@ -135,7 +148,7 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
       set({ taskType: normalized, showTaskModal: false });
     }
 
-    const { energyLevel, dynamicFocusArms } = get();
+    const { energyLevel, dynamicFocusArms, includeShortSessions } = get();
     // This action sets userAcceptedRecommendation = TRUE
     fetchAndApplyRecommendation(
       get,
@@ -143,6 +156,7 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
       energyLevel,
       normalized,
       dynamicFocusArms,
+      includeShortSessions,
     );
   },
 
@@ -154,7 +168,8 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
     })),
 
   resetTimer: () => {
-    const { energyLevel, taskType, dynamicFocusArms } = get();
+    const { energyLevel, taskType, dynamicFocusArms, includeShortSessions } =
+      get();
 
     // This action sets userAcceptedRecommendation = TRUE
     fetchAndApplyRecommendation(
@@ -163,6 +178,7 @@ export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
       energyLevel as EnergyLevel,
       taskType,
       dynamicFocusArms,
+      includeShortSessions,
     );
 
     // Reset UI flags

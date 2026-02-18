@@ -1,3 +1,4 @@
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import React from "react";
@@ -69,8 +70,8 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   confirmBox: {
-    padding: 20,
-    borderRadius: 16,
+    padding: SPACING.xl,
+    borderRadius: RADIUS.xl,
     width: "85%",
     maxWidth: 400,
     alignItems: "center",
@@ -81,9 +82,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   confirmText: {
-    fontSize: 18,
+    fontSize: TYPOGRAPHY.size.xl,
     fontFamily: "Outfit_600SemiBold",
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
     textAlign: "center",
   },
   confirmButtons: {
@@ -92,25 +93,25 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   confirmButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 25,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xxl + 6,
+    borderRadius: RADIUS.full,
     minWidth: 100,
     alignItems: "center",
   },
   confirmNo: {
-    marginRight: 10,
+    marginRight: SPACING.md,
     borderWidth: 1,
   },
   confirmYes: {
-    marginLeft: 10,
+    marginLeft: SPACING.md,
   },
   confirmNoText: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_700Bold",
   },
   confirmYesText: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_700Bold",
   },
 });

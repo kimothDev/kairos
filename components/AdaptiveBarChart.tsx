@@ -4,6 +4,7 @@
  * A responsive bar chart component that visualizes focus time across
  * different historical views (Day, Week, Month, Year).
  */
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import React, { useState } from "react";
 import { LayoutChangeEvent, StyleSheet, Text, View } from "react-native";
@@ -127,7 +128,7 @@ export default function AdaptiveBarChart({
                 <SvgText
                   x={Y_AXIS_WIDTH - 6} // Right-align in gutter with some padding
                   y={line.y + 10 + 3} // Center vertically relative to line
-                  fontSize="10"
+                  fontSize={TYPOGRAPHY.size.xs}
                   fontFamily="Outfit_400Regular"
                   fill={Colors.text.secondary}
                   textAnchor="end"
@@ -212,40 +213,38 @@ export default function AdaptiveBarChart({
 
 const styles = StyleSheet.create({
   container: {
-    // Dynamic background handled in specific style prop or parent
-    borderRadius: 16,
-    padding: "4%",
-    marginVertical: "2%",
+    borderRadius: RADIUS.xl,
+    padding: SPACING.p4,
+    marginVertical: SPACING.p2,
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    // alignItems: "center", // Removed to let children fill width
   },
   chartHeader: {
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "center",
-    marginBottom: 10,
-    width: "100%", // ensure it takes full width
+    marginBottom: SPACING.sm,
+    width: "100%",
   },
   chartTitle: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_600SemiBold",
   },
   selectedData: {
-    fontSize: 12,
+    fontSize: TYPOGRAPHY.size.sm,
   },
   noDataContainer: {
     position: "absolute",
-    top: 40, // Below header
-    left: 16, // padding
+    top: 40,
+    left: 16,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 10,
   },
   noDataText: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
   },
 });

@@ -19,23 +19,23 @@ import { createContextKey } from "@/utils/contextKey";
 import { adjustForCapacity, getCapacityStats } from "./capacity";
 import { getBestAction, getTotalObservations } from "./sampling";
 import {
-  loadCapacity,
-  loadModel,
-  loadZones,
-  saveCapacity,
-  saveModel,
-  saveZones,
+    loadCapacity,
+    loadModel,
+    loadZones,
+    saveCapacity,
+    saveModel,
+    saveZones,
 } from "./storage";
 import {
-  BOOTSTRAP_THRESHOLD,
-  BREAK_ACTIONS,
-  CapacityState,
-  Context,
-  DEFAULT_ALPHA,
-  DEFAULT_BETA,
-  EWMA_ALPHA,
-  ModelState,
-  ZoneState,
+    BOOTSTRAP_THRESHOLD,
+    BREAK_ACTIONS,
+    CapacityState,
+    Context,
+    DEFAULT_ALPHA,
+    DEFAULT_BETA,
+    EWMA_ALPHA,
+    ModelState,
+    ZoneState,
 } from "./types";
 import { detectZone, getZoneActions, getZoneData } from "./zones";
 
@@ -44,50 +44,50 @@ import { detectZone, getZoneActions, getZoneData } from "./zones";
 // ============================================================================
 
 export {
-  adjustForCapacity,
-  getCapacityStats,
-  updateCapacityStats
+    adjustForCapacity,
+    getCapacityStats,
+    updateCapacityStats
 } from "./capacity";
 export {
-  getBestAction,
-  getTotalObservations,
-  penalizeRejection,
-  sampleBeta,
-  updateModel
+    getBestAction,
+    getTotalObservations,
+    penalizeRejection,
+    sampleBeta,
+    updateModel
 } from "./sampling";
 export {
-  loadCapacity,
-  loadModel,
-  loadZones,
-  saveCapacity,
-  saveModel,
-  saveZones
+    loadCapacity,
+    loadModel,
+    loadZones,
+    saveCapacity,
+    saveModel,
+    saveZones
 } from "./storage";
 export {
-  BREAK_ACTIONS,
-  DEFAULT_ALPHA,
-  DEFAULT_BETA,
-  SPILLOVER_FACTOR,
-  SPILLOVER_THRESHOLD,
-  ZONE_ACTIONS
+    BREAK_ACTIONS,
+    DEFAULT_ALPHA,
+    DEFAULT_BETA,
+    SPILLOVER_FACTOR,
+    SPILLOVER_THRESHOLD,
+    ZONE_ACTIONS
 } from "./types";
 export type {
-  Action,
-  CapacityState,
-  CapacityStats,
-  Context,
-  FocusZone,
-  ModelParameters,
-  ModelState,
-  ZoneData,
-  ZoneState
+    Action,
+    CapacityState,
+    CapacityStats,
+    Context,
+    FocusZone,
+    ModelParameters,
+    ModelState,
+    ZoneData,
+    ZoneState
 } from "./types";
 export {
-  checkZoneTransition,
-  detectZone,
-  getZoneActions,
-  getZoneData,
-  updateZoneData
+    checkZoneTransition,
+    detectZone,
+    getZoneActions,
+    getZoneData,
+    updateZoneData
 } from "./zones";
 
 // ============================================================================
@@ -101,6 +101,7 @@ export async function getSmartRecommendation(
   context: Context,
   heuristicRecommendation: number,
   dynamicArms: number[] = [],
+  includeShortSessions: boolean = false,
 ): Promise<{
   value: number;
   source: "heuristic" | "learned" | "blended" | "capacity";
@@ -119,6 +120,12 @@ export async function getSmartRecommendation(
       heuristicRecommendation,
     );
     const capacityStats = await getCapacityStats(contextKey);
+
+    // If ADHD mode is on, force the zone to "short" to restrict actions
+    if (includeShortSessions) {
+      zoneData.zone = "short";
+    }
+
     let actions = getZoneActions(zoneData.zone, dynamicArms);
 
     console.log("Zone:", zoneData.zone, "| Actions:", actions.join(", "));
@@ -293,6 +300,7 @@ export async function getSmartBreakRecommendation(
   context: Context,
   baseBreak: number,
   focusDuration: number = 25,
+  includeShortSessions: boolean = false,
 ): Promise<{ value: number; source: "heuristic" | "learned" }> {
   const breakContext: Context = {
     ...context,
@@ -301,7 +309,12 @@ export async function getSmartBreakRecommendation(
   const contextKey = createContextKey(breakContext);
 
   // Get available break actions based on focus duration
-  const availableBreaks = getBreakActionsForFocus(focusDuration);
+  let availableBreaks = getBreakActionsForFocus(focusDuration);
+
+  // If ADHD mode is on, cap break options at 5 minutes
+  if (includeShortSessions) {
+    availableBreaks = availableBreaks.filter((b) => b <= 5);
+  }
 
   // Clamp heuristic to available options
   const clampedBase = Math.min(baseBreak, Math.max(...availableBreaks));
