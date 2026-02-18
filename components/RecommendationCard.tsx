@@ -4,6 +4,7 @@
  * A UI notification that appears when the RL system has a smart focus/break
  * recommendation. Users can accept it or choose to customize their session.
  */
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { ThumbsDown, ThumbsUp, Zap } from "lucide-react-native";
@@ -177,8 +178,8 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   modalContent: {
-    borderRadius: 16,
-    padding: "5%",
+    borderRadius: RADIUS.xl,
+    padding: SPACING.p5,
     width: "90%",
     maxWidth: 400,
     shadowColor: "#000",
@@ -193,17 +194,17 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   title: {
-    fontSize: 18,
+    fontSize: TYPOGRAPHY.size.xl,
     fontFamily: "Outfit_700Bold",
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
   },
   description: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_400Regular",
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
     lineHeight: 20,
   },
   highlight: {
@@ -212,18 +213,18 @@ const styles = StyleSheet.create({
   recommendationRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginBottom: 24,
+    marginBottom: SPACING.xxl,
   },
   recommendationItem: {
     alignItems: "center",
   },
   recommendationLabel: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.size.md,
     fontFamily: "Outfit_400Regular",
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
   recommendationValue: {
-    fontSize: 22,
+    fontSize: TYPOGRAPHY.size.xxl + 2,
     fontFamily: "Outfit_700Bold",
   },
   actionButtons: {
@@ -234,26 +235,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 6,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md + 2,
+    borderRadius: RADIUS.md,
     flex: 1,
   },
   acceptButton: {
-    marginLeft: 10,
+    marginLeft: SPACING.md,
   },
   rejectButton: {
-    marginRight: 10,
+    marginRight: SPACING.md,
   },
   acceptButtonText: {
     color: "#FFFFFF",
     fontFamily: "Outfit_600SemiBold",
     marginLeft: 5,
-    fontSize: 13,
+    fontSize: TYPOGRAPHY.size.sm + 1,
   },
   rejectButtonText: {
     fontFamily: "Outfit_600SemiBold",
     marginLeft: 5,
-    fontSize: 13,
+    fontSize: TYPOGRAPHY.size.sm + 1,
   },
 });

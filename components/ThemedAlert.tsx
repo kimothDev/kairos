@@ -1,3 +1,4 @@
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import React from "react";
@@ -117,13 +118,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: SPACING.xl,
   },
   alertContainer: {
     width: "100%",
     maxWidth: 320,
-    borderRadius: 24,
-    padding: 24,
+    borderRadius: RADIUS.xxl,
+    padding: SPACING.xxl,
     alignItems: "center",
     elevation: 10,
     shadowColor: "#000",
@@ -132,34 +133,34 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   alertTitle: {
-    fontSize: 20,
-    marginBottom: 12,
+    fontSize: TYPOGRAPHY.size.xxl,
+    marginBottom: SPACING.md,
     textAlign: "center",
   },
   alertMessage: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     lineHeight: 22,
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: SPACING.xxl,
   },
   buttonRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: SPACING.md,
     width: "100%",
   },
   buttonColumn: {
     flexDirection: "column",
-    gap: 12,
+    gap: SPACING.md,
     width: "100%",
   },
   button: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 16,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: RADIUS.xl,
     alignItems: "center",
   },
   buttonText: {
     color: "#FFF",
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
   },
 });

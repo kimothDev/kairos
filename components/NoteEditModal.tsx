@@ -1,3 +1,4 @@
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import React, { useEffect, useState } from "react";
 import {
@@ -177,11 +178,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
-    padding: 20,
+    padding: SPACING.xl,
   },
   modalContent: {
-    padding: 24,
-    borderRadius: 16,
+    padding: SPACING.xxl,
+    borderRadius: RADIUS.xl,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -189,41 +190,41 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   title: {
-    fontSize: 20,
+    fontSize: TYPOGRAPHY.size.xxl,
     fontFamily: "Outfit_700Bold",
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 16,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_400Regular",
     minHeight: 100,
     textAlignVertical: "top",
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   viewContainer: {
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
     minHeight: 100,
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   buttonRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    gap: 12,
+    gap: SPACING.md,
   },
   button: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    paddingVertical: SPACING.sm + 2,
+    paddingHorizontal: SPACING.xl,
+    borderRadius: RADIUS.md,
   },
   cancelButton: {
     backgroundColor: "transparent",
   },
   buttonText: {
     fontFamily: "Outfit_600SemiBold",
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
   },
 });

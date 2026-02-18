@@ -4,6 +4,7 @@
  * Displayed after a successful focus session. Offers various break
  * duration options influenced by the duration of the completed session.
  */
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useTimerStore from "@/store/timerStore";
 import { getBreakOptions } from "@/utils/options";
@@ -84,10 +85,10 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   modalContent: {
-    borderRadius: 16,
+    borderRadius: RADIUS.xl,
     width: "85%",
     maxWidth: 400,
-    padding: 20,
+    padding: SPACING.xl,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -95,31 +96,31 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalTitle: {
-    fontSize: 24,
+    fontSize: TYPOGRAPHY.size.title,
     fontFamily: "Outfit_700Bold",
-    marginBottom: 10,
+    marginBottom: SPACING.md,
     textAlign: "center",
   },
   modalText: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_400Regular",
     textAlign: "center",
-    marginTop: 10,
-    marginBottom: 20,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.xl,
   },
   breakOptions: {
-    marginTop: 20,
+    marginTop: SPACING.xl,
     width: "100%",
   },
   breakOption: {
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 10,
+    padding: SPACING.lg,
+    borderRadius: RADIUS.lg,
+    marginBottom: SPACING.md,
     alignItems: "center",
     borderWidth: 1,
   },
   breakOptionText: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_600SemiBold",
   },
 });
