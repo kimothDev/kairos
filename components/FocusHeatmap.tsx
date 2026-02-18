@@ -1,3 +1,4 @@
+import { RADIUS, SPACING, TYPOGRAPHY } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Session } from "@/types";
 import { getHeatmapData } from "@/utils/performanceUtils";
@@ -11,7 +12,7 @@ interface FocusHeatmapProps {
 }
 
 const SQUARE_SIZE = 12;
-const GAP_SIZE = 4;
+const GAP_SIZE = SPACING.xs;
 const DAYS_IN_WEEK = 7;
 const LABEL_WIDTH = 30; // Width for day labels
 const MONTH_LABEL_HEIGHT = 20;
@@ -214,7 +215,7 @@ export default function FocusHeatmap({
                 key={`m-${i}`}
                 x={l.x}
                 y={l.y}
-                fontSize="10"
+                fontSize={TYPOGRAPHY.size.xs}
                 fontFamily="Outfit_600SemiBold"
                 fill={colors.text.secondary}
               >
@@ -258,9 +259,9 @@ export default function FocusHeatmap({
 
 const styles = StyleSheet.create({
   container: {
-    padding: "4%",
-    borderRadius: 16,
-    margin: "4%",
+    padding: SPACING.p4,
+    borderRadius: RADIUS.xl,
+    margin: SPACING.p4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -270,14 +271,14 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   title: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_700Bold",
   },
   stats: {
-    fontSize: 12,
+    fontSize: TYPOGRAPHY.size.sm,
     fontFamily: "Outfit_600SemiBold",
   },
   chartLayout: {
@@ -290,7 +291,7 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     position: "absolute",
-    fontSize: 10,
+    fontSize: TYPOGRAPHY.size.xs,
     fontFamily: "Outfit_400Regular",
     lineHeight: SQUARE_SIZE,
     width: "100%",
