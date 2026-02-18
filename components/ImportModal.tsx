@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cancelButtonText: {
-    fontSize: TYPOGRAPHY.size.md,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_600SemiBold",
   },
   importButton: {
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   importButtonText: {
-    fontSize: TYPOGRAPHY.size.md,
+    fontSize: TYPOGRAPHY.size.lg,
     fontFamily: "Outfit_600SemiBold",
     color: "#FFFFFF",
   },

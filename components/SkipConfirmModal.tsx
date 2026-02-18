@@ -29,13 +29,12 @@ export default function SkipConfirmModal({
           <TouchableOpacity
             style={[
               styles.confirmButton,
-              styles.confirmNo,
               {
-                backgroundColor: colors.background,
-                borderColor: colors.border,
+                backgroundColor: colors.inactive + "1A",
               },
             ]}
             onPress={() => toggleSkipConfirm(false)}
+            activeOpacity={0.7}
           >
             <Text
               style={[styles.confirmNoText, { color: colors.text.primary }]}
@@ -46,10 +45,10 @@ export default function SkipConfirmModal({
           <TouchableOpacity
             style={[
               styles.confirmButton,
-              styles.confirmYes,
               { backgroundColor: colors.secondary },
             ]}
             onPress={handleConfirm}
+            activeOpacity={0.7}
           >
             <Text style={[styles.confirmYesText, { color: "#FFFFFF" }]}>
               Yes
@@ -93,18 +92,12 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   confirmButton: {
+    flex: 1,
     paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xxl + 6,
-    borderRadius: RADIUS.full,
-    minWidth: 100,
+    borderRadius: RADIUS.lg,
     alignItems: "center",
-  },
-  confirmNo: {
-    marginRight: SPACING.md,
-    borderWidth: 1,
-  },
-  confirmYes: {
-    marginLeft: SPACING.md,
+    justifyContent: "center",
+    minHeight: 48,
   },
   confirmNoText: {
     fontSize: TYPOGRAPHY.size.lg,
