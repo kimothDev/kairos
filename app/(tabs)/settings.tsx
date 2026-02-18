@@ -81,6 +81,7 @@ export default function SettingsScreen() {
             onPress: () => Linking.openSettings(),
           },
         ],
+        "left",
       );
     }
   };
