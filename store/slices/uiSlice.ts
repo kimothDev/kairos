@@ -77,11 +77,11 @@ export const createUISlice: SliceCreator<UISlice> = (set, get) => ({
     });
   },
 
-  showThemedAlert: (title, message, buttons) => {
+  showThemedAlert: (title, message, buttons, alignment) => {
     if (message) {
-      set({ themedAlert: { title, message, buttons } });
+      set({ themedAlert: { title, message, buttons, alignment } });
     } else {
-      set({ themedAlert: { message: title, buttons } });
+      set({ themedAlert: { message: title, buttons, alignment } });
     }
   },
 

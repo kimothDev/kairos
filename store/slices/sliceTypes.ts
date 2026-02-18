@@ -89,6 +89,7 @@ export interface UISlice {
     title?: string;
     message: string;
     buttons?: AlertButton[];
+    alignment?: "center" | "left";
   } | null;
 
   // Actions
@@ -107,6 +108,7 @@ export interface UISlice {
     title: string,
     message?: string,
     buttons?: AlertButton[],
+    alignment?: "center" | "left",
   ) => void;
   hideThemedAlert: () => void;
 }

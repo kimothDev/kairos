@@ -32,7 +32,11 @@ export default function ThemedAlert() {
           <Text
             style={[
               styles.alertMessage,
-              { color: colors.text.secondary, fontFamily: "Outfit_400Regular" },
+              {
+                color: colors.text.secondary,
+                fontFamily: "Outfit_400Regular",
+                textAlign: themedAlert.alignment || "center",
+              },
             ]}
           >
             {themedAlert.message}
@@ -49,21 +53,20 @@ export default function ThemedAlert() {
               themedAlert.buttons.map((btn, idx) => (
                 <TouchableOpacity
                   key={`${btn.text}-${idx}`}
+                  activeOpacity={0.7}
                   style={[
                     styles.button,
                     {
                       backgroundColor:
                         btn.style === "destructive"
-                          ? colors.error || "#FF4B4B"
+                          ? colors.error + "20"
                           : btn.style === "cancel"
-                            ? "transparent"
+                            ? colors.inactive + "1A"
                             : colors.primary,
                       flex:
                         themedAlert.buttons && themedAlert.buttons.length > 2
                           ? 0
                           : 1,
-                      borderWidth: btn.style === "cancel" ? 1 : 0,
-                      borderColor: colors.border,
                     },
                   ]}
                   onPress={() => {
@@ -77,9 +80,11 @@ export default function ThemedAlert() {
                       {
                         fontFamily: "Outfit_600SemiBold",
                         color:
-                          btn.style === "cancel"
-                            ? colors.text.secondary
-                            : "#FFF",
+                          btn.style === "destructive"
+                            ? colors.error
+                            : btn.style === "cancel"
+                              ? colors.text.primary
+                              : "#FFF",
                       },
                     ]}
                   >
@@ -93,6 +98,7 @@ export default function ThemedAlert() {
                   styles.button,
                   { backgroundColor: colors.primary, flex: 1 },
                 ]}
+                activeOpacity={0.7}
                 onPress={hideThemedAlert}
               >
                 <Text
@@ -139,9 +145,9 @@ const styles = StyleSheet.create({
   },
   alertMessage: {
     fontSize: TYPOGRAPHY.size.lg,
-    lineHeight: 22,
-    textAlign: "center",
+    lineHeight: 24,
     marginBottom: SPACING.xxl,
+    width: "100%",
   },
   buttonRow: {
     flexDirection: "row",
@@ -158,9 +164,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     borderRadius: RADIUS.xl,
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
   },
   buttonText: {
-    color: "#FFF",
     fontSize: TYPOGRAPHY.size.lg,
+    letterSpacing: 0.2,
   },
 });
