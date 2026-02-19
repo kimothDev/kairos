@@ -40,7 +40,7 @@ Instead of fixed Pomodoro-style timers (25/5), Kairos uses **Thompson Sampling**
 
 Each focus session is a coaching opportunity:
 
-1. **You tell Kairos** your current energy level (low/mid/high) and task type
+1. **You tell Kairos** your current focus mood and task type
 2. **The app recommends** a focus duration based on your history (EWMA in early sessions, Thompson Sampling after 5+ sessions)
 3. **You complete (or skip) the session**
 4. **The model learns** and improves future recommendations
@@ -61,10 +61,9 @@ The system uses a hybrid **EWMA Bootstrap → Thompson Sampling** pipeline: your
 
 ### Adaptive Coaching
 
-- **EWMA Bootstrap:** Mirrors your actual behavior from session 2 — no random exploration
-- **Zone-based learning:** Short (10-30m), Long (25-60m), and Extended (50-120m) zones
-- **Cross-energy floor:** Higher energy contexts never recommend less than what lower energy has proven
-- **Energy-aware:** Low energy users aren't pushed to do longer sessions
+- **EWMA Bootstrap:** Mirrors your actual behavior from session 2, no random exploration
+- **Zone based learning:** Short (10-30m), Long (25-60m), and Extended (50-120m) zones
+- **Focus mood aware:** Low focus mood users aren't pushed to do longer sessions
 - **Break scaling:** Break duration scales with focus (max break = focus ÷ 3)
 
 ### Smart Learning
@@ -72,11 +71,6 @@ The system uses a hybrid **EWMA Bootstrap → Thompson Sampling** pipeline: your
 - **Intent Multipliers:** Manual overrides are rewarded 1.5x more than accepted recommendations.
 - **Upward Spillover:** Successes "warm up" longer durations.
 - **Capacity tracking:** Personalized rewards for stretching your focus limits.
-
-### UX Improvements
-
-- **Inline Scroll Picker:** Smoothly adjust time from 10m to 120m with a single swipe
-- **Haptic & Audio Feedback:** Satisfying interactions for timer adjustments
 
 ### Offline-First
 
@@ -88,7 +82,7 @@ The system uses a hybrid **EWMA Bootstrap → Thompson Sampling** pipeline: your
 
 ## 🧪 What Didn't Work (and What I Learned)
 
-- Tracking time of day (too much noise) -> switched to energy levels.
+- Tracking time of day (too much noise) -> switched to focus mood levels.
 - Optimistic priors (random winners) -> switched to pessimistic priors.
 - Ignoring failed sessions -> added capacity tracking to stay realistic.
 
