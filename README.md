@@ -7,13 +7,34 @@ Instead of fixed Pomodoro-style timers (25/5), Kairos uses **Thompson Sampling**
 > The goal: fewer abandoned sessions, intentional stretching of focus limits, and a system that adapts to you, not the other way around.
 
 ---
-
-<img src="https://github.com/user-attachments/assets/99b5143d-55e6-4c8a-86a9-ea8ec86523a8" width="500" />
-<img src="https://github.com/user-attachments/assets/edd75225-8ec0-4e00-97cb-beed00fd5745" width="600" />
-<img src="https://github.com/user-attachments/assets/24dac44f-55d8-4ec5-ac2b-84b09d68ec13" width="145"/>
-<img src="https://github.com/user-attachments/assets/9cd45cd7-59d3-469e-b956-fab8134de5d0" width="500" />
+# Screenshots
+## Dark Theme
+<img width="225" alt="Screenshot_20260219-143458_Kairos" src="https://github.com/user-attachments/assets/2adcba4b-8cfc-4cfd-acc9-dc8b1566d4db" />
+<img width="225" alt="Screenshot_20260219-143509_Kairos" src="https://github.com/user-attachments/assets/70551514-111d-4c34-98e5-abc8b149d3d5" />
+<img width="225" alt="Screenshot_20260219-143516_Kairos" src="https://github.com/user-attachments/assets/8aa217f1-cee6-44a0-9e75-c4ce2752f574" />
+<img width="225" alt="Screenshot_20260219-143533_Kairos" src="https://github.com/user-attachments/assets/6dd42ee9-26a1-42b6-b7fb-13af716e6612" />
+<img width="225" alt="Screenshot_20260219-143539_Kairos" src="https://github.com/user-attachments/assets/f625eee5-3004-4278-b38c-23b7b70badf6" />
+<img width="225" alt="Screenshot_20260219-143549_Kairos" src="https://github.com/user-attachments/assets/bd7864b8-3e67-43a4-9015-e034ca5a23a5" />
+<img width="225" alt="Screenshot_20260219-143619_Kairos" src="https://github.com/user-attachments/assets/c8e2b53c-dcdd-43f7-b16a-886e4fa4516e" />
 
 ---
+## Light Theme
+<img width="225" alt="Screenshot_20260219-150940_Kairos" src="https://github.com/user-attachments/assets/52439996-e3f3-499f-b057-77d687666c21" />
+<img width="225" alt="Screenshot_20260219-151000_Kairos" src="https://github.com/user-attachments/assets/b0a31e45-5e28-48ce-a0ae-11119ffba13c" />
+<img width="225" alt="Screenshot_20260219-151004_Kairos" src="https://github.com/user-attachments/assets/0f8db4f5-f250-4a6a-bbde-0ebbec9a0d50" />
+<img width="225" alt="Screenshot_20260219-151013_Kairos" src="https://github.com/user-attachments/assets/db5f2ec2-443f-4a57-a5b9-b71902d8a44f" />
+
+
+
+
+
+
+
+
+
+
+---
+
 
 ## 🧠 How It Works
 
