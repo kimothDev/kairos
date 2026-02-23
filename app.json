@@ -3,7 +3,7 @@
     "name": "Kairos",
     "slug": "kairos",
     "owner": "kimoth",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "orientation": "portrait",
     "icon": "./assets/images/appIcon.png",
     "scheme": "myapp",
@@ -20,7 +20,7 @@
     },
     "android": {
       "package": "app.kairos",
-      "versionCode": 6,
+      "versionCode": 7,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/appIcon.png",
         "backgroundColor": "#121212"
