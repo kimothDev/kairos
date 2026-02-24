@@ -101,9 +101,10 @@ const HELPER_SENTINEL = "def findPython16KB()";
  *   We try all three in order and use the first one that exits cleanly.
  *
  * libsDir path:
- *   Correct AGP 7.4+ path is:
- *     build/intermediates/merged_native_libs/{variant}/out/lib
- *   The old (broken) path mistakenly included the task name as a sub-folder.
+ *   Different AGP versions use different intermediate directory structures:
+ *     AGP ≤8.3:  build/intermediates/merged_native_libs/{variant}/{taskName}/out/lib
+ *     AGP 8.4+:  build/intermediates/merged_native_libs/{variant}/out/lib
+ *   We try both paths, using whichever one exists on disk.
  */
 function injectHelperFunctions(gradle) {
   if (gradle.includes(HELPER_SENTINEL)) return gradle;
@@ -136,8 +137,9 @@ def findPython16KB() {
  * Post-processes all .so files in the merged native libs directory for a given
  * build variant, aligning their ELF LOAD segment p_align to 16KB (0x4000).
  *
- * Uses the correct AGP 7.4+ intermediate path:
- *   build/intermediates/merged_native_libs/{variant}/out/lib
+ * Handles both AGP directory structures:
+ *   AGP <=8.3:  build/intermediates/merged_native_libs/{variant}/{taskName}/out/lib
+ *   AGP 8.4+:   build/intermediates/merged_native_libs/{variant}/out/lib
  */
 def align16KBNativeLibs(String buildVariant) {
     def pythonCmd = findPython16KB()
@@ -154,25 +156,44 @@ def align16KBNativeLibs(String buildVariant) {
         return
     }
 
-    // Correct path for AGP 7.4+ (no task-name sub-folder)
-    def libsDir = file("\${buildDir}/intermediates/merged_native_libs/\${buildVariant}/out/lib")
-    if (!libsDir.exists()) {
-        println "[16KB Alignment] INFO: Native libs dir not found for variant '\${buildVariant}': \${libsDir}"
+    // Try both possible AGP intermediate directory structures
+    def taskName = "merge\${buildVariant.capitalize()}NativeLibs"
+    def candidates = [
+        file("\${buildDir}/intermediates/merged_native_libs/\${buildVariant}/\${taskName}/out/lib"),
+        file("\${buildDir}/intermediates/merged_native_libs/\${buildVariant}/out/lib")
+    ]
+
+    def libsDir = null
+    for (candidate in candidates) {
+        if (candidate.exists()) {
+            libsDir = candidate
+            break
+        }
+    }
+
+    if (libsDir == null) {
+        println "[16KB Alignment] INFO: Native libs dir not found for variant '\${buildVariant}'. Searched:"
+        candidates.each { println "  - \${it}" }
         return
     }
 
-    println "[16KB Alignment] Processing libraries for variant: \${buildVariant}"
+    println "[16KB Alignment] Processing libraries in: \${libsDir}"
 
     def processed = 0
     def failed = 0
     libsDir.eachFileRecurse { soFile ->
         if (soFile.name.endsWith('.so')) {
             try {
-                exec {
+                def result = exec {
                     commandLine pythonCmd, scriptFile.absolutePath, soFile.absolutePath
                     ignoreExitValue = true
                 }
-                processed++
+                if (result.exitValue != 0) {
+                    println "[16KB Alignment] WARNING: Non-zero exit for \${soFile.name}"
+                    failed++
+                } else {
+                    processed++
+                }
             } catch (Exception e) {
                 println "[16KB Alignment] WARNING: Could not process \${soFile.name}: \${e.message}"
                 failed++
@@ -180,9 +201,7 @@ def align16KBNativeLibs(String buildVariant) {
         }
     }
 
-    if (processed > 0 || failed > 0) {
-        println "[16KB Alignment] Done: \${processed} processed, \${failed} failed."
-    }
+    println "[16KB Alignment] Done for '\${buildVariant}': \${processed} processed, \${failed} failed."
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
