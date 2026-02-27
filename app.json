@@ -25,11 +25,6 @@
         "foregroundImage": "./assets/images/appIcon.png",
         "backgroundColor": "#121212"
       },
-      "statusBar": {
-        "barStyle": "light-content",
-        "backgroundColor": "#121212",
-        "translucent": true
-      },
       "permissions": [
         "READ_MEDIA_IMAGES",
         "READ_MEDIA_VIDEO",
@@ -46,7 +41,6 @@
       "expo-router",
       "expo-document-picker",
       "expo-media-library",
-      "./plugins/withAndroid16KBAlignment",
       [
         "expo-splash-screen",
         {
@@ -54,6 +48,18 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#121212"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "packagingOptions": {
+              "jniLibs": {
+                "useLegacyPackaging": false
+              }
+            }
+          }
         }
       ]
     ],
