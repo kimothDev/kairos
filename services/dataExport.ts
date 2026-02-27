@@ -13,7 +13,7 @@ import {
 import { exportRLState, importRLState } from "@/services/rl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import JSZip from "jszip";
 import { Platform } from "react-native";
@@ -78,14 +78,14 @@ export const exportAllDataAsZip = async (): Promise<void> => {
 
         // Write data
         await FileSystem.writeAsStringAsync(uri, base64, {
-          encoding: FileSystem.EncodingType.Base64,
+          encoding: "base64",
         });
       }
     } else {
       // iOS: Use Share Sheet which includes "Save to Files"
       const fileUri = FileSystem.documentDirectory + filename;
       await FileSystem.writeAsStringAsync(fileUri, base64, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: "base64",
       });
 
       await Sharing.shareAsync(fileUri, {
@@ -116,7 +116,7 @@ export const pickAndParseZip = async (): Promise<ParsedImportData | null> => {
 
     const fileUri = result.assets[0].uri;
     const base64 = await FileSystem.readAsStringAsync(fileUri, {
-      encoding: FileSystem.EncodingType.Base64,
+      encoding: "base64",
     });
 
     console.log(`[Import] Read file, base64 length: ${base64.length}`);
