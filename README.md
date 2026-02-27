@@ -7,8 +7,11 @@ Instead of fixed Pomodoro-style timers (25/5), Kairos uses **Thompson Sampling**
 > The goal: fewer abandoned sessions, intentional stretching of focus limits, and a system that adapts to you, not the other way around.
 
 ---
+
 # Screenshots
+
 ## Dark Theme
+
 <img width="225" alt="Screenshot_20260219-143458_Kairos" src="https://github.com/user-attachments/assets/2adcba4b-8cfc-4cfd-acc9-dc8b1566d4db" />
 <img width="225" alt="Screenshot_20260219-143509_Kairos" src="https://github.com/user-attachments/assets/70551514-111d-4c34-98e5-abc8b149d3d5" />
 <img width="225" alt="Screenshot_20260219-143516_Kairos" src="https://github.com/user-attachments/assets/8aa217f1-cee6-44a0-9e75-c4ce2752f574" />
@@ -18,23 +21,15 @@ Instead of fixed Pomodoro-style timers (25/5), Kairos uses **Thompson Sampling**
 <img width="225" alt="Screenshot_20260219-143619_Kairos" src="https://github.com/user-attachments/assets/c8e2b53c-dcdd-43f7-b16a-886e4fa4516e" />
 
 ---
+
 ## Light Theme
+
 <img width="225" alt="Screenshot_20260219-150940_Kairos" src="https://github.com/user-attachments/assets/52439996-e3f3-499f-b057-77d687666c21" />
 <img width="225" alt="Screenshot_20260219-151000_Kairos" src="https://github.com/user-attachments/assets/b0a31e45-5e28-48ce-a0ae-11119ffba13c" />
 <img width="225" alt="Screenshot_20260219-151004_Kairos" src="https://github.com/user-attachments/assets/0f8db4f5-f250-4a6a-bbde-0ebbec9a0d50" />
 <img width="225" alt="Screenshot_20260219-151013_Kairos" src="https://github.com/user-attachments/assets/db5f2ec2-443f-4a57-a5b9-b71902d8a44f" />
 
-
-
-
-
-
-
-
-
-
 ---
-
 
 ## 🧠 How It Works
 
@@ -105,10 +100,10 @@ git clone https://github.com/kimothDev/kairos.git
 cd kairos
 
 # Install dependencies
-npm install
+bun install
 
 # Run on Android
-npx expo run:android
+bunx expo run:android
 ```
 
 ---
