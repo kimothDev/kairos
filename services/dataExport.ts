@@ -61,7 +61,7 @@ export const exportAllDataAsZip = async (): Promise<void> => {
 
     // Generate ZIP
     const base64 = await zip.generateAsync({ type: "base64" });
-    const filename = `smart_focus_backup_${new Date().toISOString().split("T")[0]}.zip`;
+    const filename = `kairos_backup_${new Date().toISOString().split("T")[0]}.zip`;
 
     if (Platform.OS === "android") {
       // Use Storage Access Framework on Android to let user pick folder

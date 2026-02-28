@@ -25,7 +25,7 @@ export interface DBSession {
   note?: string;
 }
 
-const db = SQLite.openDatabaseSync("smart_focus_timer.db");
+const db = SQLite.openDatabaseSync("kairos.db");
 
 let dbInitialized = false;
 let initPromise: Promise<void> | null = null;
