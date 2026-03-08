@@ -59,6 +59,7 @@ The system uses a hybrid **EWMA Bootstrap → Thompson Sampling** pipeline: your
 - **EWMA Bootstrap:** Mirrors your actual behavior from session 2, no random exploration
 - **Zone based learning:** Short (10-30m), Long (25-60m), and Extended (50-120m) zones
 - **Focus mood aware:** Low focus mood users aren't pushed to do longer sessions
+- **Break scaling:** Break duration scales with focus (max break = focus ÷ 3)
 
 ### Smart Learning
 
