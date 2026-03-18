@@ -1,5 +1,10 @@
 # 📱 Kairos
 
+> [!IMPORTANT]
+> **ARCHIVED REPOSITORY**  
+> This project has been succeeded by [**Kairos**](https://github.com/stillnorth-labs/kairos) (formerly Kairos v2).  
+> This repository is now read-only and will no longer receive updates.
+
 **Kairos is an adaptive focus coach that learns your optimal session lengths and protects you from burnout.**
 
 Instead of fixed Pomodoro-style timers (25/5), Kairos uses **Thompson Sampling** to find the _opportune moment_ for focus based on your energy levels and actual behavior.
@@ -92,7 +97,9 @@ The system uses a hybrid **EWMA Bootstrap → Thompson Sampling** pipeline: your
 
 ---
 
-## 🚀 Installation
+## 🚀 Installation (Legacy)
+> [!WARNING]
+> These instructions are for the archived version. For the current version, see [stillnorth-labs/kairos](https://github.com/stillnorth-labs/kairos).
 
 ```bash
 # Clone the repository
