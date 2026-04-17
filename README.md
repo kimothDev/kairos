@@ -20,6 +20,7 @@ Instead of fixed Pomodoro-style timers (25/5), Kairos uses **Thompson Sampling**
 <img width="225" alt="Screenshot_20260417-120446_Kairos" src="https://github.com/user-attachments/assets/9964e01a-3c76-46db-ba03-ff2ba2fdf8df" />
 <img width="225" alt="Screenshot_20260417-120453_Kairos" src="https://github.com/user-attachments/assets/b6646027-a6c7-48b3-8b6e-f3235771a839" />
 <img width="225" alt="Screenshot_20260417-120520_Kairos" src="https://github.com/user-attachments/assets/b732f229-80ae-44c3-9fe2-e87e5d3d246b" />
+<img width="225" alt="Screenshot_20260417-123928_Kairos" src="https://github.com/user-attachments/assets/997cd5b1-b02d-4465-9a17-3b3314dd08e5" />
 <img width="225" alt="Screenshot_20260417-120526_Kairos" src="https://github.com/user-attachments/assets/6d3cd672-6216-4431-bb05-ec284b0404b2" />
 <img width="225" alt="Screenshot_20260417-120534_Kairos" src="https://github.com/user-attachments/assets/358bc0b9-0702-4f64-bd7b-edc4b53685fb" />
 <img width="225" alt="Screenshot_20260417-120538_Kairos" src="https://github.com/user-attachments/assets/20d7bb2a-76d3-4f83-8e32-e82c3908af1a" />
