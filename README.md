@@ -2,7 +2,7 @@
 
 > [!IMPORTANT]
 > **ARCHIVED REPOSITORY**  
-> This project has been succeeded by [**Kairos**](https://github.com/stillnorth-labs/kairos) (formerly Kairos v2).  
+> This project has been succeeded by [**Kairos**](https://github.com/stillnorth-labs/kairos) (Private Repository — Access available upon request).  
 > This repository is now read-only and will no longer receive updates.
 
 **Kairos is an adaptive focus coach that learns your optimal session lengths and protects you from burnout.**
