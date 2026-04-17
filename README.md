@@ -16,23 +16,26 @@ Instead of fixed Pomodoro-style timers (25/5), Kairos uses **Thompson Sampling**
 # Screenshots
 
 ## Dark Theme
-
-<img width="225" alt="Screenshot_20260219-143458_Kairos" src="https://github.com/user-attachments/assets/2adcba4b-8cfc-4cfd-acc9-dc8b1566d4db" />
-<img width="225" alt="Screenshot_20260219-143509_Kairos" src="https://github.com/user-attachments/assets/70551514-111d-4c34-98e5-abc8b149d3d5" />
-<img width="225" alt="Screenshot_20260219-143516_Kairos" src="https://github.com/user-attachments/assets/8aa217f1-cee6-44a0-9e75-c4ce2752f574" />
-<img width="225" alt="Screenshot_20260219-143533_Kairos" src="https://github.com/user-attachments/assets/6dd42ee9-26a1-42b6-b7fb-13af716e6612" />
-<img width="225" alt="Screenshot_20260219-143539_Kairos" src="https://github.com/user-attachments/assets/f625eee5-3004-4278-b38c-23b7b70badf6" />
-<img width="225" alt="Screenshot_20260219-143549_Kairos" src="https://github.com/user-attachments/assets/bd7864b8-3e67-43a4-9015-e034ca5a23a5" />
-<img width="225" alt="Screenshot_20260219-143619_Kairos" src="https://github.com/user-attachments/assets/c8e2b53c-dcdd-43f7-b16a-886e4fa4516e" />
+<img width="225" alt="Screenshot_20260417-120438_Kairos" src="https://github.com/user-attachments/assets/aee69156-0833-4f1c-be2a-0fbf9048f32e" />
+<img width="225" alt="Screenshot_20260417-120446_Kairos" src="https://github.com/user-attachments/assets/9964e01a-3c76-46db-ba03-ff2ba2fdf8df" />
+<img width="225" alt="Screenshot_20260417-120453_Kairos" src="https://github.com/user-attachments/assets/b6646027-a6c7-48b3-8b6e-f3235771a839" />
+<img width="225" alt="Screenshot_20260417-120520_Kairos" src="https://github.com/user-attachments/assets/b732f229-80ae-44c3-9fe2-e87e5d3d246b" />
+<img width="225" alt="Screenshot_20260417-120526_Kairos" src="https://github.com/user-attachments/assets/6d3cd672-6216-4431-bb05-ec284b0404b2" />
+<img width="225" alt="Screenshot_20260417-120534_Kairos" src="https://github.com/user-attachments/assets/358bc0b9-0702-4f64-bd7b-edc4b53685fb" />
+<img width="225" alt="Screenshot_20260417-120538_Kairos" src="https://github.com/user-attachments/assets/20d7bb2a-76d3-4f83-8e32-e82c3908af1a" />
+<img width="225" alt="Screenshot_20260417-120542_Kairos" src="https://github.com/user-attachments/assets/6e15b141-3fee-4eb3-8bc9-4c8fb0296da0" />
+<img width="225" alt="Screenshot_20260417-120549_Kairos" src="https://github.com/user-attachments/assets/f1e1102c-3c17-4cc6-9a38-ac592b0176ef" />
 
 ---
 
 ## Light Theme
 
-<img width="225" alt="Screenshot_20260219-150940_Kairos" src="https://github.com/user-attachments/assets/52439996-e3f3-499f-b057-77d687666c21" />
-<img width="225" alt="Screenshot_20260219-151000_Kairos" src="https://github.com/user-attachments/assets/b0a31e45-5e28-48ce-a0ae-11119ffba13c" />
-<img width="225" alt="Screenshot_20260219-151004_Kairos" src="https://github.com/user-attachments/assets/0f8db4f5-f250-4a6a-bbde-0ebbec9a0d50" />
-<img width="225" alt="Screenshot_20260219-151013_Kairos" src="https://github.com/user-attachments/assets/db5f2ec2-443f-4a57-a5b9-b71902d8a44f" />
+<img width="225" alt="Screenshot_20260417-121516_Kairos" src="https://github.com/user-attachments/assets/93a9f091-fcde-42ee-8cd0-262b128ce0b4" />
+<img width="225" alt="Screenshot_20260417-121550_Kairos" src="https://github.com/user-attachments/assets/ca11eefb-b6b6-4c31-806f-31e8f786622a" />
+<img width="225" alt="Screenshot_20260417-121600_Kairos" src="https://github.com/user-attachments/assets/efa1d3c0-9ba2-4e2b-a026-a8b18842148e" />
+<img width="225" alt="Screenshot_20260417-121554_Kairos" src="https://github.com/user-attachments/assets/50c4a1ae-e28e-4eeb-bcb9-8ff21e3efd53" />
+
+
 
 ---
 
