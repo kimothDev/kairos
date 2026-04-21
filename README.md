@@ -2,7 +2,11 @@
 
 > [!IMPORTANT]
 > **ARCHIVED REPOSITORY**  
-> This project has been succeeded by [**Kairos**](https://github.com/stillnorth-labs/kairos) (Private Repository — Access available upon request).  
+> This project has been succeeded by the production-ready [**Kairos**](https://github.com/stillnorth-labs/kairos) (Private Repository — Access available upon request).
+>
+> **Why the move?**  
+> We pivoted from experimental Reinforcement Learning (Thompson Sampling) to a more robust **Weighted-History Engine (EWMA)**. While the old model was an interesting experiment, the new engine provides better **predictability, explainability, and robustness** against the "noisy" data of real-life focus sessions. The new version also introduces advanced context-aware moods, fatigue scaling, and burnout protection "Safety Shields."
+> 
 > This repository is now read-only and will no longer receive updates.
 
 **Kairos is an adaptive focus coach that learns your optimal session lengths and protects you from burnout.**
